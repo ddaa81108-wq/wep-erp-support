@@ -1,0 +1,20 @@
+export type MasraweyaDay = {
+  id: string | null;
+  businessDate: string;
+  previousValueUnits: number;
+  purchasesUnits: number;
+  workTotalUnits: number;
+  finalUnits: number;
+  carryValueUnits: number | null;
+  carrySourceDate: string | null;
+  status: 'draft' | 'finalized';
+  version: number;
+  updatedAt: string | null;
+  updatedByName: string | null;
+  updatedByIsOwner: boolean;
+  finalizedByName: string | null;
+  finalizedByIsOwner: boolean;
+  correctionOpen: boolean;
+  correctionOpenedByName: string | null;
+  entries: Array<{ id: string; sequence: number; valueUnits: number; commissionUnits: number }>;
+};

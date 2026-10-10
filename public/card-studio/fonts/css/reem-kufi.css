@@ -1,0 +1,39 @@
+@font-face {
+  font-family: 'Card Reem Kufi';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../files/reem-kufi-400.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Card Reem Kufi';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('../files/reem-kufi-700.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Card Reem Kufi';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../files/reem-kufi-700.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Card Reem Kufi';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('../files/reem-kufi-700.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Card Reem Kufi';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('../files/reem-kufi-700.ttf') format('truetype');
+}

@@ -1,0 +1,46 @@
+export type { DebtSection, MainSection } from '../../../shared/sections.ts';
+
+export const debtSectionText = {
+  customers: {
+    title: 'قسم ديون العملاء',
+    singular: 'العميل',
+    plural: 'العملاء',
+    add: 'إضافة عميل',
+    ledgerTitle: 'السجل الموحد للعميل',
+    trustLabel: 'أمانة للعميل',
+  },
+  companies: {
+    title: 'قسم ديون الشركات',
+    singular: 'الشركة',
+    plural: 'الشركات',
+    add: 'إضافة شركة',
+    ledgerTitle: 'السجل الموحد للشركة',
+    trustLabel: 'أمانة للشركة',
+  },
+  'libyan-deposits': {
+    title: 'أمانات ليبية',
+    singular: 'العميل',
+    plural: 'حسابات الأمانات',
+    add: 'إضافة أمانة',
+    ledgerTitle: 'سجل الأمانة الليبية',
+    trustLabel: 'أمانة للعميل',
+    currency: 'د.ل',
+    increase: 'دخول',
+    decrease: 'خروج',
+    positiveLabel: 'أمانة للعميل',
+    negativeLabel: 'دين على العميل',
+  },
+  'egyptian-deposits': {
+    title: 'أمانات مصرية',
+    singular: 'العميل',
+    plural: 'حسابات الأمانات',
+    add: 'إضافة أمانة',
+    ledgerTitle: 'سجل الأمانة المصرية',
+    trustLabel: 'دين علينا للعميل',
+    currency: 'ج.م',
+    increase: 'دخول',
+    decrease: 'خروج',
+    positiveLabel: 'رصيد لصالحنا',
+    negativeLabel: 'دين علينا للعميل',
+  },
+} as const;
