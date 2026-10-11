@@ -62,6 +62,16 @@ export type OperationsHealth = {
   technicalErrors: number;
   financialMismatches: number;
   backupPolicy: 'unverified';
+  restoreStatus?: { state: string; completedAt: string | null } | null;
+  backupSchedule?: {
+    output: string;
+    timezone: string;
+    hours: number[];
+    retentionCount: number;
+    lastSuccess: string | null;
+    lastFile: string | null;
+    lastError: string | null;
+  } | null;
   restoreDrillStatus: 'unverified';
   onlineOnly: boolean;
   checkedAt: string;

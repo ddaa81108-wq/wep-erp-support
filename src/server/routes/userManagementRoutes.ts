@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { createEmergencyBackup, stageRestore, requireBackupOwner } from '../domain/emergencyBackup.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { createEmployee, listUsers, updateEmployee } from '../domain/users.ts';
 import { forbidden } from '../http/errors.ts';
@@ -26,6 +27,15 @@ function requireAdmin(user: AuthenticatedUser) {
 
 export async function routeUserManagement(context: UserManagementRouteContext) {
   const { database, request, response, user, url, method, correlationId } = context;
+  if (method === 'POST' && url.pathname === '/api/operations/backup/emergency') {
+    sendJson(response, 200, { ok: true, data: await createEmergencyBackup(database, user) });
+    return true;
+  }
+  if (method === 'POST' && url.pathname === '/api/operations/backup/restore') {
+    requireBackupOwner(database, user);
+    sendJson(response, 202, { ok: true, data: stageRestore(database, user, await readJson(request, 68 * 1024 * 1024)) });
+    return true;
+  }
 
   if (method === 'GET' && url.pathname === '/api/notifications') {
     sendJson(response,200,{ok:true,data:listNotifications(database,user,url)});

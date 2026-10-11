@@ -23,3 +23,8 @@ var/data/
 .env
 .env.*
 !.env.example
+
+# Local deployment verification screenshots (account details).
+/cloudflare-dns-saved.png
+/tunnel-route-review.png
+/tunnel-route-saved.png

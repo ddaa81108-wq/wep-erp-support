@@ -174,8 +174,16 @@
 .notification-list time { color: var(--muted); font: 600 .61rem 'JetBrains Mono', monospace; white-space: nowrap; }
 .operation-actor {
   display: block;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
   margin-top: 2px;
-  color: var(--muted);
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+  color: #000;
+  overflow-wrap: anywhere;
   font-size: .61rem;
   font-weight: 700;
   line-height: 1.35;

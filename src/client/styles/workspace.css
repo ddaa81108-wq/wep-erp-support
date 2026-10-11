@@ -3128,6 +3128,22 @@ button.settings-tool-card:hover {
   margin: 0;
   direction: rtl;
 }
+.permanent-ledger.section-customers .ledger-customer-title {
+  border-radius: 26px;
+  padding: 5px 12px;
+  gap: 2px;
+  overflow: hidden;
+}
+.permanent-ledger.section-customers .ledger-customer-title h2 {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 .permanent-ledger > header .icon-button {
   grid-column: 1;
   grid-row: 1;
@@ -3472,5 +3488,39 @@ button.settings-tool-card:hover {
     --card-bg: linear-gradient(145deg, #151515 0%, #050505 58%, #000 100%);
     --card-accent: #e5e5e5;
     border-color: #737373;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace.section-customers .customer-card-main > b {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 2px 4px;
+    width: 100%;
+    min-width: 0;
+    font-size: clamp(12px, 3.6vw, 15px);
+    line-height: 1.5;
+    white-space: normal;
+  }
+  .workspace.section-customers .customer-balance-amount {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  .workspace.section-customers .customer-card-main > b > small {
+    white-space: nowrap;
+  }
+  .workspace.section-customers .debt-total-card > strong {
+    min-width: 0;
+    max-width: 100%;
+    font-size: clamp(12px, 3.6vw, 15px);
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
   }
 }

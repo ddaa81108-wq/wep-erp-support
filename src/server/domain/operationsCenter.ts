@@ -1,4 +1,6 @@
 import type { IncomingMessage } from 'node:http';
+import { backupStatus } from './backupStatus.ts';
+import { restoreStatus } from './emergencyBackup.ts';
 import { SCHEMA_VERSION, UI_VERSION } from '../config.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { databaseHealth, nowIso } from '../db/database.ts';
@@ -45,6 +47,8 @@ export function operationsSnapshot(database: AppDatabase, actor: AuthenticatedUs
       WHERE organization_id=? AND severity='error'`),
     financialMismatches,
     backupPolicy: 'unverified',
+    backupSchedule: backupStatus(),
+    restoreStatus: actor.isOwner ? restoreStatus() : null,
     restoreDrillStatus: 'unverified',
     onlineOnly: true,
     checkedAt: nowIso(),

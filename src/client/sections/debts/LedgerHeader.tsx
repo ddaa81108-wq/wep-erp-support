@@ -22,7 +22,7 @@ export function LedgerHeader({
       </button>
       <div className="ledger-customer-title">
         <span>{debtSectionText[section].ledgerTitle}</span>
-        <h2>{ledger.customer.name}</h2>
+        <h2 title={ledger.customer.name}>{ledger.customer.name}</h2>
       </div>
       {canWrite && (
         <button className="secondary ledger-edit-details" onClick={onEditDetails}>

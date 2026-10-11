@@ -3,7 +3,7 @@ import { badRequest, payloadTooLarge } from './errors.ts';
 
 const MAX_BODY_BYTES = 1_048_576;
 
-export async function readJson(request: IncomingMessage): Promise<Record<string, unknown>> {
+export async function readJson(request: IncomingMessage, maxBytes = MAX_BODY_BYTES): Promise<Record<string, unknown>> {
   const contentType = request.headers['content-type'] ?? '';
   if (!contentType.toLowerCase().startsWith('application/json')) {
     throw badRequest('CONTENT_TYPE_REQUIRED', 'يجب إرسال البيانات بصيغة JSON.');
@@ -13,7 +13,7 @@ export async function readJson(request: IncomingMessage): Promise<Record<string,
   for await (const chunk of request) {
     const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     size += buffer.length;
-    if (size > MAX_BODY_BYTES) {
+    if (size > maxBytes) {
       throw payloadTooLarge();
     }
     chunks.push(buffer);
