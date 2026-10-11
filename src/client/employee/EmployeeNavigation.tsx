@@ -10,10 +10,10 @@ type MenuItem = { section: MainSection; permission: string; label: string; icon:
 
 const ITEMS: readonly MenuItem[] = [
   { section: 'customers', permission: 'debts.read', label: 'قسم ديون العملاء', icon: Users },
+  { section: 'collections', permission: 'collections.read', label: 'قسم استلامات الديون', icon: ClipboardCheck },
   { section: 'companies', permission: 'companies.read', label: 'قسم ديون الشركات', icon: Building2 },
   { section: 'libyan-deposits', permission: 'libyan_deposits.read', label: 'أمانات ليبية', icon: WalletCards },
   { section: 'egyptian-deposits', permission: 'egyptian_deposits.read', label: 'أمانات مصرية', icon: WalletCards },
-  { section: 'collections', permission: 'collections.read', label: 'قسم استلامات الديون', icon: ClipboardCheck },
   { section: 'masraweya', permission: 'masraweya.read', label: 'صفحة المصراوية', icon: Calculator },
   { section: 'purchases', permission: 'purchases.read', label: 'قسم المشتريات', icon: ShoppingCart },
   { section: 'treasury', permission: 'treasury.read', label: 'الخزينة', icon: WalletCards },

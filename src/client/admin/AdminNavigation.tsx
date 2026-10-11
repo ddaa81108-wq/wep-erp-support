@@ -19,6 +19,10 @@ export function AdminNavigation({ active, open }: Props) {
         <Users size={20} />
         قسم ديون العملاء
       </button>
+      <button className={active === 'collections' ? 'active' : ''} onClick={() => open('collections')}>
+        <ClipboardCheck size={20} />
+        قسم استلامات الديون
+      </button>
       <button className={active === 'companies' ? 'active' : ''} onClick={() => open('companies')}>
         <Building2 size={20} />
         قسم ديون الشركات
@@ -37,10 +41,6 @@ export function AdminNavigation({ active, open }: Props) {
         <WalletCards size={20} />
         أمانات مصرية
       </button>
-      <button className={active === 'collections' ? 'active' : ''} onClick={() => open('collections')}>
-        <ClipboardCheck size={20} />
-        قسم استلامات الديون
-      </button>
       <button className={active === 'masraweya' ? 'active' : ''} onClick={() => open('masraweya')}>
         <Calculator size={20} />
         صفحة المصراوية
@@ -49,10 +49,6 @@ export function AdminNavigation({ active, open }: Props) {
         <ShoppingCart size={20} />
         قسم المشتريات
       </button>
-      <button className={active === 'settings' ? 'active' : ''} onClick={() => open('settings')}>
-        <Settings size={20} />
-        الإعدادات
-      </button>
       <button className={active === 'treasury' ? 'active' : ''} onClick={() => open('treasury')}>
         <WalletCards size={20} />
         الخزينة
@@ -60,6 +56,10 @@ export function AdminNavigation({ active, open }: Props) {
       <button className={active === 'reports' ? 'active' : ''} onClick={() => open('reports')}>
         <FileText size={20} />
         التقارير الذكية
+      </button>
+      <button className={active === 'settings' ? 'active' : ''} onClick={() => open('settings')}>
+        <Settings size={20} />
+        الإعدادات
       </button>
     </nav>
   );
