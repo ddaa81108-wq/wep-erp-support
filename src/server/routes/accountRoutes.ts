@@ -5,6 +5,7 @@ import { API_VERSION, SCHEMA_VERSION } from '../config.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
 import { DEFAULT_BRANCH_ID, DEFAULT_ORGANIZATION_ID } from '../domain/tenancy.ts';
+import { getOrganizationSettings } from '../domain/organizationSettings.ts';
 import { HttpError, badRequest, conflict, unauthorized } from '../http/errors.ts';
 import { newPasswordField, secretField, textField } from '../http/fields.ts';
 import { assertSameOrigin, readJson, sendJson } from '../http/io.ts';
@@ -196,6 +197,11 @@ export async function routeAuthenticatedAccount(
   context: AccountRouteContext & { user: AuthenticatedUser },
 ) {
   const { database, config, request, response, url, method, correlationId, user } = context;
+  if (method === 'GET' && url.pathname === '/api/organization-branding') {
+    const { systemName } = getOrganizationSettings(database, user.organizationId);
+    sendJson(response, 200, { ok: true, data: { systemName } });
+    return true;
+  }
   if (method === 'POST' && url.pathname === '/api/auth/logout') {
     revokeSession(database, user);
     clearSessionCookie(response, config.secureCookie);

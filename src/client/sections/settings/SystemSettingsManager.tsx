@@ -30,6 +30,7 @@ export function SystemSettingsManager({ onClose }: { onClose: () => void }) {
         employeeSectionsVisible: true,
       });
       setSettings(result.settings);
+      window.dispatchEvent(new Event('abdo:organization-settings-changed'));
       setNotice('تم حفظ الإعدادات وتسجيل التغيير في سجل التدقيق.');
     } catch (error) {
       setNotice(message(error));

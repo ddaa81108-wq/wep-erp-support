@@ -19,13 +19,13 @@ export function BackupCenterManager() {
     <div className="backup-status-grid">
       <article><span>حالة قاعدة البيانات</span><strong className={health?.integrity === 'ok' ? 'ok' : ''}>{health ? (health.integrity === 'ok' ? 'سليمة' : 'تحتاج مراجعة') : 'جارٍ الفحص'}</strong></article>
       <article><span>إصدار النسخة</span><strong>{health ? `المخطط ${health.schemaVersion}` : '—'}</strong><small>{health && health.schemaVersion === health.expectedSchemaVersion ? 'متوافق مع التطبيق' : ''}</small></article>
-      <article><span>سياسة التشغيل الحالية</span><strong>يدوية حتى التشغيل الفعلي</strong></article>
-      <article><span>اختبار الاستعادة</span><strong className={health?.restoreDrillAvailable ? 'ok' : ''}>{health?.restoreDrillAvailable ? 'جاهز' : 'غير متاح'}</strong></article>
+      <article><span>النسخ التلقائي على الخادم</span><strong>{health ? 'غير متحقق' : 'جارٍ الفحص'}</strong><small>يلزم فحص جدول النسخ وسجل تنفيذه على الخادم</small></article>
+      <article><span>آخر اختبار استعادة</span><strong>{health ? 'لا توجد نتيجة موثقة هنا' : 'جارٍ الفحص'}</strong></article>
     </div>
 
     <div className="backup-policy-note">
       <ShieldCheck size={22} />
-      <div><strong>لم يُفعّل النسخ التلقائي للبيانات التجريبية</strong><span>المركز والبرامج جاهزة، ويُفعّل الجدول الفعلي فقط عند بدء إدخال البيانات الحقيقية بقرار الإدارة.</span></div>
+      <div><strong>سلامة القاعدة الحالية لا تثبت وجود نسخة احتياطية صالحة</strong><span>هذه الصفحة لا تقرأ جدول Windows أو سجل اختبارات الاستعادة. راجع سجل النسخ وملف التعريف، ثم اختبر الاستعادة على نسخة منفصلة قبل الاعتماد عليها.</span></div>
     </div>
 
     <div className="backup-details-grid">

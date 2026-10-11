@@ -61,8 +61,8 @@ export type OperationsHealth = {
   activeSessions: number;
   technicalErrors: number;
   financialMismatches: number;
-  backupPolicy: 'manual-until-production';
-  restoreDrillAvailable: boolean;
+  backupPolicy: 'unverified';
+  restoreDrillStatus: 'unverified';
   onlineOnly: boolean;
   checkedAt: string;
 };

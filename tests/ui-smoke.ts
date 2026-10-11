@@ -32,6 +32,35 @@ try {
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1440, height: 950 }, locale: 'ar-LY' });
   const page = await context.newPage();
+  const verifySidebar = async (role: string) => {
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      for (const width of [1440, 390]) {
+        await page.setViewportSize({ width, height: width === 390 ? 844 : 950 });
+        if (width === 390) {
+          await page.getByRole('button', { name: 'فتح القائمة الرئيسية' }).click();
+          await page.locator('.sidebar.open').waitFor();
+          await page.waitForFunction(() => {
+            const bounds = document.querySelector('.sidebar.open')?.getBoundingClientRect();
+            return bounds && bounds.left >= 0 && bounds.right <= innerWidth + 0.5;
+          });
+        }
+        await page.screenshot({ path: resolve('artifacts', 'ui', `fixed-sidebar-${role}-${theme}-${width}.png`), animations: 'disabled' });
+        if (width === 390) {
+          // Use a real click: this catches the search bar intercepting the close button.
+          await page.getByRole('button', { name: 'إغلاق القائمة الرئيسية', exact: true }).click();
+          await page.waitForFunction(() => !document.querySelector('.sidebar.open'));
+        }
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
+      }
+    }
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+    await page.setViewportSize({ width: 1440, height: 950 });
+    await page.waitForFunction(() => {
+      const shell = document.querySelector('.app-shell');
+      return shell && getComputedStyle(shell).paddingRight === '220px';
+    });
+  };
 
   await page.goto(base);
   await page.getByRole('heading', { name: 'تهيئة المدير الأول' }).waitFor();
@@ -55,6 +84,7 @@ try {
   await page.getByLabel('كلمة المرور').fill('Local Admin 123!');
   await page.getByRole('button', { name: 'تسجيل الدخول' }).click();
   await page.getByRole('heading', { name: 'قسم ديون العملاء' }).waitFor();
+  await verifySidebar('admin');
   const utilityGeometry = async () => page.evaluate(() => {
     const search = document.querySelector('.global-account-search')?.getBoundingClientRect();
     const status = document.querySelector('.sync-status')?.getBoundingClientRect();
@@ -510,6 +540,11 @@ try {
   await page.locator('.treasury-ledger-row.in').filter({ hasText: 'اختبار واجهة الهاتف' }).waitFor();
   await page.getByRole('button', { name: 'الإعدادات' }).click();
   await page.getByRole('heading', { name: 'الإعدادات' }).waitFor();
+  await page.getByRole('button', { name: /إعدادات المنظومة/ }).click();
+  await page.getByLabel('اسم المنظومة').fill('منظومة اختبار الإصلاحات');
+  await page.getByRole('button', { name: 'حفظ الإعدادات', exact: true }).click();
+  await page.locator('.identity-app strong').getByText('منظومة اختبار الإصلاحات', { exact: true }).waitFor();
+  await page.locator('.system-settings-form').getByRole('button', { name: 'إغلاق', exact: true }).click();
   await page.getByRole('button', { name: /الموظفون والإداريون/ }).click();
   await page.getByRole('heading', { name: 'الموظفون والإداريون' }).waitFor();
   assert.equal(await page.getByRole('dialog').count(), 0, 'account management must use the full settings page');
@@ -567,6 +602,25 @@ try {
   await page.getByRole('heading', { name: 'النسخ الاحتياطي والاستعادة' }).waitFor();
   await page.getByText('محتويات النسخة الكاملة', { exact: true }).waitFor();
   await page.getByText('مسار الاستعادة الآمن', { exact: true }).waitFor();
+  await page.getByText('غير متحقق', { exact: true }).waitFor();
+  await page.getByText('لا توجد نتيجة موثقة هنا', { exact: true }).waitFor();
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 950 });
+      if (width === 390) {
+        await page.waitForFunction(() => {
+          const sidebar = document.querySelector('.sidebar')?.getBoundingClientRect();
+          const shell = document.querySelector('.app-shell');
+          return sidebar && sidebar.left >= innerWidth && shell && getComputedStyle(shell).paddingRight === '0px';
+        });
+      }
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
+      await page.screenshot({ path: join(output, `fixed-backup-${theme}-${width}.png`), fullPage: true, animations: 'disabled' });
+    }
+  }
+  await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+  await page.setViewportSize({ width: 1440, height: 950 });
   assert.equal(await page.getByRole('dialog').count(), 0, 'backup management must use the full settings page');
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
@@ -704,6 +758,12 @@ try {
   await page.getByLabel('تأكيد كلمة المرور الجديدة').fill('Reader Personal 456!');
   await page.getByRole('button', { name: 'حفظ ودخول المنظومة' }).click();
   await page.getByRole('heading', { name: 'قسم استلامات الديون', exact: true }).waitFor();
+  await page.locator('.identity-app strong').getByText('منظومة اختبار الإصلاحات', { exact: true }).waitFor();
+  const branding = await context.request.get(`${base}/api/organization-branding`);
+  assert.equal(branding.status(), 200);
+  assert.deepEqual((await branding.json()).data, { systemName: 'منظومة اختبار الإصلاحات' });
+  assert.equal((await context.request.get(`${base}/api/organization-settings`)).status(), 403);
+  await verifySidebar('employee');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'فتح القائمة الرئيسية' }).click();
   await page.locator('.sidebar').getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();

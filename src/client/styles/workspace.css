@@ -26,7 +26,7 @@
   min-height: 46px;
   padding: 6px;
   display: grid;
-  grid-template-columns: 32px minmax(45px, auto) 1fr 29px;
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, 1fr) 29px;
   align-items: center;
   gap: 6px;
   border: 1px solid #ffffff1d;
@@ -375,7 +375,7 @@ button.settings-tool-card:hover {
   border: 1px solid var(--line); border-radius: 9px; background: var(--panel-soft); font-size: 10px;
 }
 .backup-workflow li { grid-template-columns: 24px 1fr; }
-.backup-workflow b { width: 24px; height: 24px; display: grid; place-items: center; color: #fff; background: var(--accent); border-radius: 999px; font-size: 9px; }
+.backup-workflow b { width: 24px; height: 24px; display: grid; place-items: center; color: #fff; background: var(--green-dark); border-radius: 999px; font-size: 9px; }
 .backup-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
 .backup-footer span { color: var(--muted); font-size: 9px; }
 .operations-center { width: 100%; min-width: 0; padding: 4px 0; display: grid; gap: 12px; }
@@ -2112,6 +2112,7 @@ button.settings-tool-card:hover {
   }
   .sidebar {
     transform: translateX(110%);
+    z-index: 70;
     width: min(280px, 86vw);
     height: 100dvh;
     padding-top: calc(9px + env(safe-area-inset-top));
@@ -2139,7 +2140,7 @@ button.settings-tool-card:hover {
   .drawer-shade {
     display: block;
     position: fixed;
-    z-index: 15;
+    z-index: 60;
     inset: 0;
     border: 0;
     background: #0b211d8c;

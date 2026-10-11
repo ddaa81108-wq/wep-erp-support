@@ -1,5 +1,6 @@
 import { LogOut, PanelRightClose, PanelRightOpen, X } from 'lucide-react';
-import type { User } from '../api.ts';
+import { useEffect, useState } from 'react';
+import { api, type User } from '../api.ts';
 import { AdminNavigation } from '../admin/AdminNavigation.tsx';
 import { EmployeeNavigation } from '../employee/EmployeeNavigation.tsx';
 import type { MainSection } from '../sections/debts/sectionConfig.ts';
@@ -32,6 +33,23 @@ export function DashboardSidebar({
   onThemeToggle,
   onLogout,
 }: Props) {
+  const [systemName, setSystemName] = useState('عبده ERP');
+  useEffect(() => {
+    let active = true;
+    const refresh = () => {
+      void api.organizationBranding().then(result => {
+        if (active) setSystemName(result.systemName);
+      }).catch(() => { /* Keep the last known name during a connection failure. */ });
+    };
+    refresh();
+    window.addEventListener('abdo:organization-settings-changed', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      active = false;
+      window.removeEventListener('abdo:organization-settings-changed', refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [user.id]);
   const open = (section: MainSection) => {
     onOpenSection(section);
     onCloseMenu();
@@ -41,8 +59,8 @@ export function DashboardSidebar({
     <aside className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
       <div className="sidebar-identity">
         <span className="brand-mark">ع</span>
-        <div className="identity-app"><strong>عبده ERP</strong><small>محلي</small></div>
-        <div className="identity-user"><strong>{user.displayName}</strong><small>{user.role === 'admin' ? 'مدير النظام' : user.username}</small></div>
+        <div className="identity-app"><strong title={systemName}>{systemName}</strong><small>محلي</small></div>
+        <div className="identity-user"><strong title={user.displayName}>{user.displayName}</strong><small>{user.role === 'admin' ? 'مدير النظام' : user.username}</small></div>
         <button className="sidebar-hide-button" onClick={onHide} aria-label="إخفاء الشريط الجانبي" title="إخفاء الشريط الجانبي"><PanelRightClose size={17} /></button>
         <button className="sidebar-mobile-close" onClick={onCloseMenu} aria-label="إغلاق القائمة الرئيسية" title="إغلاق القائمة الرئيسية"><X size={18} /></button>
       </div>

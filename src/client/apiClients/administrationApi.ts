@@ -15,6 +15,7 @@ type UserAccess = {
 };
 
 export const administrationApi = {
+  organizationBranding: () => request<{ systemName: string }>('/api/organization-branding'),
   notifications: (before?: number|null) => request<{items:NotificationItem[];unreadCount:number;nextBefore:number|null}>(`/api/notifications${before?`?before=${before}`:''}`),
   markNotificationRead: (id:number) => request<{id:number;read:true}>(`/api/notifications/${id}/read`,{method:'PATCH'}),
   markAllNotificationsRead: () => request<{read:number}>('/api/notifications/read-all',{method:'POST'}),

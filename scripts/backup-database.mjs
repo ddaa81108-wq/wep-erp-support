@@ -33,6 +33,7 @@ if (!Number.isSafeInteger(retentionCount) || retentionCount < 1 || retentionCoun
 mkdirSync(outputRoot, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
 const outputPath = join(outputRoot, `abdo-erp-${stamp}.sqlite`);
+let backupCommitted = false;
 
 try {
   const source = new DatabaseSync(sourcePath, { readOnly: true });
@@ -75,27 +76,51 @@ try {
   const temporaryManifestPath = `${manifestPath}.tmp`;
   writeFileSync(temporaryManifestPath, JSON.stringify(manifest, null, 2), { flag: 'wx' });
   renameSync(temporaryManifestPath, manifestPath);
+  backupCommitted = true;
 
-  const retained = readdirSync(outputRoot)
-    .filter((name) => /^abdo-erp-\d{4}-\d{2}-\d{2}T.*\.sqlite$/.test(name))
-    .map((name) => ({ name, modifiedAt: statSync(join(outputRoot, name)).mtimeMs }))
-    .sort((left, right) => right.modifiedAt - left.modifiedAt);
+  const warnings = [];
   const removed = [];
-  for (const old of retained.slice(retentionCount)) {
-    const databaseFile = join(outputRoot, old.name);
-    unlinkSync(databaseFile);
-    const oldManifest = `${databaseFile}.json`;
-    try {
-      unlinkSync(oldManifest);
-    } catch (error) {
-      if (error?.code !== 'ENOENT') throw error;
+  try {
+    const retained = readdirSync(outputRoot)
+      .filter((name) => /^abdo-erp-\d{4}-\d{2}-\d{2}T.*\.sqlite$/.test(name))
+      .map((name) => ({ name, modifiedAt: statSync(join(outputRoot, name)).mtimeMs }))
+      .sort((left, right) =>
+        left.name === basename(outputPath)
+          ? -1
+          : right.name === basename(outputPath)
+            ? 1
+            : right.modifiedAt - left.modifiedAt,
+      );
+    for (const old of retained.slice(retentionCount)) {
+      try {
+        const databaseFile = join(outputRoot, old.name);
+        unlinkSync(databaseFile);
+        const oldManifest = `${databaseFile}.json`;
+        try {
+          unlinkSync(oldManifest);
+        } catch (error) {
+          if (error?.code !== 'ENOENT') throw error;
+        }
+        removed.push(old.name);
+      } catch (error) {
+        warnings.push(`Could not prune ${old.name}: ${error.message}`);
+      }
     }
-    removed.push(old.name);
+  } catch (error) {
+    warnings.push(`Could not list retention candidates: ${error.message}`);
   }
 
-  console.log(JSON.stringify({ status: 'ok', outputPath, retentionCount, removed, manifest }, null, 2));
+  console.log(
+    JSON.stringify(
+      { status: warnings.length ? 'warning' : 'ok', outputPath, retentionCount, removed, warnings, manifest },
+      null,
+      2,
+    ),
+  );
 } catch (error) {
-  rmSync(outputPath, { force: true });
-  rmSync(`${outputPath}.json.tmp`, { force: true });
+  if (!backupCommitted) {
+    rmSync(outputPath, { force: true });
+    rmSync(`${outputPath}.json.tmp`, { force: true });
+  }
   throw error;
 }

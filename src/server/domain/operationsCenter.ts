@@ -44,8 +44,8 @@ export function operationsSnapshot(database: AppDatabase, actor: AuthenticatedUs
     technicalErrors: scalar(`SELECT COUNT(*) AS count FROM technical_events
       WHERE organization_id=? AND severity='error'`),
     financialMismatches,
-    backupPolicy: 'manual-until-production',
-    restoreDrillAvailable: true,
+    backupPolicy: 'unverified',
+    restoreDrillStatus: 'unverified',
     onlineOnly: true,
     checkedAt: nowIso(),
   };
