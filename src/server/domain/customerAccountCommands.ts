@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { phoneKey } from '../../shared/phone.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
 import { badRequest, conflict } from '../http/errors.ts';
@@ -31,18 +32,19 @@ export function createCustomer(
   const requestId = validateRequestId(input.requestId);
   const scope = `${profile.scope}:create`;
   return inImmediateTransaction(database, () => {
-    const replay = readIdempotent(database, actor.id, scope, requestId);
+    const replay = readIdempotent(database, actor.id, scope, requestId, input);
     if (replay) return replay;
     const { name, normalized } = normalizePartyName(input.name);
     const phone = normalizePhone(input.phone);
+    const normalizedPhone = phoneKey(phone);
     const duplicate = database
       .prepare(
         `SELECT id, name, phone FROM customers
          WHERE organization_id = ? AND section_key = ? AND deleted_at IS NULL
-           AND (normalized_name = ? OR (? IS NOT NULL AND phone = ?))
+           AND (normalized_name = ? OR (? IS NOT NULL AND phone_normalized = ?))
          ORDER BY normalized_name = ? DESC LIMIT 1`,
       )
-      .get(actor.organizationId, profile.sectionKey, normalized, phone, phone, normalized) as
+      .get(actor.organizationId, profile.sectionKey, normalized, normalizedPhone, normalizedPhone, normalized) as
       Record<string, unknown> | undefined;
     if (duplicate) {
       throw conflict(profile.duplicateCode, profile.duplicateMessage, {
@@ -59,16 +61,17 @@ export function createCustomer(
     database
       .prepare(
         `INSERT INTO customers(
-           id, name, normalized_name, phone, account_type, section_key, organization_id, inactive_since,
+           id, name, normalized_name, phone, phone_normalized, account_type, section_key, organization_id, inactive_since,
            ledger_next_sequence, current_balance_units, debt_started_at, financial_updated_at,
            created_at, updated_at
-         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`,
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?)`,
       )
       .run(
         id,
         name,
         normalized,
         phone,
+        normalizedPhone,
         profile.accountType,
         profile.sectionKey,
         actor.organizationId,
@@ -163,7 +166,7 @@ export function createCustomer(
       },
       eventSequence,
     };
-    rememberIdempotent(database, actor.id, scope, requestId, result);
+    rememberIdempotent(database, actor.id, scope, requestId, result, input);
     return result;
   });
 }
@@ -183,14 +186,15 @@ export function updateCustomerDetails(
     const expectedVersion = assertExpectedVersion(customer, input);
     const { name, normalized } = normalizePartyName(input.name);
     const phone = normalizePhone(input.phone);
+    const normalizedPhone = phoneKey(phone);
     const duplicate = database
       .prepare(
         `SELECT id FROM customers
          WHERE id <> ? AND organization_id = ? AND section_key = ? AND deleted_at IS NULL
-           AND (normalized_name = ? OR (? IS NOT NULL AND phone = ?))
+           AND (normalized_name = ? OR (? IS NOT NULL AND phone_normalized = ?))
          LIMIT 1`,
       )
-      .get(customerId, actor.organizationId, profile.sectionKey, normalized, phone, phone) as
+      .get(customerId, actor.organizationId, profile.sectionKey, normalized, normalizedPhone, normalizedPhone) as
       { id: string } | undefined;
     if (duplicate) throw conflict('CUSTOMER_ALREADY_EXISTS', 'يوجد عميل آخر مسجل بالاسم أو رقم الهاتف نفسه.');
 
@@ -199,13 +203,14 @@ export function updateCustomerDetails(
     const updated = database
       .prepare(
         `UPDATE customers
-         SET name = ?, normalized_name = ?, phone = ?, version = ?, updated_at = ?
+         SET name = ?, normalized_name = ?, phone = ?, phone_normalized = ?, version = ?, updated_at = ?
          WHERE id = ? AND organization_id = ? AND version = ? AND deleted_at IS NULL`,
       )
       .run(
         name,
         normalized,
         phone,
+        normalizedPhone,
         nextVersion,
         changedAt,
         customerId,

@@ -3,15 +3,11 @@ import { inImmediateTransaction, nowIso } from '../../db/database.ts';
 import { treasuryDashboard } from '../treasuryQueries.ts';
 import { analyzePosition, type PositionSnapshot, type ReportReason } from './reportModel.ts';
 
-const tripoliDate = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Africa/Tripoli', year: 'numeric', month: '2-digit', day: '2-digit',
-});
-
-export function currentBusinessDate(date = new Date()) {
-  return tripoliDate.format(date);
-}
+import { businessDayRange, organizationBusinessDate, organizationTimezone } from './businessDates.ts';
+export { currentBusinessDate } from './businessDates.ts';
 
 function movement(database: AppDatabase, organizationId: string, businessDate: string) {
+  const range = businessDayRange(businessDate, organizationTimezone(database, organizationId));
   const rows = database.prepare(`
     SELECT
       COALESCE(SUM(CASE WHEN section_key IN ('customer_debts','company_debts')
@@ -25,8 +21,8 @@ function movement(database: AppDatabase, organizationId: string, businessDate: s
       COALESCE(SUM(CASE WHEN section_key='treasury' AND entry_kind='out'
         AND source_status='posted' THEN amount_units ELSE 0 END),0) AS cash_out
     FROM financial_ledger_entries
-    WHERE organization_id=? AND date(occurred_at, '+2 hours')=?
-  `).get(organizationId, businessDate) as Record<string, unknown>;
+    WHERE organization_id=? AND julianday(occurred_at)>=julianday(?) AND julianday(occurred_at)<julianday(?)
+  `).get(organizationId, range.start, range.end) as Record<string, unknown>;
   return {
     receivablesAddedUnits: Number(rows.receivables_added),
     paymentsUnits: Number(rows.payments),
@@ -78,7 +74,7 @@ function mapRow(row: StoredRow) {
 export function finalizePastReports(
   database: AppDatabase,
   organizationId: string,
-  today = currentBusinessDate(),
+  today = organizationBusinessDate(database, organizationId),
 ) {
   return inImmediateTransaction(database, () => {
     const openRows = database.prepare(`
@@ -89,20 +85,14 @@ export function finalizePastReports(
     if (!openRows.length) return 0;
     const update = database.prepare(`
       UPDATE daily_financial_reports SET
-        daily_receivables_added_units=?,daily_payments_units=?,
-        daily_liabilities_effect_units=?,daily_cash_in_units=?,daily_cash_out_units=?,
         is_finalized=1,finalized_at=?,updated_at=?,version=version+1
       WHERE organization_id=? AND business_date=? AND is_finalized=0
     `);
     const finalizedAt = nowIso();
     for (const row of openRows) {
-      const daily = movement(database, organizationId, String(row.business_date));
+      // Freeze the whole committed snapshot. Recounting movements here can mix
+      // a later ledger state with older balances (including backdated changes).
       update.run(
-        daily.receivablesAddedUnits,
-        daily.paymentsUnits,
-        daily.liabilitiesEffectUnits,
-        daily.cashInUnits,
-        daily.cashOutUnits,
         finalizedAt,
         finalizedAt,
         organizationId,
@@ -116,7 +106,7 @@ export function finalizePastReports(
 export function refreshDailyReport(
   database: AppDatabase,
   organizationId: string,
-  businessDate = currentBusinessDate(),
+  businessDate = organizationBusinessDate(database, organizationId),
 ) {
   const stored = database.prepare(`
     SELECT * FROM daily_financial_reports WHERE organization_id=? AND business_date=?

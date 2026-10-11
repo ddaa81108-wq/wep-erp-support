@@ -37,7 +37,7 @@ export function addCustomerTransaction(
   const requestId = validateRequestId(input.requestId);
   const scope = `${profile.scope}:${customerId}:transactions:create`;
   return inImmediateTransaction(database, () => {
-    const replay = readIdempotent(database, actor.id, scope, requestId);
+    const replay = readIdempotent(database, actor.id, scope, requestId, input);
     if (replay) return replay;
     const customer = customerAccount(database, customerId, actor.organizationId, kind);
     assertAccountIsEditable(customer);
@@ -98,7 +98,7 @@ export function addCustomerTransaction(
       },
       eventSequence,
     };
-    rememberIdempotent(database, actor.id, scope, requestId, result);
+    rememberIdempotent(database, actor.id, scope, requestId, result, input);
     return result;
   });
 }
@@ -116,7 +116,7 @@ export function correctCustomerTransaction(
   const requestId = validateRequestId(input.requestId);
   const scope = `${profile.scope}:${customerId}:transactions:${transactionId}:edit`;
   return inImmediateTransaction(database, () => {
-    const replay = readIdempotent(database, actor.id, scope, requestId);
+    const replay = readIdempotent(database, actor.id, scope, requestId, input);
     if (replay) return replay;
     const customer = customerAccount(database, customerId, actor.organizationId, kind);
     assertAccountIsEditable(customer);
@@ -238,7 +238,7 @@ export function correctCustomerTransaction(
       },
       eventSequence,
     };
-    rememberIdempotent(database, actor.id, scope, requestId, result);
+    rememberIdempotent(database, actor.id, scope, requestId, result, input);
     return result;
   });
 }
@@ -256,7 +256,7 @@ export function cancelCustomerTransaction(
   const requestId = validateRequestId(input.requestId);
   const scope = `${profile.scope}:${customerId}:transactions:${transactionId}:cancel`;
   return inImmediateTransaction(database, () => {
-    const replay = readIdempotent(database, actor.id, scope, requestId);
+    const replay = readIdempotent(database, actor.id, scope, requestId, input);
     if (replay) return replay;
     const customer = customerAccount(database, customerId, actor.organizationId, kind);
     assertAccountIsEditable(customer);
@@ -318,7 +318,7 @@ export function cancelCustomerTransaction(
       body: { transactionId, status: 'reversed', customerVersion: nextVersion, balanceUnits },
       eventSequence,
     };
-    rememberIdempotent(database, actor.id, scope, requestId, result);
+    rememberIdempotent(database, actor.id, scope, requestId, result, input);
     return result;
   });
 }

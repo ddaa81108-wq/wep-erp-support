@@ -1,9 +1,20 @@
 import { mkdirSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { migrations } from './migrations.ts';
 
 export type AppDatabase = DatabaseSync;
+
+const commitObservers = new WeakMap<AppDatabase, Set<() => void>>();
+
+/** Run derived-data updates inside the outer transaction, before it commits. */
+export function beforeTransactionCommit(database: AppDatabase, observer: () => void) {
+  const observers = commitObservers.get(database) ?? new Set<() => void>();
+  observers.add(observer);
+  commitObservers.set(database, observers);
+  return () => { observers.delete(observer); };
+}
 
 export function nowIso() {
   return new Date().toISOString();
@@ -48,6 +59,9 @@ function applyMigrations(database: AppDatabase) {
     .prepare('SELECT version,name FROM schema_migrations ORDER BY version')
     .all() as Array<{ version: number; name: string }>;
   const knownByVersion = new Map(migrations.map((migration) => [migration.version, migration]));
+  const checksum = (sql: string) => createHash('sha256').update(sql.replace(/\r\n/g, '\n')).digest('hex');
+  const hasChecksums = database.prepare('PRAGMA table_info(schema_migrations)').all()
+    .some(column => column.name === 'sql_sha256');
   for (const row of appliedRows) {
     const known = knownByVersion.get(Number(row.version));
     if (!known) {
@@ -57,6 +71,13 @@ function applyMigrations(database: AppDatabase) {
       throw new Error(
         `Migration history mismatch at version ${row.version}: expected ${known.name}.`,
       );
+    }
+    if (hasChecksums) {
+      const saved = database.prepare('SELECT sql_sha256 FROM schema_migrations WHERE version=?')
+        .get(row.version) as { sql_sha256: string | null };
+      if (saved.sql_sha256 && saved.sql_sha256 !== checksum(known.sql)) {
+        throw new Error(`Migration SQL checksum mismatch at version ${row.version}.`);
+      }
     }
   }
   const applied = new Set(appliedRows.map((row) => Number(row.version)));
@@ -75,6 +96,17 @@ function applyMigrations(database: AppDatabase) {
       database.exec('ROLLBACK');
       throw error;
     }
+  }
+  // Legacy databases acquire a baseline on their first upgrade; never replace
+  // existing checksums. Hook implementation changes still require code review.
+  database.exec('BEGIN IMMEDIATE');
+  try {
+    const baseline = database.prepare('UPDATE schema_migrations SET sql_sha256=? WHERE version=? AND sql_sha256 IS NULL');
+    for (const migration of migrations) baseline.run(checksum(migration.sql), migration.version);
+    database.exec('COMMIT');
+  } catch (error) {
+    database.exec('ROLLBACK');
+    throw error;
   }
 }
 
@@ -95,6 +127,7 @@ export function inImmediateTransaction<T>(database: AppDatabase, work: () => T):
   database.exec('BEGIN IMMEDIATE');
   try {
     const result = work();
+    for (const observer of commitObservers.get(database) ?? []) observer();
     database.exec('COMMIT');
     return result;
   } catch (error) {

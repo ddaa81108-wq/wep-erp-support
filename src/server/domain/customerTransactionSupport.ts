@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { AppDatabase } from '../db/database.ts';
 import { nowIso } from '../db/database.ts';
 import {
@@ -46,12 +46,31 @@ export function validateRequestId(value: unknown) {
   return value;
 }
 
-export function readIdempotent(database: AppDatabase, actorId: string, scope: string, requestId: string) {
+function requestFingerprint(input: Record<string, unknown>) {
+  const canonical = (value: unknown): unknown => {
+    if (Array.isArray(value)) return value.map(canonical);
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.entries(value)
+        .sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+        .map(([key, item]) => [key, canonical(item)]));
+    }
+    return value;
+  };
+  return createHash('sha256').update(JSON.stringify(canonical(input))).digest('hex');
+}
+
+export function readIdempotent(database: AppDatabase, actorId: string, scope: string, requestId: string, input: Record<string, unknown>) {
   const row = database.prepare(`
-    SELECT response_status, response_json FROM idempotency_keys
+    SELECT response_status, response_json, request_fingerprint FROM idempotency_keys
     WHERE actor_user_id = ? AND scope = ? AND request_id = ?
   `).get(actorId, scope, requestId) as Record<string, unknown> | undefined;
   if (!row) return null;
+  if (!row.request_fingerprint) {
+    throw conflict('LEGACY_REQUEST_REVIEW_REQUIRED', 'هذا الطلب محفوظ من إصدار سابق؛ راجع العملية الموجودة قبل إعادة المحاولة.');
+  }
+  if (row.request_fingerprint !== requestFingerprint(input)) {
+    throw conflict('REQUEST_ID_REUSED', 'استُخدم معرّف الطلب من قبل لمحتوى مختلف.');
+  }
   return {
     status: Number(row.response_status),
     body: JSON.parse(String(row.response_json)),
@@ -65,12 +84,13 @@ export function rememberIdempotent(
   scope: string,
   requestId: string,
   result: OperationResult,
+  input: Record<string, unknown>,
 ) {
   database.prepare(`
     INSERT INTO idempotency_keys(
-      actor_user_id, scope, request_id, response_status, response_json, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?)
-  `).run(actorId, scope, requestId, result.status, JSON.stringify(result.body), nowIso());
+      actor_user_id, scope, request_id, response_status, response_json, created_at, request_fingerprint
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(actorId, scope, requestId, result.status, JSON.stringify(result.body), nowIso(), requestFingerprint(input));
 }
 
 export function nextCustomerReference(database: AppDatabase, kind: DebtPartyKind) {

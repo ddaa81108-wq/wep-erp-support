@@ -1937,6 +1937,7 @@ test('customer record contains identity and account fields without an assignment
       'debt_started_at',
       'financial_updated_at',
       'system_link_key',
+      'phone_normalized',
     ],
   );
 });

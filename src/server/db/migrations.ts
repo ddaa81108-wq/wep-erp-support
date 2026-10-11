@@ -7,6 +7,8 @@ import { settingsMigrations } from './migrationsSettings.ts';
 import { payrollMigrations } from './migrationsPayroll.ts';
 import { masraweyaCorrectionMigrations } from './migrationsMasraweyaCorrection.ts';
 
+import { reliabilityMigrations } from './migrationsReliability.ts';
+
 export type { Migration } from './migrationTypes.ts';
 
 export const migrations: Migration[] = [
@@ -17,4 +19,5 @@ export const migrations: Migration[] = [
   ...settingsMigrations,
   ...payrollMigrations,
   ...masraweyaCorrectionMigrations,
+  ...reliabilityMigrations,
 ];
