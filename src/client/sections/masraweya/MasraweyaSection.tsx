@@ -1,27 +1,33 @@
-import { CheckCircle2, LockKeyholeOpen } from 'lucide-react';
 import type { User } from '../../api.ts';
 import { MasraweyaSummary } from './MasraweyaSummary.tsx';
 import { MasraweyaWorkTable } from './MasraweyaWorkTable.tsx';
 import { useMasraweyaDay } from './useMasraweyaDay.ts';
 
 export function MasraweyaSection({ user }: { user: User }) {
-  const canWrite = user.role === 'admin' || user.permissions?.includes('masraweya.write') === true;
-  const state = useMasraweyaDay(canWrite);
-
-  if (!state.day) {
+  const isAdmin = user.role === 'admin';
+  const canWrite = isAdmin || user.permissions?.includes('masraweya.write') === true;
+  const state = useMasraweyaDay(canWrite, isAdmin);
+  if (!state.day)
     return (
       <section className="masraweya-page">
-        <div className="empty">{state.busy ? 'جارٍ تحميل صفحة المصراوية…' : state.message}</div>
+        <div className="empty">
+          {state.loading ? 'جارٍ تحميل المصراوية…' : state.error}
+          <button onClick={() => void state.goToday()}>إعادة المحاولة</button>
+        </div>
       </section>
     );
-  }
-
   return (
-    <section className="masraweya-page" dir="rtl">
+    <section
+      className="masraweya-page"
+      dir="rtl"
+      onBlurCapture={() => {
+        if (state.dirty && !state.error) void state.flush();
+      }}
+    >
       <header className="masraweya-header">
         <div>
           <h1>صفحة المصراوية</h1>
-          <p>حساب يومي بالجنيه المصري — الناتج ينتقل تلقائيًا إلى الأمانات المصرية</p>
+          <p>دفتر يومي بالجنيه المصري — يبدأ اليوم الساعة 4 صباحًا بتوقيت ليبيا</p>
         </div>
         <label>
           تاريخ العمل
@@ -29,16 +35,40 @@ export function MasraweyaSection({ user }: { user: User }) {
             type="date"
             dir="ltr"
             value={state.date}
-            onChange={(event) => state.changeDate(event.target.value)}
+            max={state.day.today}
+            disabled={state.loading}
+            onChange={(event) => {
+              if (event.target.value) void state.changeDate(event.target.value);
+            }}
           />
         </label>
-        <span className={`masraweya-status ${state.day.status}`}>
-          {state.day.status === 'finalized' ? state.day.correctionOpen ? 'تعديل مفتوح' : 'يوم مُعتمد' : 'مسودة اليوم'}
+        <button className="secondary compact" onClick={() => void state.goToday()} disabled={state.loading}>
+          اليوم الحالي
+        </button>
+        <span className="masraweya-status">
+          {state.locked
+            ? 'للقراءة فقط'
+            : state.date === state.day.today
+              ? 'يوم العمل الحالي'
+              : 'تعديل يوم سابق'}
         </span>
       </header>
-
-      {state.message && <div className="masraweya-message">{state.message}</div>}
-
+      {state.error && (
+        <div className="alert error" role="alert">
+          {state.error} <span>لم تُحذف مسودتك.</span>
+          <button onClick={() => void state.flush()} disabled={state.busy}>
+            إعادة المحاولة
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm('تحميل النسخة المحفوظة سيستبدل المسودة غير المحفوظة. هل تريد المتابعة؟'))
+                void state.reload();
+            }}
+          >
+            تحميل النسخة المحفوظة
+          </button>
+        </div>
+      )}
       <div className="masraweya-layout">
         <MasraweyaWorkTable
           rows={state.rows}
@@ -54,35 +84,25 @@ export function MasraweyaSection({ user }: { user: User }) {
           workTotal={state.workTotal}
           final={state.final}
           locked={state.locked}
+          openingEditable={isAdmin && state.day.openingEditable}
           busy={state.busy}
           onPreviousChange={state.editPrevious}
           onPurchasesChange={state.editPurchases}
-          onApplyCarry={state.applyCarry}
-          onBusyChange={state.setBusy}
-          onMessageChange={state.setMessage}
+          onFlush={state.flush}
         />
       </div>
-
-      {canWrite && (
-        <footer className="masraweya-actions">
-          <span className="masraweya-autosave-state">{state.busy ? 'جارٍ الحفظ…' : state.dirty ? 'سيتم الحفظ تلقائيًا' : 'محفوظ تلقائيًا'}</span>
-          {state.day.status === 'finalized' && !state.day.correctionOpen && (
-            <button className="secondary" disabled={state.busy || user.isOwner !== true} title={user.isOwner === true ? 'فتح التعديل' : 'فتح التعديل للإدارة العليا فقط'} onClick={() => void state.setCorrection(true, 'تصحيح يوم المصراوية')}>
-              <LockKeyholeOpen size={17} /> تعديل اليوم
-            </button>
-          )}
-          {state.day.status === 'finalized' && state.day.correctionOpen && (
-            <button className="secondary" disabled={state.busy} onClick={() => void state.setCorrection(false)}>
-              إغلاق التعديل
-            </button>
-          )}
-          {(state.day.status === 'draft' || state.day.correctionOpen) && <button
-            className="primary"
-            disabled={state.busy}
-            onClick={() => void state.finalize()}
-          ><CheckCircle2 size={17} /> اعتماد اليوم</button>}
-        </footer>
-      )}
+      <footer className="masraweya-actions">
+        <span className={`masraweya-autosave-state ${state.error ? 'failed' : ''}`} role="status">
+          {state.error
+            ? 'توجد تعديلات غير محفوظة'
+            : state.busy
+              ? 'جارٍ الحفظ…'
+              : state.dirty
+                ? 'سيتم الحفظ تلقائيًا'
+                : 'محفوظ تلقائيًا'}
+        </span>
+        <small>بداية اليوم 4 صباحًا • تصحيح آخر 7 أيام للإدارة</small>
+      </footer>
     </section>
   );
 }

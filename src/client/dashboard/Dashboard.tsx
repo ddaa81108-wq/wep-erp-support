@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { flushBeforeNavigation } from './navigationGuards.ts';
 import { api, type User } from '../api.ts';
 import { debtSectionText, type DebtSection } from '../sections/debts/sectionConfig.ts';
 import { DashboardSidebar } from './DashboardSidebar.tsx';
@@ -68,6 +69,7 @@ export function Dashboard({
       .catch((error) => { setPendingAccount(null); setNotice({ kind: 'error', text: dashboardErrorText(error) }); });
   }, [activeSection, canRead, debtAccounts, debtSection, pendingAccount]);
   async function logout() {
+    if (!(await flushBeforeNavigation())) return;
     try {
       await api.logout();
     } finally {

@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import type { User } from '../api.ts';
 import type { MainSection } from '../sections/debts/sectionConfig.ts';
 import { initialDashboardSection } from './dashboardModel.ts';
+import { flushBeforeNavigation } from './navigationGuards.ts';
 
 const SIDEBAR_HIDDEN_KEY = 'abdo-erp-sidebar-hidden';
 
 export function useDashboardNavigation(user: User) {
   const sectionStorageKey = `abdo-erp-active-section:${user.id}`;
-  const [activeSection, setActiveSection] = useState<MainSection>(() =>
+  const [activeSection, commitSection] = useState<MainSection>(() =>
     initialDashboardSection(user, window.localStorage.getItem(sectionStorageKey)),
   );
   const [menuOpen, setMenuOpen] = useState(false);
@@ -22,6 +23,9 @@ export function useDashboardNavigation(user: User) {
   function setSidebarVisibility(hidden: boolean) {
     setSidebarHidden(hidden);
     window.localStorage.setItem(SIDEBAR_HIDDEN_KEY, String(hidden));
+  }
+  async function setActiveSection(section: MainSection) {
+    if (section !== activeSection && (await flushBeforeNavigation())) commitSection(section);
   }
 
   return {

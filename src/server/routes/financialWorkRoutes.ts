@@ -1,11 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { AppDatabase } from '../db/database.ts';
-import {
-  finalizeMasraweyaDay,
-  getMasraweyaDay,
-  saveMasraweyaDay,
-  setMasraweyaDayCorrection,
-} from '../domain/masraweya.ts';
+import { getMasraweyaDay, saveMasraweyaDay } from '../domain/masraweya.ts';
 import {
   createPurchaseEntry,
   deletePurchaseEntry,
@@ -17,6 +12,7 @@ import {
 } from '../domain/purchases.ts';
 import type { EventHub } from '../events.ts';
 import { requirePermission } from '../http/guards.ts';
+import { HttpError } from '../http/errors.ts';
 import { readJson, sendJson } from '../http/io.ts';
 import { decodePathSegment } from '../http/web.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
@@ -56,20 +52,16 @@ export async function routeFinancialWork(context: FinancialWorkRouteContext) {
     return true;
   }
 
-  if (method === 'POST' && url.pathname === '/api/masraweya/day/finalize') {
+  if (
+    method === 'POST' &&
+    ['/api/masraweya/day/finalize', '/api/masraweya/day/correction'].includes(url.pathname)
+  ) {
     requirePermission(user, 'masraweya.write');
-    const data = finalizeMasraweyaDay(database, user, await readJson(request), correlationId);
-    publish(events, data.eventSequences);
-    sendJson(response, 200, { ok: true, data });
-    return true;
-  }
-
-  if (method === 'POST' && url.pathname === '/api/masraweya/day/correction') {
-    requirePermission(user, 'masraweya.write');
-    const data = setMasraweyaDayCorrection(database, user, await readJson(request), correlationId);
-    publish(events, data.eventSequences);
-    sendJson(response, 200, { ok: true, data });
-    return true;
+    throw new HttpError(
+      410,
+      'MASRAWEYA_AUTOMATIC_WORKFLOW',
+      'المصراوية تعمل بالحفظ التلقائي. حدّث الصفحة؛ لا يلزم اعتماد أو فتح تعديل.',
+    );
   }
 
   const purchaseRoot = url.pathname.match(/^\/api\/purchases\/(al_bayan|simsim)$/);

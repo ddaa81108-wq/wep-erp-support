@@ -15,13 +15,4 @@ export const masraweyaApi = {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
-  finalizeMasraweyaDay: (businessDate: string, expectedVersion: number) =>
-    request<MasraweyaDay & { eventSequences: number[] }>('/api/masraweya/day/finalize', {
-      method: 'POST',
-      body: JSON.stringify({ businessDate, expectedVersion }),
-    }),
-  setMasraweyaDayCorrection: (body: { businessDate: string; expectedVersion: number; open: boolean; reason?: string }) =>
-    request<MasraweyaDay & { eventSequences: number[] }>('/api/masraweya/day/correction', {
-      method: 'POST', body: JSON.stringify(body),
-    }),
 };

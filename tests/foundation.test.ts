@@ -160,7 +160,8 @@ test('collection batch display numbers are isolated per organization', () => {
   assert.throws(() => insert.run('batch-default-duplicate', 3, now, 'org-default'));
 });
 
-test('masraweya keeps integer daily rows, manual carry, and routes its remainder through Egyptian deposits only', async () => {
+test('masraweya keeps integer daily rows, automatic carry, and routes its remainder through Egyptian deposits only', async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-01T12:00:00Z') });
   const database = temporaryDatabase();
   const base = await startApi(database);
   await fetch(`${base}/api/setup/admin`, {
@@ -252,11 +253,11 @@ test('masraweya keeps integer daily rows, manual carry, and routes its remainder
     headers,
     body: JSON.stringify({ businessDate: '2026-09-28', expectedVersion: 1 }),
   });
-  assert.equal(finalized.status, 200);
+  assert.equal(finalized.status, 410);
 
   const next = await fetch(`${base}/api/masraweya/day?date=2026-09-29`, { headers });
   const nextBody = await json(next);
-  assert.equal(nextBody.data.previousValueUnits, 0, 'carry must not happen automatically');
+  assert.equal(nextBody.data.previousValueUnits, 38550, 'carry must happen automatically');
   assert.equal(nextBody.data.carryValueUnits, 38550);
   assert.equal(nextBody.data.carrySourceDate, '2026-09-28');
   const carried = await fetch(`${base}/api/masraweya/day`, {
@@ -293,8 +294,8 @@ test('masraweya keeps integer daily rows, manual carry, and routes its remainder
     body: JSON.stringify({
       businessDate: '2026-10-01',
       expectedVersion: 0,
-      previousValueUnits: Number.MAX_SAFE_INTEGER,
-      purchasesUnits: 1,
+      previousValueUnits: 38550,
+      purchasesUnits: Number.MAX_SAFE_INTEGER,
       entries: [],
     }),
   });
@@ -2573,7 +2574,8 @@ test('collection cards and full receipt use the calculated customer balance', as
   assert.equal(duplicatePending.status, 409);
 });
 
-test('organization boundary isolates every permanent account section and blocks foreign mutations', async () => {
+test('organization boundary isolates every permanent account section and blocks foreign mutations', async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-01T12:00:00Z') });
   const database = temporaryDatabase();
   const base = await startApi(database);
   await fetch(`${base}/api/setup/admin`, {

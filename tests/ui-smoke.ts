@@ -34,7 +34,9 @@ try {
   const page = await context.newPage();
   const verifySidebar = async (role: string) => {
     for (const theme of ['light', 'dark']) {
-      await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+      await page.evaluate((value) => {
+        document.documentElement.dataset.theme = value;
+      }, theme);
       for (const width of [1440, 390]) {
         await page.setViewportSize({ width, height: width === 390 ? 844 : 950 });
         if (width === 390) {
@@ -45,7 +47,10 @@ try {
             return bounds && bounds.left >= 0 && bounds.right <= innerWidth + 0.5;
           });
         }
-        await page.screenshot({ path: resolve('artifacts', 'ui', `fixed-sidebar-${role}-${theme}-${width}.png`), animations: 'disabled' });
+        await page.screenshot({
+          path: resolve('artifacts', 'ui', `fixed-sidebar-${role}-${theme}-${width}.png`),
+          animations: 'disabled',
+        });
         if (width === 390) {
           // Use a real click: this catches the search bar intercepting the close button.
           await page.getByRole('button', { name: 'إغلاق القائمة الرئيسية', exact: true }).click();
@@ -54,7 +59,9 @@ try {
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
       }
     }
-    await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+    await page.evaluate(() => {
+      document.documentElement.dataset.theme = 'light';
+    });
     await page.setViewportSize({ width: 1440, height: 950 });
     await page.waitForFunction(() => {
       const shell = document.querySelector('.app-shell');
@@ -74,7 +81,10 @@ try {
   await page.getByRole('button', { name: 'المتابعة باستخدام Google' }).waitFor();
   assert.equal(await page.getByRole('button', { name: 'المتابعة باستخدام Google' }).isDisabled(), true);
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
   await page.screenshot({ path: resolve('artifacts', 'ui', 'login-mobile.png') });
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.getByRole('button', { name: 'إنشاء حساب موظف' }).click();
@@ -85,11 +95,14 @@ try {
   await page.getByRole('button', { name: 'تسجيل الدخول' }).click();
   await page.getByRole('heading', { name: 'قسم ديون العملاء' }).waitFor();
   await verifySidebar('admin');
-  const utilityGeometry = async () => page.evaluate(() => {
-    const search = document.querySelector('.global-account-search')?.getBoundingClientRect();
-    const status = document.querySelector('.sync-status')?.getBoundingClientRect();
-    return search && status ? { searchX: search.x, searchWidth: search.width, statusX: status.x, statusWidth: status.width } : null;
-  });
+  const utilityGeometry = async () =>
+    page.evaluate(() => {
+      const search = document.querySelector('.global-account-search')?.getBoundingClientRect();
+      const status = document.querySelector('.sync-status')?.getBoundingClientRect();
+      return search && status
+        ? { searchX: search.x, searchWidth: search.width, statusX: status.x, statusWidth: status.width }
+        : null;
+    });
   const utilityBeforeSaving = await utilityGeometry();
   await page.evaluate(() => window.dispatchEvent(new Event('abdo:request-start')));
   await page.locator('.sync-status.saving').waitFor();
@@ -117,10 +130,14 @@ try {
   await page.getByRole('button', { name: 'إخفاء الشريط الجانبي' }).click();
   assert.equal(await page.locator('.app-shell').getAttribute('class'), 'app-shell sidebar-hidden');
   assert.equal(await page.evaluate(() => localStorage.getItem('abdo-erp-sidebar-hidden')), 'true');
-  assert.equal(await page.getByRole('button', { name: 'الإشعارات' }).evaluate((button) => {
-    const bounds = button.getBoundingClientRect();
-    return bounds.width > 0 && bounds.height > 0 && bounds.left >= 0 && bounds.right <= window.innerWidth;
-  }), true, 'notification button must stay visible when the sidebar is hidden');
+  assert.equal(
+    await page.getByRole('button', { name: 'الإشعارات' }).evaluate((button) => {
+      const bounds = button.getBoundingClientRect();
+      return bounds.width > 0 && bounds.height > 0 && bounds.left >= 0 && bounds.right <= window.innerWidth;
+    }),
+    true,
+    'notification button must stay visible when the sidebar is hidden',
+  );
   await page.getByRole('button', { name: 'إظهار الشريط الجانبي' }).click();
   assert.equal(await page.evaluate(() => localStorage.getItem('abdo-erp-sidebar-hidden')), 'false');
   await page
@@ -131,7 +148,9 @@ try {
   const notificationPanel = page.locator('.notification-panel');
   await notificationPanel.waitFor();
   assert.equal(
-    await notificationPanel.evaluate((element) => getComputedStyle(element).backgroundColor === 'rgba(0, 0, 0, 0)'),
+    await notificationPanel.evaluate(
+      (element) => getComputedStyle(element).backgroundColor === 'rgba(0, 0, 0, 0)',
+    ),
     false,
     'notification center must use an opaque readable background',
   );
@@ -159,7 +178,9 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   const mobileSidebarClose = page.locator('.sidebar-mobile-close');
   if (await mobileSidebarClose.isVisible()) {
-    await page.evaluate(() => (document.querySelector('.sidebar-mobile-close') as HTMLElement | null)?.click());
+    await page.evaluate(() =>
+      (document.querySelector('.sidebar-mobile-close') as HTMLElement | null)?.click(),
+    );
     await page.waitForTimeout(150);
   }
 
@@ -183,19 +204,25 @@ try {
         columns,
         noOverflow: document.documentElement.scrollWidth <= window.innerWidth + 2,
         totalIsRight: totalRect.left > addRect.left && (!routeRect || totalRect.left > routeRect.left),
-        actionsAligned: !routeRect || (Math.abs(addRect.top - routeRect.top) < 2 && Math.abs(addRect.height - routeRect.height) < 2),
+        actionsAligned:
+          !routeRect ||
+          (Math.abs(addRect.top - routeRect.top) < 2 && Math.abs(addRect.height - routeRect.height) < 2),
         toolbarDisplay: toolbarStyle.display,
         glassSearch: searchStyle.backdropFilter.includes('blur'),
       };
     });
-    assert.deepEqual(mobileLayout, {
-      columns: 2,
-      noOverflow: true,
-      totalIsRight: true,
-      actionsAligned: true,
-      toolbarDisplay: 'grid',
-      glassSearch: true,
-    }, `customer debts mobile layout must fit at ${width}px`);
+    assert.deepEqual(
+      mobileLayout,
+      {
+        columns: 2,
+        noOverflow: true,
+        totalIsRight: true,
+        actionsAligned: true,
+        toolbarDisplay: 'grid',
+        glassSearch: true,
+      },
+      `customer debts mobile layout must fit at ${width}px`,
+    );
   }
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: resolve('artifacts', 'ui', 'customer-debts-mobile.png'), fullPage: true });
@@ -237,7 +264,10 @@ try {
   await page.locator('.ledger-panel').waitFor({ state: 'detached' });
   await tickerCustomer.evaluate((element: HTMLButtonElement) => element.click());
   await page.getByText('تمت استعادة المسودة غير المحفوظة.').waitFor();
-  assert.equal(await page.locator('.ledger-draft-row').getByLabel('ملاحظة المعاملة').inputValue(), 'مسودة تستعاد تلقائيًا');
+  assert.equal(
+    await page.locator('.ledger-draft-row').getByLabel('ملاحظة المعاملة').inputValue(),
+    'مسودة تستعاد تلقائيًا',
+  );
   await page.locator('.ledger-draft-row').getByRole('button', { name: 'إلغاء المسودة' }).click();
   await page.getByText('دين مضاف', { exact: true }).first().waitFor();
   await page.getByText('مدفوع', { exact: true }).first().waitFor();
@@ -321,7 +351,10 @@ try {
   await page.locator('.customer-card-main').filter({ hasText: 'متجر النور' }).click();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(300);
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
   await page.evaluate(() => {
     document.documentElement.dataset.theme = 'dark';
   });
@@ -338,18 +371,16 @@ try {
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.getByRole('button', { name: 'صفحة المصراوية' }).click();
   await page.getByRole('heading', { name: 'صفحة المصراوية' }).waitFor();
-  // Use a fresh draft date so the smoke test does not depend on a previously
-  // finalized day in the persistent local test database.
-  const masraweyaDate = page.getByLabel('تاريخ العمل');
-  if (!(await page.locator('.masraweya-work-table tbody tr').first().locator('input').first().isEnabled())) {
-    await masraweyaDate.fill('2099-01-01');
-    await page.waitForTimeout(250);
-  }
+  await page.locator('.masraweya-summary-sheet').waitFor();
+  assert.equal(await page.getByRole('button', { name: /اعتماد اليوم|حفظ اليوم|ترحيل|إعادة فتح/ }).count(), 0);
   const masraweyaRows = page.locator('.masraweya-work-table tbody tr');
   const firstValue = masraweyaRows.nth(0).locator('input').nth(0);
   const firstCommission = masraweyaRows.nth(0).locator('input').nth(1);
   assert.deepEqual(await page.locator('.masraweya-work-table thead th').allTextContents(), [
-    'التسلسل', 'القيمة', 'العمولة', 'الناتج',
+    'التسلسل',
+    'القيمة',
+    'العمولة',
+    'الناتج',
   ]);
   const masraweyaLayout = await page.evaluate(() => {
     const work = document.querySelector('.masraweya-layout .work-panel')?.getBoundingClientRect();
@@ -404,16 +435,19 @@ try {
       .evaluate((element) => element === document.activeElement),
     true,
   );
-  const previousEditButton = page.getByRole('button', { name: 'تعديل', exact: true });
-  if (await previousEditButton.count()) await previousEditButton.click();
   await page.getByLabel('القيمة السابقة').fill('500');
   await page.getByLabel('مشتريات اليوم').fill('1000');
-  await page.locator('.masraweya-capture .final-row td').getByText('400', { exact: true }).waitFor();
+  await page.locator('.masraweya-summary-sheet .final-row td').getByText('400', { exact: true }).waitFor();
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByRole('button', { name: 'نسخ الصورة', exact: true }).click();
+  await page.getByText('تم نسخ صورة الجدول بأعلى جودة.', { exact: true }).waitFor();
   await page.screenshot({ path: join(output, 'masraweya-desktop.png'), fullPage: true });
   await page.getByRole('button', { name: 'المظهر الليلي' }).click();
   await page.locator('html[data-theme="dark"]').waitFor();
-  await page.waitForFunction(() =>
-    getComputedStyle(document.querySelector('.masraweya-work-table tbody input')!).backgroundColor === 'rgb(27, 51, 43)',
+  await page.waitForFunction(
+    () =>
+      getComputedStyle(document.querySelector('.masraweya-work-table tbody input')!).backgroundColor ===
+      'rgb(27, 51, 43)',
   );
   assert.equal(
     await firstValue.evaluate((element) => getComputedStyle(element).backgroundColor),
@@ -423,15 +457,70 @@ try {
   await page.screenshot({ path: join(output, 'masraweya-desktop-dark.png'), fullPage: true });
   await page.getByRole('button', { name: 'المظهر النهاري' }).click();
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.evaluate(() => {
-    const work = document.querySelector('.masraweya-layout .work-panel')?.getBoundingClientRect();
-    const summary = document.querySelector('.masraweya-layout .summary-panel')?.getBoundingClientRect();
-    const hint = document.querySelector('.masraweya-desktop-keyboard-hint');
-    return Boolean(work && summary && summary.top < work.top && hint && getComputedStyle(hint).display === 'none');
-  }), true, 'mobile Masraweya order and controls must remain unchanged');
+  if (await page.locator('.sidebar.open').count()) {
+    await page.getByRole('button', { name: 'إغلاق القائمة الرئيسية', exact: true }).click();
+  }
+  await page.waitForFunction(() => {
+    const shell = document.querySelector('.app-shell');
+    const sidebar = document.querySelector('.sidebar')?.getBoundingClientRect();
+    return shell && getComputedStyle(shell).paddingRight === '0px' && sidebar && sidebar.left >= innerWidth;
+  });
+  assert.equal(
+    await page.evaluate(() => {
+      const work = document.querySelector('.masraweya-layout .work-panel')?.getBoundingClientRect();
+      const summary = document.querySelector('.masraweya-layout .summary-panel')?.getBoundingClientRect();
+      const hint = document.querySelector('.masraweya-desktop-keyboard-hint');
+      return Boolean(
+        work && summary && summary.top < work.top && hint && getComputedStyle(hint).display === 'none',
+      );
+    }),
+    true,
+    'mobile Masraweya order and controls must remain unchanged',
+  );
   await page.screenshot({ path: join(output, 'masraweya-mobile.png'), fullPage: true });
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'dark';
+  });
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: join(output, 'masraweya-mobile-dark.png'), fullPage: true });
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'light';
+  });
   await page.setViewportSize({ width: 1440, height: 950 });
 
+  // Leaving immediately after typing must flush the draft before unmounting.
+  await page.getByLabel('مشتريات اليوم').fill('1001');
+  await page.getByRole('button', { name: 'قسم المشتريات' }).click();
+  await page.getByRole('heading', { name: 'قسم المشتريات' }).waitFor();
+  assert.equal(
+    Number(
+      database
+        .prepare('SELECT purchases_units FROM masraweya_days ORDER BY business_date DESC LIMIT 1')
+        .get()!.purchases_units,
+    ),
+    1001,
+  );
+  await page.getByRole('button', { name: 'صفحة المصراوية' }).click();
+  await page.waitForFunction(
+    () =>
+      (document.querySelector('input[aria-label="مشتريات اليوم"]') as HTMLInputElement | null)?.value ===
+      '1001',
+  );
+  const currentMasraweyaDate = await page.getByLabel('تاريخ العمل').inputValue();
+  const oldMasraweyaDate = new Date(`${currentMasraweyaDate}T12:00:00Z`);
+  oldMasraweyaDate.setUTCDate(oldMasraweyaDate.getUTCDate() - 8);
+  await page.getByLabel('تاريخ العمل').fill(oldMasraweyaDate.toISOString().slice(0, 10));
+  await page.getByText('للقراءة فقط', { exact: true }).waitFor();
+  assert.equal(await page.getByLabel('مشتريات اليوم').isDisabled(), true);
+  await page.getByRole('button', { name: 'اليوم الحالي', exact: true }).click();
+  await page.waitForFunction(
+    () => !(document.querySelector('input[aria-label="مشتريات اليوم"]') as HTMLInputElement | null)?.disabled,
+  );
+  await page.getByLabel('مشتريات اليوم').fill('1000');
   await page.getByRole('button', { name: 'قسم المشتريات' }).click();
   await page.getByRole('heading', { name: 'قسم المشتريات' }).waitFor();
   assert.equal(
@@ -481,7 +570,9 @@ try {
   });
   await page.waitForTimeout(100);
   assert.ok(
-    Math.abs(await page.locator('.purchase-grid-head').evaluate((element) => element.getBoundingClientRect().top)) <= 1,
+    Math.abs(
+      await page.locator('.purchase-grid-head').evaluate((element) => element.getBoundingClientRect().top),
+    ) <= 1,
     'the purchase register head must remain at the viewport top while scrolling',
   );
   await page.evaluate(() => {
@@ -547,8 +638,15 @@ try {
   await page.locator('.system-settings-form').getByRole('button', { name: 'إغلاق', exact: true }).click();
   await page.getByRole('button', { name: /الموظفون والإداريون/ }).click();
   await page.getByRole('heading', { name: 'الموظفون والإداريون' }).waitFor();
-  assert.equal(await page.getByRole('dialog').count(), 0, 'account management must use the full settings page');
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
+  assert.equal(
+    await page.getByRole('dialog').count(),
+    0,
+    'account management must use the full settings page',
+  );
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
   await page.evaluate(() => {
     document.documentElement.dataset.theme = 'dark';
   });
@@ -564,6 +662,7 @@ try {
   await page.locator('select[name="customerDebtsAccess"]').selectOption('manage');
   await page.locator('select[name="companyDebtsAccess"]').selectOption('manage');
   await page.locator('select[name="collectionsAccess"]').selectOption('manage');
+  await page.locator('select[name="masraweyaAccess"]').selectOption('manage');
   await page.getByRole('button', { name: 'حفظ الموظف' }).click();
   await page.getByText('موظف القراءة', { exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -580,7 +679,11 @@ try {
       .filter((item) => item.left < -2 || item.right > window.innerWidth + 2)
       .slice(0, 12),
   }));
-  assert.equal(accountsOverflow.documentWidth <= accountsOverflow.viewport + 2, true, JSON.stringify(accountsOverflow));
+  assert.equal(
+    accountsOverflow.documentWidth <= accountsOverflow.viewport + 2,
+    true,
+    JSON.stringify(accountsOverflow),
+  );
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.getByRole('button', { name: 'العودة إلى الإعدادات' }).click();
 
@@ -594,7 +697,10 @@ try {
   await page.getByText('عنوان الاتصال', { exact: true }).first().waitFor();
   await page.getByText('آخر نشاط', { exact: true }).first().waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.getByRole('button', { name: 'العودة إلى الإعدادات' }).click();
 
@@ -605,25 +711,42 @@ try {
   await page.getByText('غير متحقق', { exact: true }).waitFor();
   await page.getByText('لا توجد نتيجة موثقة هنا', { exact: true }).waitFor();
   for (const theme of ['light', 'dark']) {
-    await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+    await page.evaluate((value) => {
+      document.documentElement.dataset.theme = value;
+    }, theme);
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 950 });
       if (width === 390) {
         await page.waitForFunction(() => {
           const sidebar = document.querySelector('.sidebar')?.getBoundingClientRect();
           const shell = document.querySelector('.app-shell');
-          return sidebar && sidebar.left >= innerWidth && shell && getComputedStyle(shell).paddingRight === '0px';
+          return (
+            sidebar && sidebar.left >= innerWidth && shell && getComputedStyle(shell).paddingRight === '0px'
+          );
         });
       }
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
-      await page.screenshot({ path: join(output, `fixed-backup-${theme}-${width}.png`), fullPage: true, animations: 'disabled' });
+      await page.screenshot({
+        path: join(output, `fixed-backup-${theme}-${width}.png`),
+        fullPage: true,
+        animations: 'disabled',
+      });
     }
   }
-  await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'light';
+  });
   await page.setViewportSize({ width: 1440, height: 950 });
-  assert.equal(await page.getByRole('dialog').count(), 0, 'backup management must use the full settings page');
+  assert.equal(
+    await page.getByRole('dialog').count(),
+    0,
+    'backup management must use the full settings page',
+  );
   await page.setViewportSize({ width: 390, height: 844 });
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.getByRole('button', { name: 'العودة إلى الإعدادات' }).click();
 
@@ -648,11 +771,16 @@ try {
   await page.getByRole('button', { name: 'التقارير الذكية' }).click();
   await page.getByRole('heading', { name: 'التقارير الذكية' }).waitFor();
   await page.getByText('سجل يومي تلقائي من إجماليات الخزينة', { exact: true }).waitFor();
-  await page.getByText('التغير المعروض هو تغير المركز المالي وليس ربحًا محاسبيًا معتمدًا.', { exact: true }).waitFor();
+  await page
+    .getByText('التغير المعروض هو تغير المركز المالي وليس ربحًا محاسبيًا معتمدًا.', { exact: true })
+    .waitFor();
   await page.getByRole('columnheader', { name: 'التسلسل' }).waitFor();
   await page.getByRole('columnheader', { name: 'الفرق عن اليوم السابق' }).waitFor();
   assert.equal(await page.locator('.reports-table tbody tr').count(), 1);
-  assert.equal(await page.locator('.reports-page input,.reports-page textarea,.reports-page select').count(), 0);
+  assert.equal(
+    await page.locator('.reports-page input,.reports-page textarea,.reports-page select').count(),
+    0,
+  );
   await page.screenshot({ path: join(output, 'reports-desktop.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(250);
@@ -666,7 +794,9 @@ try {
     'mobile menu must be visible and fully inside the viewport',
   );
   assert.equal(
-    await page.locator('.sidebar').evaluate((element) => element.getBoundingClientRect().left >= window.innerWidth),
+    await page
+      .locator('.sidebar')
+      .evaluate((element) => element.getBoundingClientRect().left >= window.innerWidth),
     true,
   );
   assert.equal(
@@ -674,11 +804,16 @@ try {
     true,
   );
   assert.equal(
-    await page.locator('.reports-table-wrap').evaluate((element) => element.scrollWidth <= element.clientWidth + 2),
+    await page
+      .locator('.reports-table-wrap')
+      .evaluate((element) => element.scrollWidth <= element.clientWidth + 2),
     true,
     'mobile reports must not require horizontal scrolling',
   );
-  assert.equal(await page.locator('.reports-table thead').evaluate((element) => getComputedStyle(element).display), 'none');
+  assert.equal(
+    await page.locator('.reports-table thead').evaluate((element) => getComputedStyle(element).display),
+    'none',
+  );
   await page.screenshot({ path: join(output, 'reports-mobile.png') });
 
   await page.setViewportSize({ width: 844, height: 390 });
@@ -691,8 +826,14 @@ try {
     true,
     'landscape phone menu must remain reachable',
   );
-  assert.equal(await page.locator('.reports-table thead').evaluate((element) => getComputedStyle(element).display), 'none');
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
+  assert.equal(
+    await page.locator('.reports-table thead').evaluate((element) => getComputedStyle(element).display),
+    'none',
+  );
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
   await page.screenshot({ path: join(output, 'reports-mobile-landscape.png') });
   await page.setViewportSize({ width: 390, height: 844 });
 
@@ -715,7 +856,11 @@ try {
     await page.getByRole('heading', { name: headingLabel, exact: true }).first().waitFor();
     await page.waitForFunction(() => {
       const sidebar = document.querySelector<HTMLElement>('.sidebar');
-      return sidebar !== null && !sidebar.classList.contains('open') && sidebar.getBoundingClientRect().left >= window.innerWidth;
+      return (
+        sidebar !== null &&
+        !sidebar.classList.contains('open') &&
+        sidebar.getBoundingClientRect().left >= window.innerWidth
+      );
     });
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
@@ -730,7 +875,8 @@ try {
           // Purchase register intentionally keeps the desktop table on phones;
           // its inner viewport scrolls horizontally instead of clipping columns.
           if (element.closest('.purchase-register')) return false;
-          if (style.display === 'none' || style.visibility === 'hidden' || style.position === 'fixed') return false;
+          if (style.display === 'none' || style.visibility === 'hidden' || style.position === 'fixed')
+            return false;
           const box = element.getBoundingClientRect();
           return box.width > 1 && (box.left < -2 || box.right > window.innerWidth + 2);
         })
@@ -739,11 +885,26 @@ try {
     );
     assert.deepEqual(escapedElements, [], `${navigationLabel} has clipped mobile content`);
     if (screenshotName === 'purchases') {
-      assert.equal(await page.locator('.purchase-register').evaluate((element) => element.scrollWidth > element.clientWidth), true);
-      assert.equal(await page.locator('.purchase-register .purchase-grid-head').evaluate((element) => getComputedStyle(element).display), 'grid');
+      assert.equal(
+        await page
+          .locator('.purchase-register')
+          .evaluate((element) => element.scrollWidth > element.clientWidth),
+        true,
+      );
+      assert.equal(
+        await page
+          .locator('.purchase-register .purchase-grid-head')
+          .evaluate((element) => getComputedStyle(element).display),
+        'grid',
+      );
     }
     if (screenshotName === 'treasury') {
-      assert.equal(await page.locator('.treasury-ledger-row.in').evaluate((element) => getComputedStyle(element).display), 'grid');
+      assert.equal(
+        await page
+          .locator('.treasury-ledger-row.in')
+          .evaluate((element) => getComputedStyle(element).display),
+        'grid',
+      );
     }
     await page.screenshot({ path: join(output, `${screenshotName}-mobile.png`) });
   }
@@ -764,6 +925,40 @@ try {
   assert.deepEqual((await branding.json()).data, { systemName: 'منظومة اختبار الإصلاحات' });
   assert.equal((await context.request.get(`${base}/api/organization-settings`)).status(), 403);
   await verifySidebar('employee');
+  await page.getByRole('button', { name: 'صفحة المصراوية' }).click();
+  await page.locator('.masraweya-summary-sheet').waitFor();
+  assert.equal(await page.getByLabel('مشتريات اليوم').isEnabled(), true);
+  assert.equal(await page.getByLabel('القيمة السابقة').getAttribute('readonly'), '');
+  const employeeToday = await page.getByLabel('تاريخ العمل').inputValue();
+  const employeeYesterday = new Date(`${employeeToday}T12:00:00Z`);
+  employeeYesterday.setUTCDate(employeeYesterday.getUTCDate() - 1);
+  await page.getByLabel('تاريخ العمل').fill(employeeYesterday.toISOString().slice(0, 10));
+  await page.getByText('للقراءة فقط', { exact: true }).waitFor();
+  assert.equal(await page.getByLabel('مشتريات اليوم').isDisabled(), true);
+  await page.getByRole('button', { name: 'اليوم الحالي', exact: true }).click();
+  await page.waitForFunction(
+    () =>
+      (document.querySelector('input[aria-label="مشتريات اليوم"]') as HTMLInputElement | null)?.disabled ===
+      false,
+  );
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 950 });
+    await page.waitForTimeout(300);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate((value) => {
+        document.documentElement.dataset.theme = value;
+      }, theme);
+      await page.waitForTimeout(200);
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2), true);
+      await page.screenshot({
+        path: join(output, `masraweya-employee-${theme}-${width}.png`),
+        fullPage: true,
+      });
+    }
+  }
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = 'light';
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'فتح القائمة الرئيسية' }).click();
   await page.locator('.sidebar').getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
@@ -771,7 +966,10 @@ try {
   await page.getByRole('button', { name: 'إنشاء عميل مستقل', exact: true }).click();
   await page.getByLabel('اسم العميل').fill('عميل مستقل تجريبي');
   await page.getByLabel('القيمة المستلمة').fill('250');
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
   await page.screenshot({ path: join(output, 'employee-independent-customer-mobile.png'), fullPage: true });
   await page.getByRole('button', { name: 'تسجيل كارت معلّق' }).click();
   await page.getByText('عميل مستقل تجريبي', { exact: true }).waitFor();
@@ -784,17 +982,29 @@ try {
     await page.getByRole('heading', { name: sectionName, exact: true }).waitFor();
     await page.waitForFunction(() => {
       const sidebar = document.querySelector<HTMLElement>('.sidebar');
-      return sidebar !== null && !sidebar.classList.contains('open') && sidebar.getBoundingClientRect().left >= window.innerWidth;
+      return (
+        sidebar !== null &&
+        !sidebar.classList.contains('open') &&
+        sidebar.getBoundingClientRect().left >= window.innerWidth
+      );
     });
     const activeCard = page.locator('.active-cards-card');
-    assert.equal(await activeCard.evaluate((card) => {
-      const bounds = card.getBoundingClientRect();
-      return [...card.querySelectorAll('button')].every((button) => {
-        const buttonBounds = button.getBoundingClientRect();
-        return buttonBounds.left >= bounds.left - 1 && buttonBounds.right <= bounds.right + 1;
-      });
-    }), true, `${sectionName} filters must stay inside the activity card`);
-    assert.equal((await activeCard.boundingBox())!.height >= 84, true, `${sectionName} activity card must remain readable`);
+    assert.equal(
+      await activeCard.evaluate((card) => {
+        const bounds = card.getBoundingClientRect();
+        return [...card.querySelectorAll('button')].every((button) => {
+          const buttonBounds = button.getBoundingClientRect();
+          return buttonBounds.left >= bounds.left - 1 && buttonBounds.right <= bounds.right + 1;
+        });
+      }),
+      true,
+      `${sectionName} filters must stay inside the activity card`,
+    );
+    assert.equal(
+      (await activeCard.boundingBox())!.height >= 84,
+      true,
+      `${sectionName} activity card must remain readable`,
+    );
     await page.screenshot({ path: join(output, screenshotName), fullPage: true });
   }
   await page.setViewportSize({ width: 1440, height: 950 });
@@ -840,7 +1050,10 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.getByRole('dialog').getByText('قسم ديون العملاء', { exact: true }).count(), 1);
   assert.equal(await page.getByRole('dialog').getByText('قسم ديون الشركات', { exact: true }).count(), 1);
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2), true);
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),
+    true,
+  );
   await page.screenshot({ path: join(output, 'admin-independent-customer-mobile.png'), fullPage: true });
   await page.getByRole('dialog').getByRole('button', { name: 'إغلاق', exact: true }).click();
   await page.setViewportSize({ width: 1440, height: 950 });
@@ -851,7 +1064,9 @@ try {
   );
   await detailedNotice.waitFor();
   await Promise.all([
-    page.waitForResponse((response) => response.url().includes('/api/notifications/') && response.url().endsWith('/read')),
+    page.waitForResponse(
+      (response) => response.url().includes('/api/notifications/') && response.url().endsWith('/read'),
+    ),
     detailedNotice.click(),
   ]);
   await page.getByRole('button', { name: 'الإشعارات' }).click();
@@ -889,12 +1104,30 @@ try {
     const touchSession = await touchContext.newCDPSession(touchPage);
     await touchSession.send('Input.dispatchTouchEvent', {
       type: 'touchStart',
-      touchPoints: [{ x: touchScrollMode.page ? 190 : 340, y: touchScrollMode.page ? 650 : 300, radiusX: 6, radiusY: 6, force: 1 }],
+      touchPoints: [
+        {
+          x: touchScrollMode.page ? 190 : 340,
+          y: touchScrollMode.page ? 650 : 300,
+          radiusX: 6,
+          radiusY: 6,
+          force: 1,
+        },
+      ],
     });
-    for (const step of (touchScrollMode.page ? [590, 520, 450, 380, 310, 240, 170] : [320, 280, 240, 200, 160, 120, 80])) {
+    for (const step of touchScrollMode.page
+      ? [590, 520, 450, 380, 310, 240, 170]
+      : [320, 280, 240, 200, 160, 120, 80]) {
       await touchSession.send('Input.dispatchTouchEvent', {
         type: 'touchMove',
-        touchPoints: [{ x: touchScrollMode.page ? 190 : step, y: touchScrollMode.page ? step : 300, radiusX: 6, radiusY: 6, force: 1 }],
+        touchPoints: [
+          {
+            x: touchScrollMode.page ? 190 : step,
+            y: touchScrollMode.page ? step : 300,
+            radiusX: 6,
+            radiusY: 6,
+            force: 1,
+          },
+        ],
       });
     }
     await touchSession.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
