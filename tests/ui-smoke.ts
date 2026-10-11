@@ -372,6 +372,21 @@ try {
   await page.getByRole('button', { name: 'صفحة المصراوية' }).click();
   await page.getByRole('heading', { name: 'صفحة المصراوية' }).waitFor();
   await page.locator('.masraweya-summary-sheet').waitFor();
+  const legacyDayRoute = '**/api/masraweya/day*';
+  await page.route(legacyDayRoute, async (route) => {
+    const response = await route.fetch();
+    const body = await response.json();
+    delete body.data.editable;
+    delete body.data.today;
+    await route.fulfill({ response, json: body });
+  });
+  await page.getByRole('button', { name: 'اليوم الحالي', exact: true }).click();
+  await page.getByText('نسخة الخادم تحتاج تحديثًا', { exact: true }).waitFor();
+  assert.equal(await page.getByText('للقراءة فقط', { exact: true }).count(), 0);
+  assert.equal(await page.getByLabel('مشتريات اليوم').isDisabled(), true);
+  await page.unroute(legacyDayRoute);
+  await page.getByRole('button', { name: 'اليوم الحالي', exact: true }).click();
+  await page.getByText('يوم العمل الحالي', { exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: /اعتماد اليوم|حفظ اليوم|ترحيل|إعادة فتح/ }).count(), 0);
   const masraweyaRows = page.locator('.masraweya-work-table tbody tr');
   const firstValue = masraweyaRows.nth(0).locator('input').nth(0);
@@ -928,14 +943,21 @@ try {
   await page.getByRole('button', { name: 'صفحة المصراوية' }).click();
   await page.locator('.masraweya-summary-sheet').waitFor();
   assert.equal(await page.getByLabel('مشتريات اليوم').isEnabled(), true);
-  assert.equal(await page.getByLabel('القيمة السابقة').getAttribute('readonly'), '');
+  assert.equal(await page.getByLabel('القيمة السابقة').getAttribute('readonly'), null);
   const employeeToday = await page.getByLabel('تاريخ العمل').inputValue();
   const employeeYesterday = new Date(`${employeeToday}T12:00:00Z`);
   employeeYesterday.setUTCDate(employeeYesterday.getUTCDate() - 1);
   await page.getByLabel('تاريخ العمل').fill(employeeYesterday.toISOString().slice(0, 10));
-  await page.getByText('للقراءة فقط', { exact: true }).waitFor();
-  assert.equal(await page.getByLabel('مشتريات اليوم').isDisabled(), true);
+  await page.getByText('تعديل يوم سابق', { exact: true }).waitFor();
+  assert.equal(await page.getByLabel('مشتريات اليوم').isEnabled(), true);
+  await page.getByLabel('مشتريات اليوم').fill('10');
   await page.getByRole('button', { name: 'اليوم الحالي', exact: true }).click();
+  assert.equal(
+    database
+      .prepare('SELECT purchases_units FROM masraweya_days WHERE business_date=?')
+      .get(employeeYesterday.toISOString().slice(0, 10))!.purchases_units,
+    10,
+  );
   await page.waitForFunction(
     () =>
       (document.querySelector('input[aria-label="مشتريات اليوم"]') as HTMLInputElement | null)?.disabled ===

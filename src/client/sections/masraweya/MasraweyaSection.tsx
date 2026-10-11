@@ -6,7 +6,7 @@ import { useMasraweyaDay } from './useMasraweyaDay.ts';
 export function MasraweyaSection({ user }: { user: User }) {
   const isAdmin = user.role === 'admin';
   const canWrite = isAdmin || user.permissions?.includes('masraweya.write') === true;
-  const state = useMasraweyaDay(canWrite, isAdmin);
+  const state = useMasraweyaDay(canWrite);
   if (!state.day)
     return (
       <section className="masraweya-page">
@@ -45,14 +45,14 @@ export function MasraweyaSection({ user }: { user: User }) {
         <button className="secondary compact" onClick={() => void state.goToday()} disabled={state.loading}>
           اليوم الحالي
         </button>
-        <span className="masraweya-status">
-          {state.locked
-            ? 'للقراءة فقط'
-            : state.date === state.day.today
-              ? 'يوم العمل الحالي'
-              : 'تعديل يوم سابق'}
-        </span>
+        <span className="masraweya-status">{state.accessLabel}</span>
       </header>
+      {state.incompatible && (
+        <div className="alert error" role="alert">
+          الواجهة متصلة بخادم قديم لا يدعم المصراوية الجديدة. يلزم تحديث الخادم والواجهة معًا؛ اليوم ليس
+          مقفلًا بسبب التاريخ.
+        </div>
+      )}
       {state.error && (
         <div className="alert error" role="alert">
           {state.error} <span>لم تُحذف مسودتك.</span>
@@ -84,7 +84,7 @@ export function MasraweyaSection({ user }: { user: User }) {
           workTotal={state.workTotal}
           final={state.final}
           locked={state.locked}
-          openingEditable={isAdmin && state.day.openingEditable}
+          openingEditable={canWrite && state.day.openingEditable}
           busy={state.busy}
           onPreviousChange={state.editPrevious}
           onPurchasesChange={state.editPurchases}
@@ -101,7 +101,7 @@ export function MasraweyaSection({ user }: { user: User }) {
                 ? 'سيتم الحفظ تلقائيًا'
                 : 'محفوظ تلقائيًا'}
         </span>
-        <small>بداية اليوم 4 صباحًا • تصحيح آخر 7 أيام للإدارة</small>
+        <small>بداية اليوم 4 صباحًا • تعديل آخر 7 أيام لمن لديه صلاحية الكتابة</small>
       </footer>
     </section>
   );

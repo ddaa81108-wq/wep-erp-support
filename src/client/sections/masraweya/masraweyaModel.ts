@@ -1,3 +1,28 @@
+import type { MasraweyaDay } from '../../apiTypes/masraweya.ts';
+
+export function masraweyaAccessState(day: Partial<MasraweyaDay> | null, canWrite: boolean, loading: boolean) {
+  const incompatible = Boolean(
+    day &&
+    (typeof day.editable !== 'boolean' ||
+      typeof day.today !== 'string' ||
+      typeof day.earliestEditableDate !== 'string' ||
+      typeof day.openingEditable !== 'boolean'),
+  );
+  const locked = loading || !day || incompatible || !canWrite || !day.editable;
+  const accessLabel = loading
+    ? 'جارٍ تحميل اليوم…'
+    : incompatible
+      ? 'نسخة الخادم تحتاج تحديثًا'
+      : !canWrite
+        ? 'لا توجد صلاحية كتابة'
+        : !day?.editable
+          ? 'للقراءة فقط'
+          : day.businessDate === day.today
+            ? 'يوم العمل الحالي'
+            : 'تعديل يوم سابق';
+  return { locked, incompatible, accessLabel };
+}
+
 export type MasraweyaEntryDraft = { value: string; commission: string };
 
 export const masraweyaNumberFormat = new Intl.NumberFormat('en-US', {
@@ -16,11 +41,7 @@ export function blankMasraweyaRows(count = 4): MasraweyaEntryDraft[] {
   return Array.from({ length: count }, () => ({ value: '', commission: '' }));
 }
 
-export function masraweyaTotals(
-  rows: MasraweyaEntryDraft[],
-  previous: string,
-  purchases: string,
-) {
+export function masraweyaTotals(rows: MasraweyaEntryDraft[], previous: string, purchases: string) {
   const workTotal = rows.reduce((sum, row) => sum + numberValue(row.value) + numberValue(row.commission), 0);
   const final = numberValue(previous) + numberValue(purchases) - workTotal;
   return { workTotal, final };

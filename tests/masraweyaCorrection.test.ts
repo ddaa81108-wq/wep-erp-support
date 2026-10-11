@@ -94,19 +94,20 @@ test('correcting a previous day propagates through later openings atomically wit
   assert.deepEqual(JSON.parse(String(audit.details_json)).affectedDates, ['2026-10-10', '2026-10-11']);
 });
 
-test('server enforces seven previous business days, employee current-day access and automatic opening protection', (context) => {
+test('server permits authorized staff across seven previous days and protects automatic openings', (context) => {
   context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-11T12:00:00Z') });
   const { db, admin } = setup();
   const employee = { ...admin, role: 'employee' as const, permissions: new Set(['masraweya.write']) };
-  saveMasraweyaDay(db, admin, input('2026-10-04'), 'oldest');
+  saveMasraweyaDay(db, employee, { ...input('2026-10-04'), previousValueUnits: 50 }, 'oldest');
   assert.throws(() => saveMasraweyaDay(db, admin, input('2026-10-03'), 'old'), {
     code: 'MASRAWEYA_DATE_LOCKED',
   });
   assert.throws(() => saveMasraweyaDay(db, admin, input('2026-10-12'), 'future'), {
     code: 'MASRAWEYA_DATE_LOCKED',
   });
-  assert.throws(() => saveMasraweyaDay(db, employee, input('2026-10-10'), 'employee-old'), {
-    code: 'PERMISSION_DENIED',
+  saveMasraweyaDay(db, employee, input('2026-10-10'), 'employee-old');
+  assert.throws(() => saveMasraweyaDay(db, employee, input('2026-10-03'), 'employee-too-old'), {
+    code: 'MASRAWEYA_DATE_LOCKED',
   });
   assert.throws(
     () => saveMasraweyaDay(db, { ...employee, permissions: new Set() }, input('2026-10-11'), 'reader'),
@@ -117,6 +118,18 @@ test('server enforces seven previous business days, employee current-day access 
     { code: 'MASRAWEYA_OPENING_AUTOMATIC' },
   );
   saveMasraweyaDay(db, employee, input('2026-10-11'), 'employee-today');
+});
+
+test('legacy finalized flags never lock a recent day for an administrator or authorized employee', (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-11T12:00:00Z') });
+  const { db, admin } = setup();
+  const employee = { ...admin, role: 'employee' as const, permissions: new Set(['masraweya.write']) };
+  const first = saveMasraweyaDay(db, admin, input('2026-10-11'), 'first');
+  db.prepare("UPDATE masraweya_days SET status='finalized',correction_open=0 WHERE id=?").run(first.id!);
+  assert.equal(getMasraweyaDay(db, admin.organizationId).editable, true);
+  const edited = saveMasraweyaDay(db, admin, input('2026-10-11', first.version, 1100), 'admin-edit');
+  saveMasraweyaDay(db, employee, input('2026-10-11', edited.version, 1200), 'employee-edit');
+  assert.equal(getMasraweyaDay(db, admin.organizationId).purchasesUnits, 1200);
 });
 
 test('incremental saves preserve row IDs and positions, replay identical writes and reject stale changes', (context) => {

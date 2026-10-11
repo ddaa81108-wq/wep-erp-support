@@ -2,10 +2,10 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { api } from '../../api.ts';
 import { registerNavigationGuard } from '../../dashboard/navigationGuards.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
-import { masraweyaTotals } from './masraweyaModel.ts';
+import { masraweyaTotals, masraweyaAccessState } from './masraweyaModel.ts';
 import { MasraweyaEditor } from './masraweyaEditor.ts';
 
-export function useMasraweyaDay(canWrite: boolean, isAdmin: boolean) {
+export function useMasraweyaDay(canWrite: boolean) {
   const [editor] = useState(
     () => new MasraweyaEditor({ load: api.masraweyaDay, save: api.saveMasraweyaDay }),
   );
@@ -44,15 +44,10 @@ export function useMasraweyaDay(canWrite: boolean, isAdmin: boolean) {
     enabled: Boolean(state.day),
     onChange: () => editor.refresh(followToday),
   });
-  const locked =
-    !canWrite ||
-    state.loading ||
-    !state.day?.editable ||
-    (!isAdmin && state.day.businessDate !== state.day.today);
   return {
     ...state,
     ...masraweyaTotals(state.rows, state.previous, state.purchases),
-    locked,
+    ...masraweyaAccessState(state.day, canWrite, state.loading),
     date: state.day?.businessDate ?? '',
     changeDate: async (date: string) => {
       await editor.changeDate(date);

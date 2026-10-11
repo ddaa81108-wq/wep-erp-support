@@ -92,7 +92,6 @@ export function saveMasraweyaDay(
       'MASRAWEYA_DATE_LOCKED',
       'التعديل متاح لليوم الحالي وآخر سبعة أيام فقط؛ المستقبل والأيام الأقدم للقراءة.',
     );
-  if (date !== window.today && actor.role !== 'admin') throw forbidden('masraweya.history.write');
   const expectedVersion = units(input.expectedVersion);
   const purchases = units(input.purchasesUnits);
   if (!Array.isArray(input.entries) || input.entries.length > 500)
@@ -118,7 +117,7 @@ export function saveMasraweyaDay(
       input.previousValueUnits === undefined
         ? before.previousValueUnits
         : units(input.previousValueUnits, true);
-    if (previous !== before.previousValueUnits && (!before.openingEditable || actor.role !== 'admin'))
+    if (previous !== before.previousValueUnits && !before.openingEditable)
       throw conflict(
         'MASRAWEYA_OPENING_AUTOMATIC',
         'القيمة السابقة مرتبطة باليوم السابق؛ صحح اليوم المصدر بدل تغييرها هنا.',

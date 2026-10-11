@@ -14,7 +14,7 @@
 | `customer_cycles` | دورة الحساب | دورة نشطة واحدة لكل عميل، منع cascade المالي |
 | `debt_transactions` | الدين والسداد | تسلسل دائم لكل عميل، حالات posted/corrected/reversed، مبلغ موجب، مرجع فريد، actor من الخادم |
 | `debt_assignments` و`collection_submissions` و`collection_batches` | توجيه واستلام الديون | عزل المؤسسة والموظف ودفعة العمل، واعتماد الإدارة قبل أثر قسم الديون |
-| `masraweya_days` و`masraweya_entries` | دفتر المصراوية | حفظ تلقائي، بداية اليوم 04:00 ليبيا، رصيد سابق تلقائي، وتصحيح إداري لآخر 7 أيام |
+| `masraweya_days` و`masraweya_entries` | دفتر المصراوية | حفظ تلقائي، بداية اليوم 04:00 ليبيا، رصيد سابق تلقائي، وتصحيح آخر 7 أيام وفق صلاحية الكتابة |
 | `purchase_merchants` و`purchase_days` و`purchase_entries` | دفتر المشتريات | تاجر ويوم وتسلسل وضرب/قسمة وسعر ومسدد ومستهلك فودافون |
 | `treasury_cash_accounts` و`treasury_cash_entries` | الأموال النشطة | دفتر دخول/خروج إداري مستقل؛ لا يكتب فيه أي عميل أو قسم تلقائيًا |
 | `financial_ledger_entries` | سجل الأستاذ العام | إسقاط موحد للقراءة من الدفاتر المالية دون أن يصبح مصدر الحقيقة |
