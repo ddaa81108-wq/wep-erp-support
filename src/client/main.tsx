@@ -10,6 +10,7 @@ import './styles/purchases.css';
 import './styles/reports.css';
 import './styles/assistant.css';
 import './styles.css';
+import './styles/customer-toolbar.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {

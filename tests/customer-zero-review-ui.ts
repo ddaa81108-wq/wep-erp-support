@@ -94,13 +94,41 @@ try {
       if (width === 390) await expect.poll(() => page.locator('.sidebar').evaluate(el => el.getBoundingClientRect().left >= innerWidth)).toBe(true);
       await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
       await expect(page.getByRole('button', { name: 'مراجعة تصفير ' + targetName, exact: true })).toBeVisible();
+      if (width === 1440) {
+        await expect(page.getByRole('tab', { name: 'نشطة 1.500', exact: true })).toBeVisible();
+        assert.ok(await page.locator('.debts-toolbar').evaluate(el => {
+          const controls = [...el.querySelectorAll('.debt-total-card, .compact-filters button, .dashboard-search input, .customer-actions-strip > button')];
+          const boxes = controls.map(control => control.getBoundingClientRect());
+          return boxes.every(box => Math.abs(box.height - 34) < 1 && Math.abs(box.top - boxes[0].top) < 1)
+            && controls.every(control => parseFloat(getComputedStyle(control).borderRadius) >= 17)
+            && el.scrollWidth <= el.clientWidth + 1;
+        }), 'Desktop pills must share one row and height without scrolling at 1440px.');
+      } else {
+        await expect(page.getByRole('tab', { name: 'الذكية', exact: true })).toBeVisible();
+        await expect(page.locator('.active-cards-count')).toBeVisible();
+        assert.ok(await page.locator('.debts-toolbar').evaluate(el => {
+          const rect = (selector: string) => el.querySelector(selector)!.getBoundingClientRect();
+          const total = rect('.debt-total-card'), add = rect('.add-customer-card'), route = rect('.routing-card');
+          const filters = rect('.active-cards-card'), searchBox = rect('.dashboard-search');
+          return Math.abs(total.top - add.top) < 1 && Math.abs(add.top - route.top) < 1
+            && filters.top >= total.bottom && searchBox.top >= filters.bottom;
+        }), 'Phone keeps its existing action/total row, filters row, and search row.');
+      }
       assert.ok(await page.locator('.pending-review-filter').evaluate(el => {
-        const box = el.getBoundingClientRect(); const parent = el.closest('.active-cards-card')!.getBoundingClientRect();
+        const box = el.getBoundingClientRect();
+        const strip = el.closest('.customer-summary-strip')!;
+        const parent = (getComputedStyle(strip).display === 'contents' ? el.closest('.active-cards-card')! : strip).getBoundingClientRect();
         return box.bottom <= parent.bottom && box.left >= parent.left && box.right <= parent.right;
       }), 'The complete review filter must fit inside its toolbar card.');
       await page.screenshot({ path: join(output, `admin-${theme}-${width}.png`), animations: 'disabled' });
     }
   }
+  await page.getByRole('button', { name: 'إضافة عميل', exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('حساب العميل جديد');
+  await page.getByRole('dialog').getByRole('button', { name: 'إلغاء', exact: true }).click();
+  await page.getByRole('button', { name: 'التوجيه', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'إلغاء التوجيه', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'إلغاء التوجيه', exact: true }).click();
   const search = page.locator('.dashboard-search input');
   started = performance.now(); await search.fill('عميل أداء 0004');
   await expect(cards).toHaveCount(1); await expect(cards).toContainText('عميل أداء 0004');
@@ -116,7 +144,7 @@ try {
   await search.fill(targetName); await expect(cards).toHaveCount(1);
   await expect(cards.locator('.zero-review-status.reviewed')).toBeVisible();
   await page.screenshot({ path: join(output, 'reviewed-green.png'), animations: 'disabled' });
-  await search.fill(''); await page.getByRole('tab', { name: 'الذكية', exact: true }).click();
+  await search.fill(''); await page.getByRole('tab', { name: /^(الذكية|نشطة)/ }).click();
   await expect(cards).toHaveCount(100);
   started = performance.now();
   while (await page.locator('.load-more-cards').count()) {
@@ -163,6 +191,8 @@ try {
   const employeePage = await employee.newPage(); employeePage.on('pageerror', error => errors.push(error.message));
   await employeePage.goto(base + '/erp'); await expect(employeePage.locator('.customer-card')).toHaveCount(100);
   await expect(employeePage.locator('.zero-review-status,.pending-review-filter')).toHaveCount(0);
+  await expect(employeePage.locator('.routing-card')).toHaveCount(0);
+  await expect(employeePage.locator('.add-customer-card')).toBeVisible();
   for (const theme of ['light', 'dark']) {
     await employeePage.setViewportSize({ width: 1440, height: 950 });
     if (await employeePage.evaluate(() => document.documentElement.dataset.theme) !== theme) await employeePage.getByRole('button', { name: theme === 'dark' ? 'المظهر الليلي' : 'المظهر النهاري', exact: true }).click();

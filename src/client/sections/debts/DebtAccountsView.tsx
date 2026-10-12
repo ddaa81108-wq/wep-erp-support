@@ -1,7 +1,7 @@
-import { Check, CircleDollarSign, ClipboardCheck, Menu, Pin, PinOff, Plus, Search, ShieldCheck, Users, X } from 'lucide-react';
+import { Check, Menu, Pin, PinOff, ShieldCheck, Users, X } from 'lucide-react';
 import type { Customer, CustomerFilter } from '../../api.ts';
 import { debtSectionText, type DebtSection } from './sectionConfig.ts';
-import { EgyptianRateCard } from './EgyptianRateCard.tsx';
+import { DebtAccountsToolbar } from './DebtAccountsToolbar.tsx';
 import { ZeroReviewButton } from './ZeroReviewButton.tsx';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
 
@@ -79,13 +79,12 @@ function cardLabel(section: DebtSection, customer: Customer) {
 
 export function DebtAccountsView(props: DebtAccountsViewProps) {
   const {
-    section, isAdmin, customers, visibleCustomers, totalDebt, activeCards, totalItems,
-    canRead, canWrite, loading, loadingMore, hasMore, query, filter, notice,
+    section, isAdmin, customers, visibleCustomers, totalItems,
+    canRead, canWrite, loading, loadingMore, hasMore, query, notice,
     routing, selectedCustomers, assignees, assigneeId,
   } = props;
   const labels = debtSectionText[section];
   const tickerCustomers = customers.filter((item) => item.balanceUnits > 0 && (item.debtAgeDays ?? 0) >= 3);
-  const displayedTotal = totalDebt;
 
   return <>
     {!isDepositSection(section) && <section className={`debt-ticker ${tickerCustomers.length === 0 ? 'empty-ticker' : ''}`} aria-label="تنبيهات الديون القديمة">
@@ -94,14 +93,7 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
         : <div className="debt-ticker-track">{[...tickerCustomers, ...tickerCustomers].map((customer, index) => <button key={`${customer.id}-${index}`} aria-hidden={index >= tickerCustomers.length || undefined} tabIndex={index >= tickerCustomers.length ? -1 : 0} className={(customer.debtAgeDays ?? 0) >= 7 ? 'urgent' : 'warning'} onClick={() => props.onOpenLedger(customer.id)}><strong>{customer.name}</strong><span>{money.format(customer.balanceUnits)} د.ل</span><em>منذ {money.format(customer.debtAgeDays ?? 0)} أيام</em></button>)}</div>}
     </section>}
     <header className="topbar"><button className="icon-button menu-button" onClick={props.onOpenMenu}><Menu /></button><div><h1>{labels.title}</h1><p>بطاقات {labels.plural} وسجل موحد دائم لكل {labels.singular}</p></div></header>
-    <section className={`debts-toolbar ${isAdmin ? 'admin-debts-toolbar' : 'employee-debts-toolbar'}`}>
-      <article className="debt-total-card"><div className="summary-icon gold"><CircleDollarSign /></div><span>{isDepositSection(section) ? 'صافي إجمالي القسم' : 'إجمالي الديون'}</span><strong>{money.format(displayedTotal)} <small>{currencyLabel(section)}</small></strong></article>
-      {canWrite && <button className="add-customer-card" onClick={props.onAdd}><Plus size={22} /><span>{labels.add}</span></button>}
-      {(section === 'customers' || section === 'companies') && isAdmin && <button className={`routing-card ${routing ? 'active' : ''}`} onClick={routing ? props.onCancelRouting : props.onStartRouting}><ClipboardCheck size={21} /><span>{routing ? 'إلغاء التوجيه' : 'التوجيه'}</span></button>}
-      <article className="active-cards-card"><div className="active-cards-count"><span>عدد الكروت النشطة</span><strong>{money.format(activeCards)}</strong></div><div className="compact-filters" role="tablist" aria-label="فلترة العملاء">{([['smart', 'الذكية'], ['today', 'اليوم'], ['due', 'ديون'], ['settled', 'مسدد'], ['pinned', 'مثبت']] as const).map(([value, label]) => <button key={value} role="tab" aria-selected={filter === value} className={filter === value ? 'active' : ''} onClick={() => props.onFilterChange(value)}>{label}</button>)}{section === 'customers' && isAdmin && <button role="tab" aria-selected={filter === 'pending-review'} className={filter === 'pending-review' ? 'active pending-review-filter' : 'pending-review-filter'} onClick={() => props.onFilterChange('pending-review')}>صفر ينتظر المراجعة <b>{money.format(props.pendingReviewCount)}</b></button>}</div></article>
-      <label className="dashboard-search"><span>البحث</span><div className="search"><Search size={18} /><input value={query} onChange={(event) => props.onQueryChange(event.target.value)} placeholder={`اسم ${labels.singular} أو الهاتف…`} /></div></label>
-      {section === 'egyptian-deposits' && <EgyptianRateCard canWrite={canWrite} />}
-    </section>
+    <DebtAccountsToolbar {...props} />
     <section className="content-card">
       {notice && <div className={`alert ${notice.kind}`}>{notice.text}<button onClick={props.onDismissNotice}><X size={16} /></button></div>}
       {routing && <div className="routing-bar"><select value={assigneeId} onChange={(event) => props.onAssigneeChange(event.target.value)}>{assignees.map((assignee) => <option value={assignee.id} key={assignee.id}>{assignee.displayName}</option>)}</select><span>تم اختيار {selectedCustomers.length} كارت</span><button disabled={!assigneeId || selectedCustomers.length === 0} onClick={props.onConfirmRouting}>تأكيد التوجيه</button></div>}

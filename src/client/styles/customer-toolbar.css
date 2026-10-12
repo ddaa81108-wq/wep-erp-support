@@ -1,0 +1,120 @@
+/* Keep the existing phone/tablet grid and labels. Only desktop gets the strips. */
+.customer-summary-strip,
+.customer-actions-strip { display: contents; }
+.customer-active-desktop-label { display: none; }
+@media (max-width: 900px) {
+  .workspace.section-customers .debt-total-card { order: 0; }
+  .workspace.section-customers .add-customer-card { order: 1; }
+  .workspace.section-customers .routing-card { order: 2; }
+  .workspace.section-customers .active-cards-card { order: 3; }
+  .workspace.section-customers .dashboard-search { order: 4; }
+}
+@media (min-width: 901px) {
+  .workspace.active-section-customers > .dashboard-utility-bar .dashboard-section-title {
+    border-radius: 999px;
+  }
+  .workspace.section-customers .debts-toolbar:is(.admin-debts-toolbar, .employee-debts-toolbar) {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+  .workspace.section-customers .customer-summary-strip,
+  .workspace.section-customers .customer-actions-strip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px;
+    border: 1px solid var(--desktop-card-border);
+    border-radius: 10px;
+    background: var(--desktop-card-bg);
+    flex-shrink: 0;
+  }
+  .workspace.section-customers .customer-summary-strip { flex-grow: 1; }
+  .workspace.section-customers .customer-actions-strip {
+    border-color: #8b79c2;
+    background: color-mix(in srgb, var(--paper) 90%, #8061c8);
+  }
+  .workspace.section-customers .debts-toolbar .debt-total-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex: 0 0 auto;
+    min-width: 165px;
+    min-height: 34px;
+    max-height: 34px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border-color: #ffffff35;
+    background: #ffffff18;
+    box-shadow: none;
+    white-space: nowrap;
+  }
+  .workspace.section-customers .debts-toolbar .debt-total-card .summary-icon { display: none; }
+  .workspace.section-customers .debts-toolbar .debt-total-card > strong { font-size: 14px; }
+  .workspace.section-customers .debts-toolbar .debt-total-card > span { font-size: 10px; }
+  .workspace.section-customers .debts-toolbar .active-cards-card { display: contents; }
+  .workspace.section-customers .debts-toolbar .active-cards-count,
+  .workspace.section-customers .customer-smart-mobile-label { display: none; }
+  .workspace.section-customers .customer-active-desktop-label { display: inline-flex; gap: 5px; align-items: center; }
+  .workspace.section-customers .debts-toolbar .compact-filters {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+  .workspace.section-customers .debts-toolbar .compact-filters button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    flex: 0 0 auto;
+    min-height: 34px;
+    height: 34px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .workspace.section-customers .debts-toolbar .dashboard-search {
+    display: block;
+    flex: 0 0 145px;
+    min-height: 34px;
+    max-height: 34px;
+    width: 145px;
+    padding: 0;
+    margin-inline-start: auto;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .workspace.section-customers .debts-toolbar .dashboard-search > span { display: none; }
+  .workspace.section-customers .debts-toolbar .dashboard-search input {
+    height: 34px;
+    border-radius: 999px;
+    font-size: 10px;
+    padding-inline: 29px 8px;
+  }
+  .workspace.section-customers .debts-toolbar .customer-actions-strip > button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    width: 96px;
+    min-height: 34px;
+    max-height: 34px;
+    padding: 3px 7px;
+    border-radius: 999px;
+    border: 1px solid #7960ba;
+    background: #5c438e;
+    color: #fff;
+    font-size: 10px;
+    white-space: nowrap;
+    box-shadow: none;
+  }
+  .workspace.section-customers .debts-toolbar .customer-actions-strip > button:hover,
+  .workspace.section-customers .debts-toolbar .customer-actions-strip > button.active { background: #493273; }
+}
