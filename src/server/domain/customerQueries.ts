@@ -87,12 +87,9 @@ export function listCustomers(
     SELECT
       COALESCE(SUM(CASE WHEN current_balance_units > 0 THEN current_balance_units ELSE 0 END), 0) AS total_debt,
       COALESCE(SUM(current_balance_units), 0) AS net_balance,
-      SUM(CASE WHEN NOT (
-        current_balance_units = 0 AND is_pinned = 0 AND inactive_since IS NOT NULL AND inactive_since <= ?
-      ) THEN 1 ELSE 0 END) AS active_cards
+      COALESCE(SUM(CASE WHEN current_balance_units <> 0 THEN 1 ELSE 0 END), 0) AS active_cards
     FROM customers WHERE organization_id = ? AND section_key = ? AND deleted_at IS NULL
   `).get(
-    new Date(Date.now() - 30 * 24 * 60 * 60_000).toISOString(),
     organizationId,
     profile.sectionKey,
   ) as { total_debt: number; active_cards: number; net_balance: number };

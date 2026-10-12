@@ -1983,7 +1983,7 @@ test('customer feed paginates and searches beyond the first page with section-wi
   const first = (await json(await fetch(`${base}/api/customers?limit=50&filter=smart`, { headers }))).data;
   assert.equal(first.items.length, 50);
   assert.equal(first.totalItems, 120);
-  assert.equal(first.summary.activeCards, 120);
+  assert.equal(first.summary.activeCards, 0);
   assert.equal(first.summary.totalDebt, 0);
   assert.ok(first.nextCursor);
   const second = (

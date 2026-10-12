@@ -143,6 +143,20 @@ try {
     assert.deepEqual(event.payload, {});
   }
   assert.equal((await reportsContext.request.get(base + '/api/customers')).status(), 403);
+  const zeroAccount = await mutate('/api/customers', { name: 'عميل رصيد صفر', openingBalance: 0, requestId: 'live-zero-account' });
+  await expect(active).toHaveText('3');
+  const negativeMovement = await mutate('/api/customers/' + zeroAccount.customer.id + '/transactions', {
+    requestId: 'live-zero-to-negative', expectedVersion: 1, type: 'payment', inputValue: 10, calculationMode: 'direct',
+  });
+  await expect(active).toHaveText('4', { timeout: 7000 });
+  const settledMovement = await mutate('/api/customers/' + zeroAccount.customer.id + '/transactions', {
+    requestId: 'live-negative-to-zero', expectedVersion: negativeMovement.customerVersion, type: 'debt', inputValue: 10, calculationMode: 'direct',
+  });
+  await expect(active).toHaveText('3', { timeout: 7000 });
+  await mutate('/api/customers/' + zeroAccount.customer.id + '/transactions', {
+    requestId: 'live-zero-to-positive', expectedVersion: settledMovement.customerVersion, type: 'debt', inputValue: 10, calculationMode: 'direct',
+  });
+  await expect(active).toHaveText('4', { timeout: 7000 });
   await page.getByRole('button', { name: 'أمانات ليبية', exact: true }).click();
   await mutate('/api/libyan-deposits', {
     name: 'وديعة أولى',
@@ -154,8 +168,10 @@ try {
     openingBalance: 0,
     requestId: 'live-deposit-second',
   });
+  await expect(active).toHaveText('1', { timeout: 7000 });
   await mutate('/api/libyan-deposits/' + secondDeposit.customer.id + '/transactions', {requestId:'live-deposit-withdrawal',expectedVersion:1,type:'payment',inputValue:30,calculationMode:'direct'});
   await expect(total).toContainText('70', { timeout: 7000 });
+  await expect(active).toHaveText('2', { timeout: 7000 });
   await search.fill('وديعة أولى');
   await expect(page.locator('.customer-card-main')).toHaveCount(1);
   await expect(total).toContainText('70');
