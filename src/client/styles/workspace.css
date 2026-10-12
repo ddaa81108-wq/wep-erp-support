@@ -3524,3 +3524,81 @@ button.settings-tool-card:hover {
     text-overflow: clip;
   }
 }
+
+/* Compact backup center with fluid cards and readable mobile controls. */
+.settings-backup-page {
+  max-width: 1080px;
+  margin-inline: auto;
+  padding: 0 12px 14px;
+  gap: 10px;
+  font-size: 12px;
+}
+.settings-backup-shell .settings-topbar {
+  padding: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.settings-backup-shell .settings-topbar h1 { font-size: 17px; }
+.settings-backup-shell .settings-topbar p { margin: 3px 0 0; font-size: 11px; }
+.settings-backup-page .backup-panel {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px var(--shadow);
+}
+.backup-actions-grid .backup-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  border-top: 3px solid var(--green);
+}
+.backup-actions-grid .backup-panel h3 { margin: 0; font-size: 13px; }
+.backup-actions-grid .backup-panel p { margin: 0; line-height: 1.7; font-size: 11px; color: var(--muted); }
+.backup-actions-grid .backup-panel label { display: grid; min-width: 0; gap: 4px; font-size: 11px; }
+.backup-actions-grid .backup-panel input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--text);
+}
+.backup-actions-grid input::file-selector-button {
+  padding: 5px 8px;
+  margin-inline-end: 6px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--hover);
+  color: inherit;
+}
+.backup-actions-grid .backup-panel > button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  white-space: normal;
+  justify-content: center;
+  font-size: 12px;
+}
+.backup-actions-grid .backup-panel > small { font-size: 10px; line-height: 1.6; color: var(--muted); }
+.settings-backup-page .backup-status-grid article { min-width: 0; border-radius: 12px; padding: 9px; }
+.settings-backup-page .backup-status-grid strong { overflow-wrap: anywhere; line-height: 1.6; }
+.settings-backup-page .backup-policy-note { padding: 10px; border-radius: 12px; font-size: 11px; }
+.settings-backup-page .backup-checklist li span { min-width: 0; overflow-wrap: anywhere; }
+.backup-more { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.backup-more > summary { cursor: pointer; padding: 11px 12px; font-size: 12px; font-weight: 600; }
+.backup-more > .backup-details-grid { padding: 0 10px 10px; }
+.backup-more .backup-panel { box-shadow: none; }
+@media (min-width: 621px) {
+  .settings-backup-page .backup-details-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .settings-backup-page { padding: 0 8px 12px; gap: 8px; }
+  .settings-backup-page .backup-details-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .settings-backup-page .backup-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .backup-actions-grid .backup-panel input { font-size: 16px; min-height: 44px; }
+  .backup-actions-grid .backup-panel > button { min-height: 44px; }
+  .settings-backup-page .backup-footer { align-items: stretch; }
+}

@@ -59,7 +59,7 @@ export function BackupCenterManager() {
   return <div className="settings-backup-page">
     {notice && <div className="alert error">{notice}</div>}
     {backupNotice && <div role="status" className="backup-policy-note">{backupNotice}</div>}
-    <div className="backup-details-grid">
+    <div className="backup-details-grid backup-actions-grid">
       <section className="backup-panel">
         <h3>نسخة كاملة طارئة</h3>
         <p>تنزيل قاعدة البيانات كاملة، بما فيها الحسابات والصلاحيات والسجلات والإعدادات، مع بصمة للتحقق. لا يتوقف النظام أثناء إنشاء النسخة.</p>
@@ -87,6 +87,8 @@ export function BackupCenterManager() {
       <div><strong>نسخ محلية تلقائية مع فحص سلامة كل نسخة</strong><span>تعرض الصفحة إعداد الجدول ونتيجة آخر تنفيذ مسجلة على الخادم. اختبار الاستعادة إجراء منفصل، ولا يُستنتج نجاحه من سلامة النسخة.</span></div>
     </div>
 
+    <details className="backup-more">
+      <summary>محتويات النسخة وخطوات الاستعادة</summary>
     <div className="backup-details-grid">
       <section className="backup-panel">
         <h3>محتويات النسخة الكاملة</h3>
@@ -108,6 +110,7 @@ export function BackupCenterManager() {
       </section>
     </div>
 
+    </details>
     <div className="backup-details-grid">
       <section className="backup-panel">
         <h3>جدول النسخ المحلي — بتوقيت ليبيا</h3>
