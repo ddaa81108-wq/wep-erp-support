@@ -753,6 +753,7 @@ try {
 
   await page.getByRole('button', { name: /النسخ الاحتياطي والاستعادة/ }).click();
   await page.getByRole('heading', { name: 'النسخ الاحتياطي والاستعادة' }).waitFor();
+  await page.locator('summary').filter({ hasText: 'محتويات النسخة وخطوات الاستعادة' }).click();
   await page.getByText('محتويات النسخة الكاملة', { exact: true }).waitFor();
   await page.getByText('مسار الاستعادة الآمن', { exact: true }).waitFor();
   await page.getByText('غير متحقق', { exact: true }).waitFor();

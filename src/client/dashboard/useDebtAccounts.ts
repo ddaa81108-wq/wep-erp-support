@@ -32,8 +32,10 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [listSummary, setListSummary] = useState({ totalDebt: 0, activeCards: 0, totalItems: 0 });
+  const [listSummary, setListSummary] = useState({ totalDebt: 0, activeCards: 0, totalItems: 0, netBalance: 0 });
   const [filter, setFilter] = useState<CustomerFilter>('smart');
+  const listRequest = useRef(0);
+  const loadedPages = useRef(1);
   const openLedgerId = useRef<string | null>(null);
   const pendingLedgerTimer = useRef<number | null>(null);
 
@@ -43,15 +45,29 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   }, [query]);
 
   const loadCustomers = useCallback(
-    async (cursor: string | null = null, append = false) => {
-      const options = { cursor, query: debouncedQuery, filter, limit: 100 };
-      const result = await listSectionAccounts(debtSection, options);
-      setCustomers((current) => (append ? appendCustomerPage(current, result.items) : result.items));
+    async (cursor: string | null = null, append = false, background = false) => {
+      const request = ++listRequest.current;
+      const pages = background ? loadedPages.current : 1;
+      let result = await listSectionAccounts(debtSection, { cursor, query: debouncedQuery, filter, limit: 100 });
+      const items = [...result.items];
+      for (let page = 1; page < pages && result.nextCursor; page += 1) {
+        result = await listSectionAccounts(debtSection, { cursor: result.nextCursor, query: debouncedQuery, filter, limit: 100 });
+        items.push(...result.items);
+      }
+      if (request !== listRequest.current) {
+        if (background) throw new Error('Background list refresh superseded');
+        return;
+      }
+      setCustomers(current => append ? appendCustomerPage(current, items) : items);
       setNextCursor(result.nextCursor);
-      setListSummary({ ...result.summary, totalItems: result.totalItems });
+      setListSummary({ ...result.summary, netBalance: result.summary.netBalance ?? items.reduce((sum, item) => sum + item.balanceUnits, 0), totalItems: result.totalItems });
+      loadedPages.current = append ? loadedPages.current + 1 : Math.max(1, Math.ceil(items.length / 100));
     },
     [debtSection, debouncedQuery, filter],
   );
+
+  useEffect(() => () => { listRequest.current += 1; }, [loadCustomers]);
+  const refreshList = useCallback(() => loadCustomers(null, false, true), [loadCustomers]);
 
   const fetchCustomer = useCallback((id: string) => getSectionAccount(debtSection, id), [debtSection]);
   const fetchLedger = useCallback(
@@ -76,9 +92,9 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   const mergeCustomer = useCallback((snapshot: Customer) => mergeCustomers([snapshot]), [mergeCustomers]);
   const refreshCustomer = useCallback(
     async (id: string) => {
-      mergeCustomer(await fetchCustomer(id));
+      await Promise.all([fetchCustomer(id).then(mergeCustomer), refreshList()]);
     },
-    [fetchCustomer, mergeCustomer],
+    [fetchCustomer, mergeCustomer, refreshList],
   );
 
   const refreshLedgerWhenIdle = useCallback(
@@ -147,21 +163,8 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
       .finally(() => setLoading(false));
   }, [activeSection, canRead, loadCustomers, onNotice]);
 
-  const handleRealtimeError = useCallback(
-    (error: unknown) => onNotice({ kind: 'error', text: dashboardErrorText(error) }),
-    [onNotice],
-  );
-  useDebtRealtime({
-    activeSection,
-    canRead,
-    debtSection,
-    openLedgerId,
-    fetchCustomer,
-    loadCustomers,
-    mergeCustomers,
-    refreshLedgerWhenIdle,
-    onError: handleRealtimeError,
-  });
+  useDebtRealtime({ activeSection, canRead, debtSection, openLedgerId,
+    loadCustomers: refreshList, refreshLedgerWhenIdle });
 
   async function loadMoreCustomers() {
     if (!nextCursor || loadingMore) return;

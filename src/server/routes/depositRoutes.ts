@@ -18,9 +18,11 @@ export async function routeDeposits(context: PermanentAccountRouteContext) {
   if (url.pathname === '/api/egyptian-deposits/exchange-rate' && method === 'PATCH') {
     requirePermission(user, 'egyptian_deposits.write');
     const input = await readJson(request);
+    const { eventSequence, ...data } = setEgyptianDepositRate(database, user, input.egpPerLyd);
+    context.events.publish(eventSequence);
     sendJson(response, 200, {
       ok: true,
-      data: setEgyptianDepositRate(database, user, input.egpPerLyd),
+      data,
     });
     return true;
   }

@@ -75,5 +75,5 @@ export type CustomerListResult = {
   items: Customer[];
   nextCursor: string | null;
   totalItems: number;
-  summary: { totalDebt: number; activeCards: number };
+  summary: { totalDebt: number; activeCards: number; netBalance?: number };
 };

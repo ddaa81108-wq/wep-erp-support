@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { ArrowRight, Check, Coins, Plus, WalletCards } from 'lucide-react';
 import { api } from '../../api.ts';
 import type { CollectionPayrollDashboard, CollectionPayrollEmployee } from '../../apiTypes.ts';
@@ -10,10 +11,18 @@ export function CollectionPayrollPanel({ isAdmin, onClose }: { isAdmin: boolean;
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [entryKind, setEntryKind] = useState<'withdrawal' | 'commission'>('withdrawal');
-  const load = () => api.collectionPayroll().then((result) => {
-    setData(result); setSelectedId((current) => current || result.employees[0]?.employeeId || '');
-  }).catch((caught) => setError(collectionError(caught)));
-  useEffect(() => { void load(); }, []);
+  const latestLoad = useRef(0);
+  const load = useCallback(async (quiet = false) => {
+    const request = ++latestLoad.current;
+    try {
+      const result = await api.collectionPayroll();
+      if (request !== latestLoad.current) return;
+      setData(result); setSelectedId(current => current || result.employees[0]?.employeeId || '');
+    } catch (caught) { if (quiet) throw caught; setError(collectionError(caught)); }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
+  useRealtimeRefresh({ topics: ['collection.changed'], cursorKey: 'abdo:payroll-events', onChange: () => load(true) });
+
   const selected = useMemo<CollectionPayrollEmployee | undefined>(
     () => data?.employees.find((employee) => employee.employeeId === selectedId), [data, selectedId],
   );

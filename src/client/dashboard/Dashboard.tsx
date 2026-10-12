@@ -80,7 +80,7 @@ export function Dashboard({
     isAdmin: user.role === 'admin',
     customers: debtAccounts.customers,
     visibleCustomers: debtAccounts.visibleCustomers,
-    totalDebt: debtAccounts.listSummary.totalDebt,
+    totalDebt: debtSection === 'libyan-deposits' || debtSection === 'egyptian-deposits' ? debtAccounts.listSummary.netBalance : debtAccounts.listSummary.totalDebt,
     activeCards: debtAccounts.listSummary.activeCards,
     totalItems: debtAccounts.listSummary.totalItems,
     canRead,

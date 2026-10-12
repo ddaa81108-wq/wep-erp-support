@@ -63,8 +63,8 @@ export class EventHub {
         .all(resolved.organizationId, after);
       for (const row of rows) {
         const event = row as Record<string, unknown>;
-        if (this.canReadTopic(resolved, String(event.topic), event.aggregate_id))
-          this.writeRow(response, event);
+        const visible = this.visibleEvent(resolved, event);
+        if (visible) this.writeRow(response, visible);
       }
     }
 
@@ -101,11 +101,9 @@ export class EventHub {
       const viewer = this.resolveViewer(subscriber.viewer);
       if (!viewer) {
         subscriber.response.end();
-      } else if (
-        viewer.organizationId === String(row.organization_id) &&
-        this.canReadTopic(viewer, String(row.topic), row.aggregate_id)
-      ) {
-        this.writeRow(subscriber.response, row);
+      } else if (viewer.organizationId === String(row.organization_id)) {
+        const visible = this.visibleEvent(viewer, row);
+        if (visible) this.writeRow(subscriber.response, visible);
       }
     }
   }
@@ -138,7 +136,8 @@ export class EventHub {
       fullResync: false,
       latest: rows.length > 0 ? Number(rows[rows.length - 1].sequence) : latest,
       events: rows
-        .filter((row) => this.canReadTopic(resolved, String(row.topic), row.aggregate_id))
+        .map((row) => this.visibleEvent(resolved, row))
+        .filter((row): row is Record<string, unknown> => row !== null)
         .map((row) => ({
           sequence: Number(row.sequence),
           topic: String(row.topic),
@@ -206,6 +205,18 @@ export class EventHub {
       organizationId: String(row.organization_id),
       permissions,
     };
+  }
+
+  private visibleEvent(viewer: ResolvedViewer, row: Record<string, unknown>): Record<string, unknown> | null {
+    const topic = String(row.topic);
+    if (this.canReadTopic(viewer, topic, row.aggregate_id)) return row;
+    const financial = /^(customer|company|libyan-deposit|egyptian-deposit|collection|purchases|masraweya|treasury)\./.test(topic);
+    if (financial && (viewer.permissions.has('treasury.read') || viewer.permissions.has('reports.read'))) {
+      // A viewer may read aggregate totals without permission to see source accounts.
+      // Signal invalidation only: never reveal account IDs, actors or financial payloads.
+      return { ...row, topic: 'financial.summary.changed', aggregate_id: null, payload_json: '{}' };
+    }
+    return null;
   }
 
   private canReadTopic(viewer: ResolvedViewer, topic: string, aggregateId: unknown) {

@@ -14,14 +14,19 @@ export function usePurchasesPage() {
   const deleteRequestIds = useRef(new Map<string, string>());
   const finalizeRequestId = useRef<string | null>(null);
 
-  const load = useCallback(async (key: PurchaseMerchantKey, quiet = false) => {
+  const latestLoad = useRef(0);
+  const load = useCallback(async (key: PurchaseMerchantKey, quiet = false, background = false) => {
+    const request = ++latestLoad.current;
     if (!quiet) setBusy(true);
     try {
       const next = await api.purchases(key);
+      if (request !== latestLoad.current) return;
+      if (background && dirty.current) throw new Error('Refresh deferred while editing');
       setPage(next);
       setEntries(next.entries);
       dirty.current = false;
     } catch (error) {
+      if (quiet) throw error;
       setMessage(purchaseErrorText(error));
     } finally {
       if (!quiet) setBusy(false);
@@ -36,7 +41,8 @@ export function usePurchasesPage() {
     topics: ['purchases.changed'],
     cursorKey: 'abdo:purchases-last-event',
     onChange: () => {
-      if (!dirty.current) return load(merchant, true);
+      if (dirty.current) throw new Error('Refresh deferred while a purchase draft is being edited');
+      return load(merchant, true, true);
     },
   });
 

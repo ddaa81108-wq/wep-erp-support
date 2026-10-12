@@ -34,59 +34,103 @@ export function useRealtimeRefresh({
     };
     const source = new EventSource(`/api/events?after=${encodeURIComponent(String(cursor()))}`);
 
-    const receive = (event: Event) => {
-      const message = event as MessageEvent<string>;
-      const sequence = Number(message.lastEventId);
-      if (Number.isSafeInteger(sequence) && sequence > 0) remember(sequence);
+    let timer: number | null = null;
+    let running = false;
+    let resync = false;
+    let latest = cursor();
+    const pending = new Map<number, LiveChange>();
+    const flush = async () => {
+      timer = null;
+      if (stopped || running) return;
+      running = true;
+      const changes = [...pending.values()];
+      pending.clear();
+      const full = resync;
+      resync = false;
+      const checkpoint = latest;
       try {
-        const data = JSON.parse(message.data) as Record<string, unknown>;
-        const payload =
-          typeof data.payload === 'object' && data.payload !== null
-            ? (data.payload as Record<string, unknown>)
-            : {};
-        void callback.current(
-          [
-            {
-              sequence: Number.isSafeInteger(sequence) ? sequence : 0,
-              topic: event.type,
-              aggregateId: typeof data.aggregateId === 'string' ? data.aggregateId : null,
-              payload,
-              createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
-            },
-          ],
-          false,
-        );
+        if (changes.length || full) await callback.current(changes, full);
+        if (!stopped) remember(checkpoint);
       } catch {
-        // The fallback feed repairs malformed or interrupted realtime messages.
+        // Do not acknowledge failed refreshes; retry with an authoritative snapshot.
+        resync = true;
+      } finally {
+        running = false;
+        if (!stopped && (pending.size || resync)) schedule(resync ? 1000 : 100);
       }
     };
-    const fullResync = () => void callback.current([], true);
+    const schedule = (delay = 100) => {
+      if (!stopped && timer === null && !running) timer = window.setTimeout(() => void flush(), delay);
+    };
+    const fullResync = () => {
+      resync = true;
+      schedule();
+    };
+    const receive = (event: Event) => {
+      const message = event as MessageEvent<string>;
+      try {
+        const data = JSON.parse(message.data) as Record<string, unknown>;
+        const sequence = Number(message.lastEventId);
+        if (!Number.isSafeInteger(sequence) || sequence <= 0) {
+          fullResync();
+          return;
+        }
+        latest = Math.max(latest, sequence);
+        pending.set(sequence, {
+          sequence,
+          topic: event.type,
+          aggregateId: typeof data.aggregateId === 'string' ? data.aggregateId : null,
+          payload:
+            typeof data.payload === 'object' && data.payload !== null
+              ? (data.payload as Record<string, unknown>)
+              : {},
+          createdAt: typeof data.createdAt === 'string' ? data.createdAt : '',
+        });
+        schedule();
+      } catch {
+        fullResync();
+      }
+    };
     for (const topic of subscribedTopics) source.addEventListener(topic, receive);
     source.addEventListener('full_resync_required', fullResync);
+    source.addEventListener('open', fullResync);
 
     const recover = async () => {
       if (stopped || polling || document.visibilityState !== 'visible') return;
       polling = true;
       try {
-        const after = cursor();
-        const result = await api.eventChanges(after);
-        const relevant = result.events.filter((event) => subscribedTopics.includes(event.topic));
-        if (!stopped && (result.fullResync || relevant.length > 0)) {
-          await callback.current(relevant, result.fullResync);
-        }
-        remember(result.latest);
+        const result = await api.eventChanges(cursor());
+        if (stopped) return;
+        latest = Math.max(latest, result.latest);
+        resync ||= result.fullResync;
+        for (const event of result.events)
+          if (subscribedTopics.includes(event.topic)) pending.set(event.sequence, event);
+        schedule();
       } catch {
-        // EventSource reconnects automatically; a later fallback pass retries.
+        // Retry data as well as transport when reconnecting after an outage.
+        fullResync();
       } finally {
         polling = false;
       }
     };
-
-    const timer = window.setInterval(() => void recover(), fallbackIntervalMs);
+    const resume = () => {
+      if (document.visibilityState === 'visible') {
+        fullResync();
+        void recover();
+      }
+    };
+    const pollTimer = window.setInterval(() => void recover(), fallbackIntervalMs);
+    window.addEventListener('online', resume);
+    window.addEventListener('focus', resume);
+    document.addEventListener('visibilitychange', resume);
     return () => {
       stopped = true;
       source.close();
-      window.clearInterval(timer);
+      window.clearInterval(pollTimer);
+      if (timer !== null) window.clearTimeout(timer);
+      window.removeEventListener('online', resume);
+      window.removeEventListener('focus', resume);
+      document.removeEventListener('visibilitychange', resume);
     };
   }, [cursorKey, enabled, fallbackIntervalMs, topicKey]);
 }

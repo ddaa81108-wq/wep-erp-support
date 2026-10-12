@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, FileText, RefreshCw, ShieldCheck } from 'lucide-react';
 import { api, ApiError, type ReportsDashboard } from '../../api.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
@@ -10,12 +10,17 @@ export function ReportsSection() {
   const [data, setData] = useState<ReportsDashboard | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const latestLoad = useRef(0);
   const load = useCallback(async (quiet = false) => {
+    const request = ++latestLoad.current;
     if (!quiet) setBusy(true);
     try {
-      setData(await api.reports(90));
+      const next = await api.reports(90);
+      if (request !== latestLoad.current) return;
+      setData(next);
       setMessage('');
     } catch (error) {
+      if (quiet) throw error;
       setMessage(errorText(error));
     } finally {
       if (!quiet) setBusy(false);
@@ -24,6 +29,7 @@ export function ReportsSection() {
   useEffect(() => { void load(); }, [load]);
   useRealtimeRefresh({
     topics: [
+      'financial.summary.changed', 'customer.changed', 'company.changed', 'libyan-deposit.changed', 'egyptian-deposit.changed', 'collection.changed',
       'treasury.changed', 'customer.ledger.changed', 'company.ledger.changed',
       'libyan-deposit.ledger.changed', 'egyptian-deposit.ledger.changed',
       'purchases.changed', 'masraweya.changed',

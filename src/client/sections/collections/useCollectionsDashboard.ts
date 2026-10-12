@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type CollectionAssignment, type CollectionsDashboard } from '../../api.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
 
@@ -19,12 +19,17 @@ export function useCollectionsDashboard() {
   const [data, setData] = useState<CollectionsDashboard | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState('');
-  const load = useCallback(() => api.collections().then(setData).catch((caught) => setError(collectionError(caught))), []);
+  const latestLoad = useRef(0);
+  const load = useCallback(async (quiet = false) => {
+    const request = ++latestLoad.current;
+    try { const next = await api.collections(); if (request === latestLoad.current) setData(next); }
+    catch (caught) { setError(collectionError(caught)); if (quiet) throw caught; }
+  }, []);
   useEffect(() => { void load(); }, [load]);
   useRealtimeRefresh({
-    topics: ['collection.changed', 'customer.ledger.changed', 'company.ledger.changed'],
+    topics: ['collection.changed', 'customer.changed', 'company.changed', 'customer.ledger.changed', 'company.ledger.changed'],
     cursorKey: 'abdo:collections-last-event',
-    onChange: () => load(),
+    onChange: () => load(true),
   });
   async function run(id: string, operation: () => Promise<unknown>) {
     setBusy(id); setError('');

@@ -86,6 +86,7 @@ export function listCustomers(
   const summary = database.prepare(`
     SELECT
       COALESCE(SUM(CASE WHEN current_balance_units > 0 THEN current_balance_units ELSE 0 END), 0) AS total_debt,
+      COALESCE(SUM(current_balance_units), 0) AS net_balance,
       SUM(CASE WHEN NOT (
         current_balance_units = 0 AND is_pinned = 0 AND inactive_since IS NOT NULL AND inactive_since <= ?
       ) THEN 1 ELSE 0 END) AS active_cards
@@ -94,7 +95,7 @@ export function listCustomers(
     new Date(Date.now() - 30 * 24 * 60 * 60_000).toISOString(),
     organizationId,
     profile.sectionKey,
-  ) as { total_debt: number; active_cards: number };
+  ) as { total_debt: number; active_cards: number; net_balance: number };
   const hideBefore = Date.now() - 30 * 24 * 60 * 60_000;
   return {
     items: pageRows.map((row) => {
@@ -136,7 +137,7 @@ export function listCustomers(
       } satisfies FeedCursor)).toString('base64url');
     })() : null,
     totalItems,
-    summary: { totalDebt: Number(summary.total_debt), activeCards: Number(summary.active_cards) },
+    summary: { netBalance: Number(summary.net_balance), totalDebt: Number(summary.total_debt), activeCards: Number(summary.active_cards) },
   };
 }
 

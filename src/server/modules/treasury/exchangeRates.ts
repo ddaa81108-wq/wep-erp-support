@@ -40,7 +40,10 @@ export function setEgyptianDepositRate(database: AppDatabase, actor: Authenticat
   `,
       )
       .run(actor.organizationId, SECTION, micros, actor.id, updatedAt);
+    const event = database.prepare("INSERT INTO event_log(topic,aggregate_id,actor_user_id,organization_id,payload_json,created_at) VALUES('egyptian-deposit.changed',NULL,?,?,?,?)")
+      .run(actor.id, actor.organizationId, JSON.stringify({ action: 'exchange_rate' }), updatedAt);
     return {
+      eventSequence: Number(event.lastInsertRowid),
       sourceCurrency: 'EGP',
       targetCurrency: 'LYD',
       egpPerLyd: micros / 1_000_000,

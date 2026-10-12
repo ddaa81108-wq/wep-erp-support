@@ -19,14 +19,18 @@ export function TreasurySection({ user }: { user: User }) {
   const submitting = useRef(false);
   const pendingRequestId = useRef<string | null>(null);
 
+  const latestLoad = useRef(0);
   const load = useCallback(async (quiet = false) => {
+    const request = ++latestLoad.current;
     if (!quiet) setBusy(true);
     try {
       const [summary, ledger] = await Promise.all([api.treasury(), api.treasuryCashLedger()]);
+      if (request !== latestLoad.current) return;
       setDashboard(summary);
       setEntries(ledger.items);
       setNextBefore(ledger.nextBefore);
     } catch (error) {
+      if (quiet) throw error;
       setMessage(errorText(error));
     } finally {
       if (!quiet) setBusy(false);
@@ -38,6 +42,7 @@ export function TreasurySection({ user }: { user: User }) {
   }, [load]);
   useRealtimeRefresh({
     topics: [
+      'financial.summary.changed', 'customer.changed', 'company.changed', 'libyan-deposit.changed', 'egyptian-deposit.changed', 'collection.changed',
       'treasury.changed',
       'customer.ledger.changed',
       'company.ledger.changed',
@@ -48,7 +53,8 @@ export function TreasurySection({ user }: { user: User }) {
     ],
     cursorKey: 'abdo:treasury-last-event',
     onChange: () => {
-      if (!submitting.current && mode === null) return load(true);
+      if (submitting.current) throw new Error('Refresh deferred until cash submission finishes');
+      return load(true);
     },
   });
 

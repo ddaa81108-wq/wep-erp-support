@@ -82,7 +82,7 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
   } = props;
   const labels = debtSectionText[section];
   const tickerCustomers = customers.filter((item) => item.balanceUnits > 0 && (item.debtAgeDays ?? 0) >= 3);
-  const displayedTotal = isDepositSection(section) ? customers.reduce((sum, item) => sum + item.balanceUnits, 0) : totalDebt;
+  const displayedTotal = totalDebt;
 
   return <>
     {!isDepositSection(section) && <section className={`debt-ticker ${tickerCustomers.length === 0 ? 'empty-ticker' : ''}`} aria-label="تنبيهات الديون القديمة">
