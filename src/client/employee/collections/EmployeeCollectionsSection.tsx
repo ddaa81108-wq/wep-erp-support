@@ -1,3 +1,4 @@
+import { CollectionRejectedBadge } from '../../sections/collections/CollectionRejectedBadge.tsx';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Phone } from 'lucide-react';
 import { api } from '../../api.ts';
@@ -120,6 +121,7 @@ export function EmployeeCollectionsSection() {
                 className={`collection-card unlinked-receipt-card status-${receipt.status}`}
                 key={receipt.id}
               >
+                {receipt.status === 'rejected' && <CollectionRejectedBadge />}
                 <span>{receipt.collectorName}</span>
                 <strong>{receipt.customerName}</strong>
                 <b>{collectionMoney.format(receipt.amountUnits)} د.ل</b>
@@ -150,9 +152,10 @@ export function EmployeeCollectionsSection() {
               const inactive = assignment.balanceUnits === 0;
               return (
                 <article
-                  className={`collection-card ${assignmentTone(assignment)} ${inactive ? 'zero-collection-card' : ''}`}
+                  className={`collection-card ${assignmentTone(assignment)}`}
                   key={assignment.id}
                 >
+                  {assignmentTone(assignment) === 'collection-rejected' && <CollectionRejectedBadge />}
                   <span>{assignment.assigneeName}</span>
                   <strong>{assignment.customerName}</strong>
                   <b>{collectionMoney.format(assignment.balanceUnits)} د.ل</b>

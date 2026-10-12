@@ -53,6 +53,7 @@ npm run check
 npm run test:coverage
 npm run test:ui
 npm run test:realtime
+npm run test:collections-ui
 npm run test:restore
 ```
 

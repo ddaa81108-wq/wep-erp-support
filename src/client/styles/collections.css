@@ -1125,7 +1125,14 @@
 }
 .collection-card.collection-yellow,
 .admin-customer-collection-card.collection-yellow {
-  background: linear-gradient(145deg, #ff9a00 0%, #e36d00 52%, #9f3f00 100%);
+  background: linear-gradient(145deg, #ffe477 0%, #f1c232 52%, #d4a514 100%);
+  color: #241c00;
+}
+.collection-yellow > small,
+.collection-yellow > span,
+.collection-yellow > header span,
+.collection-yellow .admin-card-history > small {
+  color: #493900;
 }
 .collection-card.collection-red,
 .admin-customer-collection-card.collection-red {
@@ -1140,6 +1147,27 @@
   border-color: #737373;
   background: linear-gradient(145deg, #151515 0%, #050505 58%, #000 100%);
 }
+
+.collection-card.collection-rejected,
+.admin-customer-collection-card.collection-rejected,
+.collection-card.status-rejected,
+.admin-customer-collection-card.status-rejected {
+  background: repeating-linear-gradient(135deg, #45414a 0 14px, #35313b 14px 28px);
+  color: #fff;
+  border: 2px dashed #f5b7bf;
+}
+.collection-card > .collection-rejected-badge,
+.admin-customer-collection-card > .collection-rejected-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  grid-column: 1 / -1;
+  gap: 2px;
+  color: #fff;
+  padding: 4px;
+}
+.collection-rejected-badge svg { flex: none; }
 
 @media (max-width: 560px) {
   .collection-card,

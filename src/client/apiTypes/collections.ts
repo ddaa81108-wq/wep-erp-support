@@ -11,8 +11,10 @@ export type CollectionAssignment = {
   businessDate: string;
   batchId: string;
   latestMode: 'full' | 'partial' | null;
-  latestStatus: 'pending' | 'approved' | null;
+  latestStatus: 'pending' | 'approved' | 'rejected' | null;
+  cashOutstandingCount: number;
   latestCashReceivedAt: string | null;
+  latestDecisionAt: string | null;
   externalFinancialUpdatedAt: string;
   latestSubmissionAt: string | null;
 };

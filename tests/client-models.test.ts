@@ -278,6 +278,10 @@ test('masraweya grid arrows move predictably and append only below the final row
 
 test('collection card tones follow financial movement, payment, and admin cash review order', () => {
   const base = {
+    assignedAt: '2026-01-01T08:00:00.000Z',
+    latestStatus: 'approved',
+    hasPending: 0,
+    cashOutstandingCount: 0,
     latestSubmissionAt: '2026-01-01T10:00:00.000Z',
     externalFinancialUpdatedAt: '2026-01-01T09:00:00.000Z',
     latestCashReceivedAt: null,
@@ -285,13 +289,13 @@ test('collection card tones follow financial movement, payment, and admin cash r
     latestMode: 'partial',
   } as CollectionAssignment;
   assert.equal(assignmentTone(base), 'collection-yellow');
-  assert.equal(assignmentTone({ ...base, balanceUnits: 0, latestMode: 'full' }), 'collection-green');
+  assert.equal(assignmentTone({ ...base, balanceUnits: 0, latestMode: 'full' }), 'zero-collection-card');
   assert.equal(
     assignmentTone({ ...base, externalFinancialUpdatedAt: '2026-01-01T11:00:00.000Z' }),
     'collection-base',
   );
   assert.equal(
-    assignmentTone({ ...base, latestCashReceivedAt: '2026-01-01T12:00:00.000Z' }, true),
+    assignmentTone({ ...base, balanceUnits: 0, latestCashReceivedAt: '2026-01-01T12:00:00.000Z' }),
     'collection-red',
   );
 });

@@ -1,3 +1,4 @@
+import { CollectionRejectedBadge } from '../../sections/collections/CollectionRejectedBadge.tsx';
 import { useState } from 'react';
 import { Check, WalletCards, X } from 'lucide-react';
 import { api } from '../../api.ts';
@@ -169,9 +170,10 @@ export function AdminCollectionsSection() {
               let partial = 0;
               return (
                 <article
-                  className={`admin-customer-collection-card ${assignmentTone(assignment, true)}`}
+                  className={`admin-customer-collection-card ${assignmentTone(assignment)}`}
                   key={assignment.id}
                 >
+                  {assignmentTone(assignment) === 'collection-rejected' && <CollectionRejectedBadge />}
                   <header>
                     <div>
                       <strong>{assignment.customerName}</strong>

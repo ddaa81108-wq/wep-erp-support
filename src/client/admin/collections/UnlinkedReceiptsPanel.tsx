@@ -1,3 +1,4 @@
+import { CollectionRejectedBadge } from '../../sections/collections/CollectionRejectedBadge.tsx';
 import { useState } from 'react';
 import { Check, Search, WalletCards, X } from 'lucide-react';
 import { api, type CollectionLinkCandidate, type UnlinkedCollectionReceipt } from '../../api.ts';
@@ -99,6 +100,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
               className={`admin-customer-collection-card unlinked-admin-card status-${receipt.status}`}
               key={receipt.id}
             >
+              {receipt.status === 'rejected' && <CollectionRejectedBadge />}
               <header>
                 <div>
                   <strong>{receipt.customerName}</strong>

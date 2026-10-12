@@ -1,3 +1,4 @@
+import { compareCollectionCards, type CollectionCardState } from '../../shared/collectionCardState.ts';
 import { randomUUID } from 'node:crypto';
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
@@ -65,23 +66,18 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     u.display_name AS assigneeName,
     c.current_balance_units AS balanceUnits,
     EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending') AS hasPending,
-    (SELECT s.mode FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status <> 'rejected' ORDER BY s.submitted_at DESC LIMIT 1) AS latestMode,
-    (SELECT s.status FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status <> 'rejected' ORDER BY s.submitted_at DESC LIMIT 1) AS latestStatus,
-    (SELECT s.cash_received_at FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status <> 'rejected' ORDER BY s.submitted_at DESC LIMIT 1) AS latestCashReceivedAt,
-    COALESCE(MAX(CASE WHEN NOT EXISTS(SELECT 1 FROM collection_submissions linked WHERE linked.approved_transaction_id=t.id) THEN t.updated_at END),a.assigned_at) AS externalFinancialUpdatedAt,
-    (SELECT MAX(s.submitted_at) FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status <> 'rejected') AS latestSubmissionAt
+    (SELECT s.mode FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestMode,
+    (SELECT s.status FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestStatus,
+    (SELECT s.cash_received_at FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestCashReceivedAt,
+    (SELECT s.decided_at FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestDecisionAt,
+    MAX(a.assigned_at, COALESCE(MAX(CASE WHEN t.updated_at <> t.created_at OR NOT EXISTS(SELECT 1 FROM collection_submissions linked WHERE linked.approved_transaction_id=t.id) THEN t.updated_at END),a.assigned_at)) AS externalFinancialUpdatedAt,
+    (SELECT MAX(s.submitted_at) FROM collection_submissions s WHERE s.assignment_id=a.id) AS latestSubmissionAt,
+    (SELECT COUNT(*) FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='approved' AND s.cash_received_at IS NULL) AS cashOutstandingCount
     FROM debt_assignments a JOIN customers c ON c.id=a.customer_id
     JOIN users u ON u.id=a.assignee_user_id JOIN customer_cycles cy ON cy.customer_id=c.id AND cy.status='active'
-    LEFT JOIN debt_transactions t ON t.cycle_id=cy.id AND t.deleted_at IS NULL AND t.transaction_status='posted'
-    WHERE c.organization_id=? AND a.status='active' ${scope} GROUP BY a.id ORDER BY
-      CASE
-        WHEN balanceUnits = 0 THEN 3
-        WHEN latestSubmissionAt IS NULL OR externalFinancialUpdatedAt > latestSubmissionAt THEN 0
-        WHEN latestMode = 'partial' THEN 1
-        ELSE 2
-      END ASC,
-      CASE WHEN latestSubmissionAt IS NULL OR externalFinancialUpdatedAt > latestSubmissionAt THEN externalFinancialUpdatedAt END DESC,
-      latestSubmissionAt DESC, a.assigned_at DESC`).all(...params);
+    LEFT JOIN debt_transactions t ON t.customer_id=c.id
+    WHERE c.organization_id=? AND a.status='active' ${scope} GROUP BY a.id`).all(...params) as (CollectionCardState & Record<string, unknown>)[];
+  assignments.sort(compareCollectionCards);
   const submissions = db.prepare(`SELECT s.id, s.assignment_id AS assignmentId, s.customer_id AS customerId,
     s.collector_user_id AS collectorUserId, s.mode, s.amount_units AS amountUnits, s.status,
     s.business_date AS businessDate, s.batch_id AS batchId, s.submitted_at AS submittedAt, s.decided_at AS decidedAt, s.decision_note AS decisionNote,
