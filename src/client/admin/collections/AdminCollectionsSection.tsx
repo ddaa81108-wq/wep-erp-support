@@ -1,3 +1,4 @@
+import { CollectionCardDetails } from '../../sections/collections/CollectionCardDetails.tsx';
 import { CollectionRejectedBadge } from '../../sections/collections/CollectionRejectedBadge.tsx';
 import { useState } from 'react';
 import { Check, WalletCards, X } from 'lucide-react';
@@ -15,6 +16,7 @@ import { CollectionPayrollPanel } from '../../sections/collections/CollectionPay
 export function AdminCollectionsSection() {
   const { data, error, busy, setError, setBusy, load, run } = useCollectionsDashboard();
   const [closingBatchId, setClosingBatchId] = useState('');
+  const [selectedBatchId, setSelectedBatchId] = useState('');
   const [payrollOpen, setPayrollOpen] = useState(false);
   const decide = (id: string, decision: 'approve' | 'reject') =>
     run(id, () => api.decideCollection(id, decision));
@@ -143,6 +145,7 @@ export function AdminCollectionsSection() {
         {error && <div className="alert error">{error}</div>}
       </div>
     );
+  const selectedBatch = data.openBatches.find(batch => batch.id === selectedBatchId) ?? data.openBatches[0];
   const history = (id: string) =>
     [...data.submissions].filter((item) => item.assignmentId === id && item.status !== 'rejected').reverse();
   if (payrollOpen) {
@@ -150,7 +153,11 @@ export function AdminCollectionsSection() {
   }
   return (
     <div className="collections-page admin-collections-page">
-      <CollectionsOverview data={data} description="متابعة الموظفين، الاعتماد، واستلام النقدية" onPayroll={() => setPayrollOpen(true)} />
+      <CollectionsOverview data={data} description="متابعة الموظفين، الاعتماد، واستلام النقدية" onPayroll={() => setPayrollOpen(true)} desktopBatchActions={selectedBatch && <div className="collection-desktop-batch-actions">
+        {data.openBatches.length > 1 && <select aria-label="دفعة العمل" value={selectedBatch.id} onChange={event => setSelectedBatchId(event.target.value)}>{data.openBatches.map(batch => <option key={batch.id} value={batch.id}>{batch.businessDate} • دفعة {batch.batchNumber}</option>)}</select>}
+        <button className="compact-action" disabled={busy !== ''} title={selectedBatch.businessDate + ' • دفعة ' + selectedBatch.batchNumber} onClick={() => setClosingBatchId(selectedBatch.id)}>إغلاق ومسح الدفعة</button>
+        <button className="compact-action" disabled={busy !== ''} onClick={() => void exportPdf(selectedBatch.id, selectedBatch.businessDate)}>كشف PDF</button>
+      </div>} />
       {error && <div className="alert error">{error}</div>}
       <UnlinkedReceiptsPanel
         receipts={data.unlinkedReceipts}
@@ -181,6 +188,7 @@ export function AdminCollectionsSection() {
                     </div>
                     <b>{collectionMoney.format(assignment.balanceUnits)} د.ل</b>
                   </header>
+                  <CollectionCardDetails rejected={assignmentTone(assignment) === 'collection-rejected'}>
                   <div className="admin-card-history">
                     {payments.length === 0 ? (
                       <small>لم يسجل الموظف استلامًا بعد.</small>
@@ -231,6 +239,7 @@ export function AdminCollectionsSection() {
                       })
                     )}
                   </div>
+                  </CollectionCardDetails>
                 </article>
               );
             })

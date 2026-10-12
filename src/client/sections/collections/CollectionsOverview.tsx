@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Plus, WalletCards, X } from 'lucide-react';
 import type { CollectionsDashboard } from '../../api.ts';
 import { collectionMoney } from './useCollectionsDashboard.ts';
@@ -6,11 +7,12 @@ type Props = {
   data: CollectionsDashboard;
   description: string;
   onPayroll: () => void;
+  desktopBatchActions?: ReactNode;
   creating?: boolean;
   onToggleCreate?: () => void;
 };
 
-export function CollectionsOverview({ data, description, onPayroll, creating, onToggleCreate }: Props) {
+export function CollectionsOverview({ data, description, onPayroll, creating, onToggleCreate, desktopBatchActions }: Props) {
   const total = `${collectionMoney.format(data.metrics.collectedUnits)} د.ل`;
   return (
     <>
@@ -42,6 +44,7 @@ export function CollectionsOverview({ data, description, onPayroll, creating, on
           <button className="secondary compact-action payroll-open-button" onClick={onPayroll}>
             <WalletCards size={15} /> المرتبات
           </button>
+          {desktopBatchActions}
         </div>
       </header>
       <section className="collection-metrics" aria-label="ملخص استلامات الديون">

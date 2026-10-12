@@ -107,10 +107,31 @@ try {
         await page.setViewportSize({width,height:950});
         if (width===390) await expect.poll(()=>page.locator('.sidebar').evaluate(el=>el.getBoundingClientRect().left>=innerWidth)).toBe(true);
         await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2)).toBe(true);
+        const rejectedBox = await cards.last().boundingBox();
+        const otherBottom = await cards.locator('..').evaluate(() => 0).catch(() => 0);
+        void otherBottom;
+        const normalBottom = await cards.evaluateAll(elements => Math.max(...elements.filter(el => !el.classList.contains('collection-rejected')).map(el => el.getBoundingClientRect().bottom)));
+        assert.ok(rejectedBox && rejectedBox.y >= normalBottom, 'Rejected cards must start below every other card.');
+        assert.ok(rejectedBox.width <= 181, 'Rejected cards stay compact.');
+        if (page === adminPage) {
+          const desktopActions = page.locator('.collection-desktop-batch-actions');
+          if (width === 390) {
+            await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeHidden();
+            await expect(page.locator('.day-actions')).toBeVisible();
+          } else {
+            await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeVisible();
+            await expect(page.locator('.day-actions')).toBeHidden();
+          }
+        }
         await page.screenshot({path:resolve('artifacts','collection-states',(page===adminPage?'admin':'employee')+'-'+theme+'-'+width+'.png'),fullPage:true,animations:'disabled'});
       }
     }
   }
+  await employeePage.locator('.collection-rejected .rejected-card-details > summary').click();
+  await expect(employeePage.locator('.collection-rejected .collector-actions')).toBeVisible();
+  await adminPage.locator('.collection-desktop-batch-actions').getByRole('button', { name: 'إغلاق ومسح الدفعة', exact: true }).click();
+  await expect(adminPage.getByRole('dialog')).toBeVisible();
+  await adminPage.getByRole('dialog').getByRole('button', { name: 'لا', exact: true }).click();
   const account=await read(writer.request,'/api/customers/'+ids[2]);
   const version=account.customer?.version ?? account.version;
   await mutate('/api/customers/'+ids[2]+'/transactions',{requestId:'colour-admin-promote',expectedVersion:version,type:'debt',inputValue:40,calculationMode:'direct'});

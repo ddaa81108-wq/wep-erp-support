@@ -1,3 +1,4 @@
+import { CollectionCardDetails } from '../../sections/collections/CollectionCardDetails.tsx';
 import { CollectionRejectedBadge } from '../../sections/collections/CollectionRejectedBadge.tsx';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Phone } from 'lucide-react';
@@ -160,6 +161,7 @@ export function EmployeeCollectionsSection() {
                   <strong>{assignment.customerName}</strong>
                   <b>{collectionMoney.format(assignment.balanceUnits)} د.ل</b>
                   <small>{assignment.phone || 'لا يوجد رقم هاتف'}</small>
+                  <CollectionCardDetails rejected={assignmentTone(assignment) === 'collection-rejected'}>
                   {payments.length > 0 && (
                     <div className="collection-payment-history">
                       {payments.map((item) => {
@@ -219,6 +221,7 @@ export function EmployeeCollectionsSection() {
                       اتصال
                     </a>
                   </div>
+                  </CollectionCardDetails>
                 </article>
               );
             })
