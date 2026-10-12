@@ -396,3 +396,15 @@
     color: #fff1a8;
   }
 }
+
+/* Notification preferences: text and colour both expose the saved state. */
+.notification-actions { flex-wrap: wrap; }
+.notification-actions .notification-toggle { min-height: 44px; min-width: 74px; justify-content: center; border: 1px solid #9f5360; background: #fce9ed; color: #7c2135; }
+.notification-toggle > span { display: grid; gap: 1px; text-align: center; }
+.notification-toggle strong { font-size: 11px; font-weight: 800; }
+.notification-actions .notification-toggle[aria-pressed="true"] { background: #d5f5e6; border-color: #25845d; color: #105237; }
+[data-theme="dark"] .notification-actions .notification-toggle { background: #422630; border-color: #c67d8d; color: #ffd7e1; }
+[data-theme="dark"] .notification-actions .notification-toggle[aria-pressed="true"] { background: #124a37; border-color: #52c797; color: #d6ffed; }
+.notification-actions .notification-toggle:disabled { opacity: .65; cursor: wait; }
+.notification-actions .notification-toggle:focus-visible { outline: 2px solid var(--gold, #d8ae44); outline-offset: 2px; }
+.notification-preference-status { margin: 0; padding: 5px 10px; font-size: 12px; }

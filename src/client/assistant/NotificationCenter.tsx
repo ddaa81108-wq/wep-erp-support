@@ -68,26 +68,36 @@ export function NotificationCenter({
               <CheckCheck size={15} /> تعليم الكل كمقروء
             </button>
             <button
+              className="notification-toggle"
+              disabled={!notifications.preferencesReady || notifications.preferencesSaving}
+              aria-busy={notifications.preferencesSaving}
               aria-pressed={notifications.preferences.soundEnabled}
+              title={notifications.preferences.soundEnabled ? 'إيقاف الصوت' : 'تشغيل الصوت'}
               onClick={() => void notifications.updatePreferences({
                 ...notifications.preferences,
                 soundEnabled: !notifications.preferences.soundEnabled,
               })}
             >
               {notifications.preferences.soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
-              الصوت
+              <span>الصوت<strong>{!notifications.preferencesReady ? 'جارٍ التحميل…' : notifications.preferences.soundEnabled ? 'مفعّل' : 'متوقف'}</strong></span>
             </button>
             <button
+              className="notification-toggle"
+              disabled={!notifications.preferencesReady || notifications.preferencesSaving}
+              aria-busy={notifications.preferencesSaving}
               aria-pressed={notifications.preferences.speechEnabled}
+              title={notifications.preferences.speechEnabled ? 'إيقاف النطق' : 'تشغيل النطق'}
               onClick={() => void notifications.updatePreferences({
                 ...notifications.preferences,
                 speechEnabled: !notifications.preferences.speechEnabled,
               })}
             >
               <MessageSquareText size={15} />
-              النطق
+              <span>النطق<strong>{!notifications.preferencesReady ? 'جارٍ التحميل…' : notifications.preferences.speechEnabled ? 'مفعّل' : 'متوقف'}</strong></span>
             </button>
           </div>
+          {notifications.preferencesSaving && <p className="notification-preference-status" role="status">جارٍ حفظ إعدادات التنبيه…</p>}
+          {notifications.preferencesError && <p className="notification-error" role="alert">{notifications.preferencesError}</p>}
           {notifications.error && <p className="notification-error">{notifications.error}</p>}
           <div className="notification-list">
             {notifications.loading && <p>جارٍ تحميل الإشعارات…</p>}

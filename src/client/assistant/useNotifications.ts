@@ -49,6 +49,10 @@ export function useNotifications(enabled: boolean) {
   const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState('');
   const [announcement, setAnnouncement] = useState<NotificationItem | null>(null);
+  const [preferencesReady, setPreferencesReady] = useState(false);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+  const [preferencesError, setPreferencesError] = useState('');
+  const savingPreferences = useRef(false);
   const initialized = useRef(false);
   const newestId = useRef(0);
   const preferencesRef = useRef(preferences);
@@ -96,7 +100,10 @@ export function useNotifications(enabled: boolean) {
     if (!enabled) return;
     void Promise.all([
       load(),
-      api.notificationPreferences().then(setPreferences).catch(() => undefined),
+      api.notificationPreferences().then(value => {
+        setPreferences(value);
+        setPreferencesReady(true);
+      }).catch(() => setPreferencesError('تعذر تحميل إعدادات التنبيه. أعد تحميل الصفحة للمحاولة.')),
     ]);
   }, [enabled, load]);
 
@@ -149,14 +156,29 @@ export function useNotifications(enabled: boolean) {
   }, []);
 
   const updatePreferences = useCallback(async (next: NotificationPreferences) => {
-    const saved = await api.updateNotificationPreferences(next);
-    setPreferences(saved);
-  }, []);
+    if (!preferencesReady || savingPreferences.current) return;
+    savingPreferences.current = true;
+    setPreferencesSaving(true);
+    setPreferencesError('');
+    try {
+      const saved = await api.updateNotificationPreferences(next);
+      preferencesRef.current = saved;
+      setPreferences(saved);
+    } catch {
+      setPreferencesError('لم يتم حفظ إعدادات التنبيه. الحالة السابقة ما زالت مفعّلة؛ حاول مرة أخرى.');
+    } finally {
+      savingPreferences.current = false;
+      setPreferencesSaving(false);
+    }
+  }, [preferencesReady]);
 
   return {
     items,
     unreadCount,
     preferences,
+    preferencesReady,
+    preferencesSaving,
+    preferencesError,
     loading,
     error,
     announcement,
