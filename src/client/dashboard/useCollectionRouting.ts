@@ -7,11 +7,11 @@ type RoutingNotice = { kind: 'success' | 'error'; text: string };
 
 type CollectionRoutingOptions = {
   debtSection: DebtSection;
-  refreshCustomer: (id: string) => Promise<void>;
+  refreshAccounts: () => Promise<void>;
   onNotice: (notice: RoutingNotice) => void;
 };
 
-export function useCollectionRouting({ debtSection, refreshCustomer, onNotice }: CollectionRoutingOptions) {
+export function useCollectionRouting({ debtSection, refreshAccounts, onNotice }: CollectionRoutingOptions) {
   const [routing, setRouting] = useState(false);
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [assignees, setAssignees] = useState<Array<{ id: string; username: string; displayName: string }>>(
@@ -51,12 +51,17 @@ export function useCollectionRouting({ debtSection, refreshCustomer, onNotice }:
         assigneeId,
         debtSection === 'companies' ? 'companies' : 'customers',
       );
-      await Promise.all(routedCustomers.map((customerId) => refreshCustomer(customerId)));
-      setRouting(false);
-      setSelectedCustomers([]);
-      onNotice({ kind: 'success', text: 'تم توجيه الكروت إلى الموظف.' });
     } catch (error) {
       onNotice({ kind: 'error', text: dashboardErrorText(error) });
+      return;
+    }
+    setRouting(false);
+    setSelectedCustomers([]);
+    onNotice({ kind: 'success', text: 'تم توجيه الكروت إلى الموظف.' });
+    try {
+      await refreshAccounts();
+    } catch {
+      onNotice({ kind: 'success', text: 'تم توجيه الكروت إلى الموظف. تعذر تحديث العرض مؤقتًا؛ ستعيد المزامنة المحاولة تلقائيًا.' });
     }
   }
 

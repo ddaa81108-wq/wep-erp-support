@@ -45,7 +45,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   }, [query]);
 
   const loadCustomers = useCallback(
-    async (cursor: string | null = null, append = false, background = false) => {
+    async (cursor: string | null = null, append = false, background = false, retrySuperseded = background) => {
       const request = ++listRequest.current;
       const pages = background ? loadedPages.current : 1;
       let result = await listSectionAccounts(debtSection, { cursor, query: debouncedQuery, filter, limit: 100 });
@@ -55,7 +55,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
         items.push(...result.items);
       }
       if (request !== listRequest.current) {
-        if (background) throw new Error('Background list refresh superseded');
+        if (retrySuperseded) throw new Error('Background list refresh superseded');
         return;
       }
       setCustomers(current => append ? appendCustomerPage(current, items) : items);
@@ -68,6 +68,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
 
   useEffect(() => () => { listRequest.current += 1; }, [loadCustomers]);
   const refreshList = useCallback(() => loadCustomers(null, false, true), [loadCustomers]);
+  const refreshAfterMutation = useCallback(() => loadCustomers(null, false, true, false), [loadCustomers]);
 
   const fetchCustomer = useCallback((id: string) => getSectionAccount(debtSection, id), [debtSection]);
   const fetchLedger = useCallback(
@@ -92,9 +93,9 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   const mergeCustomer = useCallback((snapshot: Customer) => mergeCustomers([snapshot]), [mergeCustomers]);
   const refreshCustomer = useCallback(
     async (id: string) => {
-      await Promise.all([fetchCustomer(id).then(mergeCustomer), refreshList()]);
+      await Promise.all([fetchCustomer(id).then(mergeCustomer), refreshAfterMutation()]);
     },
-    [fetchCustomer, mergeCustomer, refreshList],
+    [fetchCustomer, mergeCustomer, refreshAfterMutation],
   );
 
   const refreshLedgerWhenIdle = useCallback(
@@ -214,5 +215,6 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     togglePinned,
     mergeCustomer,
     refreshCustomer,
+    refreshAfterMutation,
   };
 }

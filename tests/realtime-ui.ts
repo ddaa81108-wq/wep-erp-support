@@ -157,6 +157,28 @@ try {
     requestId: 'live-zero-to-positive', expectedVersion: settledMovement.customerVersion, type: 'debt', inputValue: 10, calculationMode: 'direct',
   });
   await expect(active).toHaveText('4', { timeout: 7000 });
+  await mutate('/api/users', {
+    username: 'collector', displayName: 'محصل الاختبار', password: 'Live Collector 123!',
+    role: 'employee', permissions: ['collections.read', 'collections.write'],
+  });
+  await search.fill('');
+  await expect(page.locator('.customer-card-main')).toHaveCount(4);
+  await page.getByRole('button', { name: 'التوجيه', exact: true }).click();
+  await page.locator('.routing-bar select').selectOption({ label: 'محصل الاختبار' });
+  await page.locator('.routing-select input').nth(0).check();
+  await page.locator('.routing-select input').nth(1).check();
+  // Overlap multiple list refreshes with the assignment event, as on a slow connection.
+  await page.route('**/api/customers?**', async route => {
+    const response = await route.fetch();
+    await new Promise(resolve => setTimeout(resolve, 300));
+    await route.fulfill({ response });
+  });
+  await page.getByRole('button', { name: 'تأكيد التوجيه', exact: true }).click();
+  await expect(page.locator('.routing-bar')).toHaveCount(0);
+  await expect(page.locator('.alert.success')).toContainText('تم توجيه الكروت');
+  await expect(page.locator('.customer-assignee-badge')).toHaveCount(2);
+  await expect(page.locator('.alert.error')).toHaveCount(0);
+  await page.unroute('**/api/customers?**');
   await page.getByRole('button', { name: 'أمانات ليبية', exact: true }).click();
   await mutate('/api/libyan-deposits', {
     name: 'وديعة أولى',

@@ -56,7 +56,7 @@ export function Dashboard({
     resetRouting,
   } = useCollectionRouting({
     debtSection,
-    refreshCustomer: debtAccounts.refreshCustomer,
+    refreshAccounts: debtAccounts.refreshAfterMutation,
     onNotice: setNotice,
   });
   useEffect(() => {
