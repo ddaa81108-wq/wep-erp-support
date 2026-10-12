@@ -68,9 +68,13 @@ try {
     ids.push(account.customer.id);
     const assignment=await mutate('/api/collections/assignments',{customerIds:[account.customer.id],assigneeUserId:collectorId,section:'customers'});
     const id=assignment.assignmentIds[0];
+    if (i === 5) {
+      const earlier = await submit(id, 'partial', 20);
+      await mutate('/api/collections/submissions/'+earlier.id+'/decision',{decision:'approve'});
+    }
     if([1,2,3,5].includes(i)) {
       const payment=await submit(id,i===1||i===5?'partial':'full',i===1||i===5?30:100);
-      await mutate('/api/collections/submissions/'+payment.id+'/decision',{decision:i===5?'reject':'approve'});
+      if (i !== 5) await mutate('/api/collections/submissions/'+payment.id+'/decision',{decision:'approve'});
       if(i===1||i===3) await mutate('/api/collections/submissions/'+payment.id+'/cash-received',{});
     }
     if(i===4) await mutate('/api/customers/'+account.customer.id+'/transactions',{requestId:'colour-credit',expectedVersion:1,type:'payment',inputValue:120,calculationMode:'direct'});
@@ -81,18 +85,47 @@ try {
   const viewer=await browser.newContext();
   await viewer.request.post(base+'/api/auth/login',{headers:{'X-Client-Api-Version':'1'},data:{username:'admin',password:'Live Admin 123!'}});
   const adminPage=await viewer.newPage();
+  const unlinked = await collector.request.post(base+'/api/collections/unlinked-receipts', {
+    headers:{'X-Client-Api-Version':'1','X-CSRF-Token':collectorCsrf},
+    data:{customerName:'استلام مستقل للاختبار',amountUnits:15,requestId:'reject-ui-unlinked'},
+  });
+  assert.ok(unlinked.ok(), await unlinked.text());
   const employeePage=await collector.newPage();
+  for (const page of [adminPage, employeePage]) {
+    await page.goto(base+'/erp');
+    await page.getByRole('button',{name:'قسم استلامات الديون',exact:true}).click();
+    await page.locator('.collections-page').waitFor();
+  }
+  const adminCards = adminPage.locator('.admin-collection-grid > .admin-customer-collection-card');
+  const employeeCards = employeePage.locator('.collection-grid > .collection-card');
+  await expect(adminCards).toHaveCount(7);
+  await expect(employeeCards).toHaveCount(7);
+  await adminCards.filter({hasText:'استلام مستقل للاختبار'}).getByRole('button',{name:'رفض',exact:true}).click();
+  await expect(adminPage.locator('.unlinked-admin-card')).toHaveCount(0);
+  await expect(employeePage.locator('.unlinked-receipt-card')).toHaveCount(0, {timeout:7000});
+  await adminCards.filter({hasText:names[5]}).getByRole('button',{name:'رفض',exact:true}).click();
+  await expect(adminCards.filter({hasText:names[5]})).toHaveCount(0);
+  await expect(employeeCards.filter({hasText:names[5]})).toHaveCount(0, {timeout:7000});
+  const afterReject = await read(writer.request, '/api/collections');
+  assert.equal(afterReject.assignedCount, 5);
+  await expect(adminPage.locator('.outstanding-collection-cash')).toContainText('20');
+  await expect(employeePage.locator('.outstanding-collection-cash')).toContainText('20', {timeout:7000});
+  mkdirSync(resolve('artifacts','collection-states'),{recursive:true});
+  await adminPage.screenshot({path:resolve('artifacts','collection-states','cash-preserved-after-rejection.png'),fullPage:true});
+  await adminPage.locator('.outstanding-collection-cash').getByRole('button',{name:'تم استلام النقدية',exact:true}).click();
+  await expect(adminPage.locator('.outstanding-collection-cash')).toHaveCount(0);
+  await expect(employeePage.locator('.outstanding-collection-cash')).toHaveCount(0, {timeout:7000});
   for(const page of [adminPage,employeePage]) {
     await page.goto(base+'/erp');
     await page.getByRole('button',{name:'قسم استلامات الديون',exact:true}).click();
     await page.locator('.collections-page').waitFor();
     const cards=page===adminPage?page.locator('.admin-collection-grid > .admin-customer-collection-card'):page.locator('.collection-grid > .collection-card');
-    await expect(cards).toHaveCount(6);
-    for(const [i,tone] of ['collection-base','collection-yellow','zero-collection-card','collection-red','collection-green','collection-rejected'].entries()) {
+    await expect(cards).toHaveCount(5);
+    for(const [i,tone] of ['collection-base','collection-yellow','zero-collection-card','collection-red','collection-green'].entries()) {
       await expect(cards.filter({hasText:names[i]})).toHaveClass(new RegExp(tone));
     }
-    await expect(cards.last()).toContainText('تم الرفض');
-    await expect(cards.last().locator('.collection-rejected-badge svg')).toBeVisible();
+    await expect(page.locator('.collection-rejected-badge')).toHaveCount(0);
+    await expect(cards.filter({hasText:names[5]})).toHaveCount(0);
     const order=await cards.evaluateAll(elements=>elements.map(e=>e.className));
     assert.ok(order[0].includes('collection-base'));
     assert.ok(order[1].includes('collection-yellow'));
@@ -107,12 +140,6 @@ try {
         await page.setViewportSize({width,height:950});
         if (width===390) await expect.poll(()=>page.locator('.sidebar').evaluate(el=>el.getBoundingClientRect().left>=innerWidth)).toBe(true);
         await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2)).toBe(true);
-        const rejectedBox = await cards.last().boundingBox();
-        const otherBottom = await cards.locator('..').evaluate(() => 0).catch(() => 0);
-        void otherBottom;
-        const normalBottom = await cards.evaluateAll(elements => Math.max(...elements.filter(el => !el.classList.contains('collection-rejected')).map(el => el.getBoundingClientRect().bottom)));
-        assert.ok(rejectedBox && rejectedBox.y >= normalBottom, 'Rejected cards must start below every other card.');
-        assert.ok(rejectedBox.width <= 181, 'Rejected cards stay compact.');
         if (page === adminPage) {
           const desktopActions = page.locator('.collection-desktop-batch-actions');
           if (width === 390) {
@@ -127,8 +154,6 @@ try {
       }
     }
   }
-  await employeePage.locator('.collection-rejected .rejected-card-details > summary').click();
-  await expect(employeePage.locator('.collection-rejected .collector-actions')).toBeVisible();
   await adminPage.locator('.collection-desktop-batch-actions').getByRole('button', { name: 'إغلاق ومسح الدفعة', exact: true }).click();
   await expect(adminPage.getByRole('dialog')).toBeVisible();
   await adminPage.getByRole('dialog').getByRole('button', { name: 'لا', exact: true }).click();
@@ -137,7 +162,7 @@ try {
   await mutate('/api/customers/'+ids[2]+'/transactions',{requestId:'colour-admin-promote',expectedVersion:version,type:'debt',inputValue:40,calculationMode:'direct'});
   await expect(adminPage.locator('.admin-collection-grid > .admin-customer-collection-card').first()).toContainText(names[2],{timeout:7000});
   await expect(employeePage.locator('.collection-grid > .collection-card').first()).toContainText(names[2],{timeout:7000});
-  console.log('PASS collections: all colours, rejection badge, employee/admin ordering, mobile/desktop and light/dark, realtime administrative promotion.');
+  console.log('PASS collections: all colours, immediate rejection removal, employee/admin ordering, mobile/desktop and light/dark, realtime administrative promotion.');
 } finally {
   await browser?.close();
   await new Promise<void>(done=>server.close(()=>done()));

@@ -99,7 +99,7 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     r.decided_at AS decidedAt,r.decision_note AS decisionNote,
     r.cash_received_at AS cashReceivedAt,u.display_name AS collectorName
     FROM collection_unlinked_receipts r JOIN users u ON u.id=r.collector_user_id
-    WHERE r.organization_id=? ${unlinkedScope}
+    WHERE r.organization_id=? AND r.status <> 'rejected' ${unlinkedScope}
     ORDER BY CASE r.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
       r.submitted_at DESC LIMIT 200`).all(...params);
   const unlinkedMetrics = db.prepare(`SELECT
@@ -116,7 +116,15 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     unlinkedPendingCount: Number(unlinkedMetrics.unlinkedPendingCount),
   };
   const openBatches=db.prepare("SELECT id,business_date AS businessDate,organization_batch_number AS batchNumber,opened_at AS openedAt FROM collection_batches WHERE organization_id=? AND status='open' ORDER BY opened_at DESC").all(actor.organizationId);
-  return { assignments, submissions, unlinkedReceipts, metrics, assignedCount: assignments.length, openBatches };
+  // Keep earlier approved cash reachable even after its assignment is cancelled.
+  const outstandingCancelledSubmissions = db.prepare(`SELECT s.id, s.amount_units AS amountUnits,
+    c.name AS customerName, u.display_name AS collectorName
+    FROM collection_submissions s JOIN debt_assignments a ON a.id=s.assignment_id
+    JOIN customers c ON c.id=s.customer_id JOIN users u ON u.id=s.collector_user_id
+    WHERE c.organization_id=? AND a.status='cancelled' AND s.status='approved'
+      AND s.cash_received_at IS NULL ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'}
+    ORDER BY s.submitted_at DESC, s.id`).all(...params);
+  return { assignments, submissions, unlinkedReceipts, outstandingCancelledSubmissions, metrics, assignedCount: assignments.length, openBatches };
 }
 
 export function createUnlinkedCollectionReceipt(
@@ -354,9 +362,12 @@ export function decideCollection(db: AppDatabase, actor: AuthenticatedUser, subm
     const decidedAt = nowIso(); const note = typeof input.note === 'string' ? input.note.trim().slice(0, 500) : '';
     if (decision === 'reject') {
       db.prepare("UPDATE collection_submissions SET status='rejected',decided_by_user_id=?,decided_at=?,decision_note=? WHERE id=?").run(actor.id, decidedAt, note, submissionId);
-      audit(db, actor.id, actor.organizationId, 'collection.reject', submissionId, correlationId, { note });
+      db.prepare("UPDATE debt_assignments SET status='cancelled',cancelled_at=? WHERE id=? AND status='active'")
+        .run(decidedAt, String(row.assignment_id));
+      audit(db, actor.id, actor.organizationId, 'collection.reject', submissionId, correlationId, { note, assignmentId: row.assignment_id });
       const collectionEvent = emitCollectionEvent(db, submissionId, actor.id, actor.organizationId, 'rejected');
-      return { id: submissionId, status: 'rejected', eventSequences: [collectionEvent] };
+      const assignmentEvent = emitDebtAssignmentEvent(db, String(row.customer_id), actor.id, actor.organizationId, 'unassigned', String(row.section_key));
+      return { id: submissionId, status: 'rejected', eventSequences: [collectionEvent, assignmentEvent] };
     }
     const transactionKind = String(row.section_key) === 'company_debts' ? 'company' : 'customer';
     const collectorPermission = transactionKind === 'company' ? 'companies.write' : 'debts.write';

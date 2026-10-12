@@ -1,5 +1,4 @@
-import { CollectionCardDetails } from '../../sections/collections/CollectionCardDetails.tsx';
-import { CollectionRejectedBadge } from '../../sections/collections/CollectionRejectedBadge.tsx';
+import { OutstandingCollectionCash } from '../../sections/collections/OutstandingCollectionCash.tsx';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Phone } from 'lucide-react';
 import { api } from '../../api.ts';
@@ -75,6 +74,7 @@ export function EmployeeCollectionsSection() {
   return (
     <div className="collections-page employee-collections-page">
       <CollectionsOverview data={data} description="الكروت الموجهة إليك للاستلام" onPayroll={() => setPayrollOpen(true)} creating={creating} onToggleCreate={() => setCreating((value) => !value)} />
+      <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} />
       {error && <div className="alert error">{error}</div>}
       {creating && (
         <section id="collection-create-form" ref={createPanel} className="collection-panel unlinked-create-panel">
@@ -122,7 +122,6 @@ export function EmployeeCollectionsSection() {
                 className={`collection-card unlinked-receipt-card status-${receipt.status}`}
                 key={receipt.id}
               >
-                {receipt.status === 'rejected' && <CollectionRejectedBadge />}
                 <span>{receipt.collectorName}</span>
                 <strong>{receipt.customerName}</strong>
                 <b>{collectionMoney.format(receipt.amountUnits)} د.ل</b>
@@ -156,12 +155,10 @@ export function EmployeeCollectionsSection() {
                   className={`collection-card ${assignmentTone(assignment)}`}
                   key={assignment.id}
                 >
-                  {assignmentTone(assignment) === 'collection-rejected' && <CollectionRejectedBadge />}
                   <span>{assignment.assigneeName}</span>
                   <strong>{assignment.customerName}</strong>
                   <b>{collectionMoney.format(assignment.balanceUnits)} د.ل</b>
                   <small>{assignment.phone || 'لا يوجد رقم هاتف'}</small>
-                  <CollectionCardDetails rejected={assignmentTone(assignment) === 'collection-rejected'}>
                   {payments.length > 0 && (
                     <div className="collection-payment-history">
                       {payments.map((item) => {
@@ -221,7 +218,6 @@ export function EmployeeCollectionsSection() {
                       اتصال
                     </a>
                   </div>
-                  </CollectionCardDetails>
                 </article>
               );
             })

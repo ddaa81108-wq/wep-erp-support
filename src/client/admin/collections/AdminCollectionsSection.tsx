@@ -1,5 +1,4 @@
-import { CollectionCardDetails } from '../../sections/collections/CollectionCardDetails.tsx';
-import { CollectionRejectedBadge } from '../../sections/collections/CollectionRejectedBadge.tsx';
+import { OutstandingCollectionCash } from '../../sections/collections/OutstandingCollectionCash.tsx';
 import { useState } from 'react';
 import { Check, WalletCards, X } from 'lucide-react';
 import { api } from '../../api.ts';
@@ -158,6 +157,7 @@ export function AdminCollectionsSection() {
         <button className="compact-action" disabled={busy !== ''} title={selectedBatch.businessDate + ' • دفعة ' + selectedBatch.batchNumber} onClick={() => setClosingBatchId(selectedBatch.id)}>إغلاق ومسح الدفعة</button>
         <button className="compact-action" disabled={busy !== ''} onClick={() => void exportPdf(selectedBatch.id, selectedBatch.businessDate)}>كشف PDF</button>
       </div>} />
+      <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} onReceive={(id) => void cash(id)} />
       {error && <div className="alert error">{error}</div>}
       <UnlinkedReceiptsPanel
         receipts={data.unlinkedReceipts}
@@ -180,7 +180,6 @@ export function AdminCollectionsSection() {
                   className={`admin-customer-collection-card ${assignmentTone(assignment)}`}
                   key={assignment.id}
                 >
-                  {assignmentTone(assignment) === 'collection-rejected' && <CollectionRejectedBadge />}
                   <header>
                     <div>
                       <strong>{assignment.customerName}</strong>
@@ -188,7 +187,6 @@ export function AdminCollectionsSection() {
                     </div>
                     <b>{collectionMoney.format(assignment.balanceUnits)} د.ل</b>
                   </header>
-                  <CollectionCardDetails rejected={assignmentTone(assignment) === 'collection-rejected'}>
                   <div className="admin-card-history">
                     {payments.length === 0 ? (
                       <small>لم يسجل الموظف استلامًا بعد.</small>
@@ -239,7 +237,6 @@ export function AdminCollectionsSection() {
                       })
                     )}
                   </div>
-                  </CollectionCardDetails>
                 </article>
               );
             })

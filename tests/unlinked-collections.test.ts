@@ -34,6 +34,24 @@ function setup() {
   return { db, admin, employee };
 }
 
+test('rejected unlinked receipts disappear for both roles without financial posting', () => {
+  const { db, admin, employee } = setup();
+  const receipt = createUnlinkedCollectionReceipt(db, employee, {
+    requestId:'reject-unlinked-receipt',customerName:'استلام للاختبار',amountUnits:300,
+  }, 'test');
+  assert.throws(() => decideUnlinkedCollectionReceipt(db, employee, receipt.id, {decision:'reject'}, 'test'));
+  const before = db.prepare('SELECT COUNT(*) n FROM debt_transactions').get()!.n;
+  decideUnlinkedCollectionReceipt(db, admin, receipt.id, {decision:'reject'}, 'test');
+  for (const actor of [admin, employee]) {
+    const data = listCollections(db, actor);
+    assert.equal(data.unlinkedReceipts.length, 0);
+    assert.equal(data.metrics.unlinkedPendingCount, 0);
+    assert.equal(data.metrics.collectedUnits, 0);
+  }
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM debt_transactions').get()!.n, before);
+  assert.equal(db.prepare('SELECT status FROM collection_unlinked_receipts WHERE id=?').get(receipt.id)!.status, 'rejected');
+});
+
 test('an unlinked employee receipt stays financially inert until administration links and approves it', () => {
   const { db, admin, employee } = setup();
   const created = createCustomer(db, admin, {
