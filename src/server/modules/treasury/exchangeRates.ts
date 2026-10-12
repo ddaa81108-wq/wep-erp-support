@@ -1,3 +1,4 @@
+import { positiveRateMicros } from '../../../shared/moneyCalculation.ts';
 import type { AppDatabase } from '../../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../../db/database.ts';
 import { badRequest } from '../../http/errors.ts';
@@ -24,10 +25,9 @@ export function getEgyptianDepositRate(database: AppDatabase, organizationId: st
 }
 
 export function setEgyptianDepositRate(database: AppDatabase, actor: AuthenticatedUser, value: unknown) {
-  const rate = Number(value);
-  if (!Number.isFinite(rate) || rate <= 0 || rate > 1_000_000)
-    throw badRequest('INVALID_EXCHANGE_RATE', 'سعر التحويل يجب أن يكون رقمًا موجبًا.');
-  const micros = Math.round(rate * 1_000_000);
+  const micros = positiveRateMicros(value);
+  if (micros === null || micros > 1_000_000_000_000)
+    throw badRequest('INVALID_EXCHANGE_RATE', 'سعر التحويل يجب أن يكون موجبًا ولا يتجاوز مليونًا، بحد أقصى 6 منازل عشرية.');
   return inImmediateTransaction(database, () => {
     const updatedAt = nowIso();
     database

@@ -1,7 +1,7 @@
 import { Pencil, X } from 'lucide-react';
 import type { LedgerItem } from '../../api.ts';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
-import { ledgerDateFormat, ledgerMoney } from './ledgerModel.ts';
+import { ledgerDateFormat, ledgerMoney, ledgerFactor } from './ledgerModel.ts';
 import type { DebtSection } from './sectionConfig.ts';
 
 type Props = {
@@ -50,7 +50,7 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
         {item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? 'ضرب' : 'قسمة'}
       </span>
       <span className="ledger-cell" data-label="المعامل">
-        {item.factorMicros ? ledgerMoney.format(item.factorMicros / 1_000_000) : '—'}
+        {item.factorMicros ? ledgerFactor.format(item.factorMicros / 1_000_000) : '—'}
       </span>
       <strong className="ledger-cell" data-label="دين مضاف">
         {item.type === 'debt' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}

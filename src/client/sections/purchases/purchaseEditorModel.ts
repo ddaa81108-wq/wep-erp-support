@@ -1,3 +1,4 @@
+import { positiveRateMicros, convertedWholeUnits } from '../../../shared/moneyCalculation.ts';
 import { ApiError, type PurchaseEntry, type PurchaseEntryInput } from '../../api.ts';
 
 export const purchaseNumber = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
@@ -75,8 +76,8 @@ export function choosePurchaseType(draft: PurchaseDraft, itemCode: string, itemL
 
 export function purchaseDraftTotals(draft: PurchaseDraft) {
   const value = Number(draft.value || 0);
-  const rate = Number(draft.rate || 0);
-  const result = rate > 0 ? Math.round(draft.mode === 'multiply' ? value * rate : value / rate) : 0;
+  const rate = positiveRateMicros(draft.rate);
+  const result = rate === null ? 0 : (convertedWholeUnits(value, rate, draft.mode, 'nearest') ?? 0);
   return { value, result, remaining: result - Number(draft.paid || 0) };
 }
 

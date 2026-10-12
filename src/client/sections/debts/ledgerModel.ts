@@ -1,8 +1,10 @@
+import { positiveRateMicros, convertedWholeUnits } from '../../../shared/moneyCalculation.ts';
 import { ApiError, type Ledger, type LedgerItem } from '../../api.ts';
 
 export type LedgerDraftKind = 'debt' | 'partial' | 'full';
 export type LedgerCalculationMode = 'direct' | 'multiply' | 'divide';
 
+export const ledgerFactor = new Intl.NumberFormat('ar-LY', { maximumFractionDigits: 6 });
 export const ledgerMoney = new Intl.NumberFormat('ar-LY', { maximumFractionDigits: 0 });
 export const ledgerDateFormat = new Intl.DateTimeFormat('ar-LY', {
   weekday: 'short',
@@ -34,9 +36,10 @@ export function ledgerDraftResult(
 ) {
   if (kind === 'full') return Math.max(0, balanceBefore);
   const number = Number(value);
-  const by = Number(factor);
-  if (!(number > 0)) return 0;
-  return Math.floor(mode === 'multiply' ? number * by : mode === 'divide' ? number / by : number) || 0;
+  if (!Number.isSafeInteger(number) || number <= 0) return 0;
+  if (mode === 'direct') return number;
+  const micros = positiveRateMicros(factor);
+  return micros === null ? 0 : (convertedWholeUnits(number, micros, mode, 'floor') ?? 0);
 }
 
 export function ledgerBalances(ledger: Ledger) {

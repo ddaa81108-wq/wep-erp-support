@@ -146,8 +146,8 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
         <input
           aria-label="قيمة المعاملة"
           type="number"
-          min="0.000001"
-          step="any"
+          min="1"
+          step="1"
           value={kind === 'full' ? Math.max(0, balanceBefore) : value}
           onChange={(e) => setValue(e.target.value)}
           disabled={kind === 'full'}

@@ -1,3 +1,4 @@
+import { positiveRateMicros, convertedWholeUnits } from '../../shared/moneyCalculation.ts';
 import { badRequest } from '../http/errors.ts';
 import { hasValidLeadingCalendarDate } from './dates.ts';
 
@@ -25,22 +26,16 @@ export function calculateCustomerAmount(
   if (!['direct', 'multiply', 'divide'].includes(mode)) {
     throw badRequest('INVALID_CALCULATION_MODE', 'طريقة الحساب غير معروفة.');
   }
-  let factor: number | undefined;
-  if (mode !== 'direct') factor = asPositiveWholeUnits(factorValue, 'factor');
-  const raw = mode === 'direct'
-    ? inputNumber
-    : mode === 'multiply'
-      ? inputNumber * Number(factor)
-      : inputNumber / Number(factor);
-  const amountUnits = Math.floor(raw);
-  if (!Number.isSafeInteger(amountUnits) || amountUnits <= 0) {
+  const factorMicros = mode === 'direct' ? null : positiveRateMicros(factorValue);
+  if (mode !== 'direct' && factorMicros === null) {
+    throw badRequest('INVALID_CALCULATION_FACTOR', 'المعامل يجب أن يكون رقمًا موجبًا، بحد أقصى 6 منازل عشرية.', { field: 'factor' });
+  }
+  const amountUnits = mode === 'direct' ? inputNumber
+    : convertedWholeUnits(inputNumber, factorMicros!, mode, 'floor');
+  if (amountUnits === null || !Number.isSafeInteger(amountUnits) || amountUnits <= 0) {
     throw badRequest('INVALID_CALCULATION_RESULT', 'ناتج العملية المالية غير صالح.');
   }
   const inputMicros = inputNumber * 1_000_000;
-  const factorMicros = factor === undefined ? null : factor * 1_000_000;
-  if (!Number.isSafeInteger(inputMicros) || (factorMicros !== null && !Number.isSafeInteger(factorMicros))) {
-    throw badRequest('INVALID_AMOUNT_PRECISION', 'قيمة الإدخال أكبر من الدقة الآمنة.');
-  }
   return {
     mode,
     inputMicros,
