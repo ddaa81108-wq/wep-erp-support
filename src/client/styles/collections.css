@@ -735,155 +735,350 @@
     grid-column: auto;
   }
 }
-@media (max-width: 420px) {
-  .employee-collections-page .topbar {
-    align-items: stretch;
-    flex-wrap: wrap;
-  }
-  .employee-collections-page .topbar > div,
-  .employee-collections-page .compact-action {
-    width: 100%;
-  }
-  .employee-collections-page .compact-action {
-    justify-content: center;
-  }
-}
 
-/* Keep debt-receipt cards compact and touch-friendly on phones, matching the
-   debt-account sections without changing collection actions or permissions. */
+.collection-toolbar-actions {
+  display: contents;
+}
+.collection-mobile-total,
+.collection-mobile-label {
+  display: none;
+}
+/* Only the phone overview and receipt cards use this compact layout. */
 @media (max-width: 560px) {
   .collections-page {
-    gap: 7px;
+    gap: 8px;
     min-width: 0;
   }
-
-  .collections-page .topbar {
+  .collections-page:has(> .collection-overview-header) {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+  .collections-page .collection-overview-header {
     min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(110px, auto);
     gap: 6px;
+    padding: 4px 5px;
+    margin: 0;
+    min-height: 40px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
   }
-
-  .collections-page .topbar > div {
+  .collection-overview-header .collection-heading {
     min-width: 0;
   }
-
-  .collections-page .topbar h1 {
-    font-size: 18px;
+  .collection-overview-header .collection-heading h1 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    margin: 0;
+    padding: 3px 6px;
+    border-radius: 99px;
+    background: #0e6657;
+    color: #fff;
+    font-size: 10.5px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
   }
-
-  .collections-page .topbar p {
+  .collection-overview-header .collection-heading p {
     display: none;
   }
-
-  .employee-collections-page .topbar > div {
-    flex: 1 0 100%;
-  }
-
-  .employee-collections-page .topbar .compact-action,
-  .admin-collections-page .topbar .compact-action {
-    min-height: 42px;
-    flex: 1 1 0;
+  .collection-overview-header .collection-mobile-total {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: center;
-    padding-inline: 7px;
-    font-size: 10px;
-    white-space: nowrap;
+    gap: 2px 6px;
+    min-width: 0;
+    max-width: 170px;
+    padding: 3px 9px;
+    min-height: 30px;
+    border-radius: 99px;
+    background: #fff0b7;
+    color: #513a00;
+    font-size: 11px;
   }
-
+  .collection-mobile-total strong {
+    font-size: 17px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  .collections-page .collection-toolbar-actions {
+    display: flex;
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 30;
+    gap: 8px;
+    padding: 5px 8px calc(5px + env(safe-area-inset-bottom));
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 13px 13px 0 0;
+    box-shadow: 0 -3px 15px var(--shadow);
+  }
+  .collections-page .collection-toolbar-actions .compact-action {
+    min-height: 40px;
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    border-radius: 99px;
+    padding: 5px 8px;
+    font-size: 12px;
+    white-space: normal;
+  }
+  .collection-desktop-label {
+    display: none;
+  }
+  .collection-mobile-label {
+    display: inline;
+  }
   .collection-metrics {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 5px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
   }
-
   .collection-metrics article {
     min-width: 0;
-    min-height: 55px;
-    padding: 6px 5px;
+    min-height: 43px;
+    padding: 2px;
+    border-radius: 7px;
     text-align: center;
+    box-shadow: none;
   }
-
+  .collection-metrics article:first-child {
+    display: none;
+  }
   .collection-metrics strong {
-    overflow: hidden;
-    font-size: 12px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 14px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
   }
-
   .collection-metrics span {
-    overflow: hidden;
-    font-size: 8px;
-    text-overflow: ellipsis;
+    font-size: 8.5px;
+    font-weight: 700;
+    line-height: 1.6;
     white-space: nowrap;
   }
-
   .collection-panel {
     min-width: 0;
-    padding: 8px;
+    padding: 12px;
+    border-radius: 14px;
   }
-
   .collection-panel h2 {
-    font-size: 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
   }
-
+  .collection-panel > .muted {
+    font-size: 11px;
+    line-height: 1.8;
+  }
   .collection-grid,
   .admin-collection-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
   }
-
   .collection-card,
   .admin-customer-collection-card {
     min-width: 0;
-    min-height: 126px;
-    padding: 8px;
-    gap: 3px;
+    min-height: 0;
+    padding: 14px;
+    gap: 8px;
   }
-
   .collection-card > strong,
   .admin-customer-collection-card > header strong {
-    overflow: hidden;
-    font-size: 11px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 15px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.7;
   }
-
   .collection-card > b,
   .admin-customer-collection-card > header b {
-    font-size: 15px;
+    font-size: 23px;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
-
   .collection-card > span,
   .collection-card > small,
   .admin-customer-collection-card > header span {
-    overflow: hidden;
-    font-size: 8px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 11px;
+    overflow-wrap: anywhere;
   }
-
+  .admin-customer-collection-card > header {
+    display: grid;
+    gap: 8px;
+  }
   .collection-card > div,
   .admin-customer-collection-card > div {
     min-width: 0;
-    flex-wrap: wrap;
   }
-
   .collection-card button,
   .collection-card a,
-  .collection-card .partial-collection-details,
   .collection-card .partial-collection-details summary,
   .admin-customer-collection-card button {
     min-width: 0;
-    min-height: 36px;
-    flex: 1 1 0;
-    padding: 6px 4px;
-    font-size: 8px;
+    min-height: 44px;
+    padding: 9px 10px;
+    font-size: 11px;
+    white-space: normal;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .collection-card:not(.unlinked-receipt-card) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 0;
+    padding: 9px 10px;
+    gap: 4px 8px;
+    align-items: center;
+  }
+  .collection-card:not(.unlinked-receipt-card) > span {
+    grid-column: 1/-1;
+    font-size: 9px;
+    line-height: 1.5;
+  }
+  .collection-card:not(.unlinked-receipt-card) > strong {
+    grid-column: 1/-1;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .collection-card:not(.unlinked-receipt-card) > b {
+    font-size: 19px;
+    line-height: 1.6;
+  }
+  .collection-card:not(.unlinked-receipt-card) > small {
+    font-size: 10px;
+    line-height: 1.5;
+    direction: ltr;
+  }
+  .collection-card > .collection-payment-history {
+    grid-column: 1/-1;
+    margin: 0;
+  }
+  .collection-card .collector-actions {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+  }
+  .collector-actions > button,
+  .collector-actions > a,
+  .collector-actions > .partial-collection-details {
+    min-width: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    align-self: stretch;
+  }
+  .collection-card .collector-actions > button,
+  .collection-card .collector-actions > a,
+  .collection-card .collector-actions summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    height: 44px;
+    min-height: 44px;
+    padding: 4px 2px;
+    font-size: 10px;
     white-space: nowrap;
+    border-radius: 8px;
+    box-sizing: border-box;
   }
-
-  .unlinked-collection-grid .collection-card {
-    min-height: 108px;
+  .collector-actions svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
   }
-
-  .admin-collection-card {
-    min-height: 112px;
+  .collection-card .partial-collection-details[open] {
+    grid-column: 1/-1;
+    padding: 6px;
+  }
+  .collection-card .partial-collection-details[open] summary {
+    display: none;
+  }
+  .partial-collection-form label {
+    font-size: 11px;
+  }
+  .partial-collection-form input,
+  .unlinked-create-panel input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  .admin-card-history,
+  .collection-payment-history {
+    max-height: none;
+  }
+  .admin-card-history article {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 10px;
+    gap: 10px;
+  }
+  .admin-card-history strong,
+  .admin-card-history span,
+  .admin-card-history em,
+  .collection-payment-history > span,
+  .collection-payment-history b,
+  .collection-payment-history em {
+    font-size: 11px;
+  }
+  .collection-payment-history > span {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 2px;
+  }
+  .collection-payment-history > span,
+  .collection-payment-history b,
+  .collection-payment-history em {
+    font-size: 10px;
+  }
+  .admin-customer-collection-card:not(.unlinked-admin-card) {
+    padding: 9px 10px;
+    gap: 4px;
+  }
+  .admin-customer-collection-card:not(.unlinked-admin-card) > header {
+    gap: 4px;
+  }
+  .admin-customer-collection-card:not(.unlinked-admin-card) > header strong {
+    font-size: 13px;
+  }
+  .admin-customer-collection-card:not(.unlinked-admin-card) > header b {
+    font-size: 19px;
+  }
+  .admin-customer-collection-card:not(.unlinked-admin-card)
+    .admin-card-history
+    article {
+    padding: 6px;
+    gap: 6px;
+  }
+  .admin-inline-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .unlinked-admin-card .admin-inline-actions .reject {
+    grid-column: 1 / -1;
+  }
+  .day-actions article {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+  }
+  .day-actions strong {
+    grid-column: 1 / -1;
+    font-size: 12px;
+  }
+  .day-actions button {
+    min-height: 44px;
+    font-size: 11px;
+    padding: 8px;
   }
 }
 

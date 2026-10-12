@@ -1,16 +1,23 @@
-import { useState, type FormEvent } from 'react';
-import { Phone, Plus, WalletCards, X } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Phone } from 'lucide-react';
 import { api } from '../../api.ts';
 import {
   assignmentTone,
   collectionMoney,
   useCollectionsDashboard,
 } from '../../sections/collections/useCollectionsDashboard.ts';
+import { CollectionsOverview } from '../../sections/collections/CollectionsOverview.tsx';
 import { CollectionPayrollPanel } from '../../sections/collections/CollectionPayrollPanel.tsx';
 
 export function EmployeeCollectionsSection() {
   const { data, error, busy, setError, setBusy, load, run } = useCollectionsDashboard();
   const [creating, setCreating] = useState(false);
+  const createPanel = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!creating || !window.matchMedia('(max-width: 560px)').matches) return;
+    createPanel.current?.scrollIntoView({ block: 'center' });
+    createPanel.current?.querySelector('input')?.focus({ preventScroll: true });
+  }, [creating]);
   const [payrollOpen, setPayrollOpen] = useState(false);
   async function submit(id: string, mode: 'full' | 'partial', amount: number) {
     if (!Number.isSafeInteger(amount) || amount <= 0) {
@@ -65,41 +72,10 @@ export function EmployeeCollectionsSection() {
   }
   return (
     <div className="collections-page employee-collections-page">
-      <header className="topbar">
-        <div>
-          <h1>قسم استلامات الديون</h1>
-          <p>الكروت الموجهة إليك للاستلام</p>
-        </div>
-        <button className="primary compact-action" onClick={() => setCreating((value) => !value)}>
-          {creating ? <X size={15} /> : <Plus size={15} />} {creating ? 'إغلاق الخانات' : 'إنشاء عميل مستقل'}
-        </button>
-        <button className="secondary compact-action payroll-open-button" onClick={() => setPayrollOpen(true)}><WalletCards size={15} /> المرتبات</button>
-      </header>
-      <section className="collection-metrics">
-        <article>
-          <span>إجمالي المعتمد</span>
-          <strong>{collectionMoney.format(data.metrics.collectedUnits)} د.ل</strong>
-        </article>
-        <article>
-          <span>الكروت الموجهة</span>
-          <strong>{collectionMoney.format(data.assignedCount)}</strong>
-        </article>
-        <article>
-          <span>المنفذ</span>
-          <strong>{collectionMoney.format(data.metrics.executedCount)}</strong>
-        </article>
-        <article>
-          <span>ينتظر الاعتماد</span>
-          <strong>{collectionMoney.format(data.metrics.pendingCount)}</strong>
-        </article>
-        <article>
-          <span>غير مربوط</span>
-          <strong>{collectionMoney.format(data.metrics.unlinkedPendingCount)}</strong>
-        </article>
-      </section>
+      <CollectionsOverview data={data} description="الكروت الموجهة إليك للاستلام" onPayroll={() => setPayrollOpen(true)} creating={creating} onToggleCreate={() => setCreating((value) => !value)} />
       {error && <div className="alert error">{error}</div>}
       {creating && (
-        <section className="collection-panel unlinked-create-panel">
+        <section id="collection-create-form" ref={createPanel} className="collection-panel unlinked-create-panel">
           <header>
             <div>
               <h2>إنشاء عميل مستقل</h2>

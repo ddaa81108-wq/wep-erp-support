@@ -69,6 +69,38 @@ try {
     });
   };
 
+  const verifyCollectionsPhone = async (role: string) => {
+    for (const width of [320, 390, 560]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.waitForFunction(() => {
+        const sidebar = document.querySelector('.sidebar');
+        return !sidebar || sidebar.getBoundingClientRect().left >= innerWidth;
+      });
+      for (const theme of ['light', 'dark']) {
+        await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+        const layout = await page.locator('.collections-page').evaluate(root => {
+          const header = root.querySelector('.collection-overview-header')!.getBoundingClientRect();
+          const metrics = [...root.querySelectorAll('.collection-metrics article')]
+            .filter(el => getComputedStyle(el).display !== 'none').map(el => el.getBoundingClientRect());
+          const toolbar = root.querySelector('.collection-toolbar-actions')!.getBoundingClientRect();
+          const buttons = [...root.querySelectorAll('.collection-toolbar-actions button')].map(el => el.getBoundingClientRect());
+          return {
+            overflow: document.documentElement.scrollWidth > innerWidth + 1,
+            compactHeader: header.height < 80,
+            metricsCount: metrics.length,
+            metricsOneRow: metrics.every(r => Math.abs(r.top - metrics[0].top) < 1),
+            bottom: Math.abs(toolbar.bottom - innerHeight) < 1,
+            buttons: buttons.every(r => r.height >= 40 && r.left >= 0 && r.right <= innerWidth),
+          };
+        });
+        assert.deepEqual(layout, { overflow: false, compactHeader: true, metricsCount: 4, metricsOneRow: true, bottom: true, buttons: true });
+        await page.screenshot({ path: resolve('artifacts', 'ui', 'collections-' + role + '-' + theme + '-' + width + '.png'), animations: 'disabled' });
+      }
+    }
+    await page.evaluate(() => { document.documentElement.dataset.theme = 'light'; });
+    await page.setViewportSize({ width: 390, height: 844 });
+  };
+
   await page.goto(base);
   await page.getByRole('heading', { name: 'تهيئة المدير الأول' }).waitFor();
   await page.getByLabel('الاسم الظاهر').fill('مدير النظام');
@@ -985,6 +1017,7 @@ try {
   await page.getByRole('button', { name: 'فتح القائمة الرئيسية' }).click();
   await page.locator('.sidebar').getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
   await page.getByRole('heading', { name: 'قسم استلامات الديون', exact: true }).waitFor();
+  await verifyCollectionsPhone('employee');
   await page.getByRole('button', { name: 'إنشاء عميل مستقل', exact: true }).click();
   await page.getByLabel('اسم العميل').fill('عميل مستقل تجريبي');
   await page.getByLabel('القيمة المستلمة').fill('250');
@@ -1067,6 +1100,7 @@ try {
   await independentAdminCard.waitFor();
   assert.equal(await independentAdminCard.getByRole('button', { name: 'عميل قديم', exact: true }).count(), 1);
   assert.equal(await independentAdminCard.getByRole('button', { name: 'عميل جديد', exact: true }).count(), 1);
+  await verifyCollectionsPhone('admin');
   await independentAdminCard.getByRole('button', { name: 'عميل جديد', exact: true }).click();
   await page.getByRole('dialog').waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
