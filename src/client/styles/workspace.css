@@ -3206,7 +3206,7 @@ button.settings-tool-card:hover {
     box-shadow: none;
   }
   .permanent-ledger .ledger-record > [data-label],
-  .permanent-ledger .ledger-draft-row > * {
+  .permanent-ledger .ledger-draft-row > :not(.row-action) {
     min-height: 38px;
     display: flex;
     align-items: center;
