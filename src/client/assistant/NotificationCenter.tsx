@@ -1,3 +1,4 @@
+import { BrowserPushControls } from './BrowserPushControls.tsx';
 import { Bell, BellRing, CheckCheck, MessageSquareText, Volume2, VolumeX, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { User } from '../api.ts';
@@ -96,6 +97,7 @@ export function NotificationCenter({
               <span>النطق<strong>{!notifications.preferencesReady ? 'جارٍ التحميل…' : notifications.preferences.speechEnabled ? 'مفعّل' : 'متوقف'}</strong></span>
             </button>
           </div>
+          <BrowserPushControls />
           {notifications.preferencesSaving && <p className="notification-preference-status" role="status">جارٍ حفظ إعدادات التنبيه…</p>}
           {notifications.preferencesError && <p className="notification-error" role="alert">{notifications.preferencesError}</p>}
           {notifications.error && <p className="notification-error">{notifications.error}</p>}

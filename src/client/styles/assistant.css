@@ -408,3 +408,12 @@
 .notification-actions .notification-toggle:disabled { opacity: .65; cursor: wait; }
 .notification-actions .notification-toggle:focus-visible { outline: 2px solid var(--gold, #d8ae44); outline-offset: 2px; }
 .notification-preference-status { margin: 0; padding: 5px 10px; font-size: 12px; }
+
+.browser-push-controls { margin: 0 9px 9px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; display: grid; gap: 7px; }
+.browser-push-controls > button { min-height: 42px; border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; background: var(--surface-soft); color: var(--ink); font: inherit; font-size: 12px; cursor: pointer; }
+.browser-push-toggle { display: flex; align-items: center; justify-content: center; gap: 7px; }
+.browser-push-toggle strong { display: block; font-size: 11px; }
+.browser-push-toggle[aria-pressed="true"] { background: #145b43; color: #fff; border-color: #4eba8b; }
+.browser-push-controls p,.browser-push-controls small { margin: 0; color: var(--ink); font-size: 11px; line-height: 1.7; }
+.browser-push-controls button:disabled { opacity: .6; cursor: default; }
+.notification-panel { overflow-y: auto; grid-template-rows: none; grid-auto-rows: max-content; }

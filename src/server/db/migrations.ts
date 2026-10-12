@@ -1,3 +1,4 @@
+import { webPushMigrations } from './migrationsWebPush.ts';
 import type { Migration } from './migrationTypes.ts';
 import { foundationMigrations } from './migrationsFoundation.ts';
 import { organizationMigrations } from './migrationsOrganization.ts';
@@ -26,4 +27,5 @@ export const migrations: Migration[] = [
   ...masraweyaAutomaticMigrations,
   ...zeroReviewMigrations,
   ...collectionRejectionMigrations,
+  ...webPushMigrations,
 ];

@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import { DEFAULT_ORGANIZATION_ID } from './domain/tenancy.ts';
 
 export const API_VERSION = '1';
-export const SCHEMA_VERSION = '46';
+export const SCHEMA_VERSION = '47';
 export const UI_VERSION = '0.14.1-masraweya-access';
 
 const intFromEnv = (name: string, fallback: number) => {
@@ -29,6 +29,9 @@ export type ServerConfig = {
   internetProbeUrls: string[];
   internetProbeTimeoutMs: number;
   internetProbeCacheMs: number;
+  pushPublicKey?: string;
+  pushPrivateKey?: string;
+  pushSubject?: string;
   googleClientId?: string;
   googleClientSecret?: string;
   googleRedirectUri?: string;
@@ -48,6 +51,9 @@ export function loadConfig(overrides: Partial<ServerConfig> = {}): ServerConfig 
     internetProbeTimeoutMs:
       overrides.internetProbeTimeoutMs ?? intFromEnv('ABDO_INTERNET_PROBE_TIMEOUT_MS', 5_000),
     internetProbeCacheMs: overrides.internetProbeCacheMs ?? intFromEnv('ABDO_INTERNET_PROBE_CACHE_MS', 2_000),
+    pushPublicKey: overrides.pushPublicKey ?? process.env.ABDO_PUSH_PUBLIC_KEY,
+    pushPrivateKey: overrides.pushPrivateKey ?? process.env.ABDO_PUSH_PRIVATE_KEY,
+    pushSubject: overrides.pushSubject ?? process.env.ABDO_PUSH_SUBJECT,
     googleClientId: overrides.googleClientId ?? process.env.ABDO_GOOGLE_CLIENT_ID ?? '',
     googleClientSecret: overrides.googleClientSecret ?? process.env.ABDO_GOOGLE_CLIENT_SECRET ?? '',
     googleRedirectUri:

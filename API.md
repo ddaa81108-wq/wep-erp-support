@@ -106,3 +106,15 @@
 تجمع الواجهة أحداث SSE المتقاربة ثم تجلب لقطة حديثة في الخلفية دون إعادة تحميل الصفحة. لا تحفظ مؤشر الحدث قبل نجاح التحديث، وتعيد المحاولة بعد فشل الطلب، وتعيد المزامنة عند استرجاع الاتصال أو العودة للتبويب. تؤجل تحديث مسودة المشتريات حتى انتهاء تحريرها.
 
 قد يتلقى صاحب صلاحية الخزينة أو التقارير حدث `financial.summary.changed` عندما لا يملك صلاحية القسم المصدر. يحمل الحدث `aggregateId: null` و`payload: {}` فقط مع تسلسله وتوقيته، لإعادة جلب الإجماليات المسموح بها دون كشف الحساب المصدر. يستمر عزل المؤسسات وفحص الصلاحيات في الخادم.
+
+
+## Browser push (schema 47)
+
+Authenticated admin or employee with collections.read; existing CSRF, same-origin and API-version guards apply to mutations.
+
+- GET /api/browser-push/config: ready, publicKey, and endpoints for the current session only. Never exposes the VAPID private key.
+- POST /api/browser-push/subscription: standard PushSubscription JSON (endpoint, keys.p256dh, keys.auth); binds to authenticated user, organization and session, max 10 devices per user. Known HTTPS push-provider endpoints only.
+- DELETE /api/browser-push/subscription: {endpoint}; removes only this user's subscription.
+- POST /api/browser-push/test: {endpoint}; queues a generic test, limited to once per minute per subscription. Response queued:true means accepted, not delivered.
+
+Notification inserts enqueue new recipient deliveries transactionally. Background dispatch sends encrypted generic payloads and validates active session/account/permissions. Delivery stops on logout or session expiry.

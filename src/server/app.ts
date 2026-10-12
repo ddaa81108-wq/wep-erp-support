@@ -1,3 +1,5 @@
+import { createPushDispatcher, type PushTransport } from './domain/browserPush.ts';
+import { routeBrowserPush } from './routes/browserPushRoutes.ts';
 import { randomUUID } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { extname } from 'node:path';
@@ -112,6 +114,8 @@ async function route(
       'يجب تغيير كلمة المرور المؤقتة قبل استخدام المنظومة.',
     );
   }
+
+  if (await routeBrowserPush(database,config,user,request,response,url)) return;
 
   if (method === 'GET' && url.pathname === '/api/events') {
     if (
@@ -263,10 +267,11 @@ async function route(
 export function createApp(
   database: AppDatabase,
   config: ServerConfig,
-  options: { internetCheck?: () => Promise<boolean> } = {},
+  options: { internetCheck?: () => Promise<boolean>; pushSend?: PushTransport } = {},
 ) {
   const events = new EventHub(database);
   const stopReports = startReportScheduler(database);
+  const pushDispatcher = createPushDispatcher(database, config, options.pushSend);
   const internetGate = new InternetGate(config);
   const internetCheck = options.internetCheck ?? (() => internetGate.isAvailable());
   const server = createServer(async (request, response) => {
@@ -309,6 +314,7 @@ export function createApp(
   }) as Server & { closeRealtimeConnections: () => void };
   server.closeRealtimeConnections = () => {
     stopReports();
+    pushDispatcher.stop();
     events.close();
   };
   server.on('close', server.closeRealtimeConnections);

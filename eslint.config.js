@@ -6,6 +6,8 @@ import tseslint from 'typescript-eslint';
 export default tseslint.config(
   { ignores: ['dist/**', 'node_modules/**', 'artifacts/**', 'reference/**', 'vendor/**', 'var/**'] },
   eslint.configs.recommended,
+  { files: ['public/erp-push-sw.js'], languageOptions: { globals: globals.serviceworker } },
+  { files: ['scripts/generate-push-config.mjs'], languageOptions: { globals: globals.node } },
   ...tseslint.configs.recommended,
   {
     files: ['src/**/*.{ts,tsx}', 'tests/**/*.ts', 'scripts/**/*.{ts,mts}'],
