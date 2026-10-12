@@ -1125,6 +1125,29 @@ button.settings-tool-card:hover {
   border-color: var(--green);
   background: var(--hover);
 }
+.section-customers .compact-filters .pending-review-filter { grid-column: 1 / -1; }
+.zero-review-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: calc(100% - 12px);
+  min-height: 30px;
+  margin: 0 6px 6px;
+  padding: 3px 6px;
+  border: 1px solid #ffffff70;
+  border-radius: 7px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+.zero-review-status svg { flex: none; }
+.zero-review-status.pending { background: #ac202f; }
+.zero-review-status.pending svg { animation: zero-review-pulse 2.5s ease-in-out infinite; }
+.zero-review-status.pending:disabled svg { animation: none; }
+.zero-review-status.reviewed { background: #07643e; }
+@keyframes zero-review-pulse { 50% { opacity: .4; } }
+@media (prefers-reduced-motion: reduce) { .zero-review-status.pending svg { animation: none; } }
 .customer-card {
   --card-bg: #174d43;
   --card-accent: #88d4bd;
@@ -2666,6 +2689,10 @@ button.settings-tool-card:hover {
     color: #fff;
     background: #ffffff2b;
     border-color: #ffffff55;
+  }
+  .workspace.section-customers .admin-debts-toolbar .active-cards-card {
+    min-height: 64px;
+    max-height: none;
   }
   .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search {
     padding: 4px 6px;

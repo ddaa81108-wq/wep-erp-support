@@ -156,6 +156,7 @@ export function createCustomer(
           activeCycleId: cycleId,
           openingBalanceUnits,
           balanceUnits: openingBalanceUnits,
+          zeroReview: kind === 'customer' ? { pending: openingBalanceUnits === 0, financialVersion: 0, reviewedAt: null, reviewedByName: null } : undefined,
           currency: profile.currency,
           isPinned: false,
           inactiveSince: openingBalanceUnits === 0 ? createdAt : null,

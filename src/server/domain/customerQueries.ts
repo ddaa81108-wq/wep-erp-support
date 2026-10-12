@@ -1,3 +1,4 @@
+import { zeroReviewSnapshot } from './customerZeroReview.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { badRequest, notFound } from '../http/errors.ts';
 import { pageLimit } from './pagination.ts';
@@ -32,8 +33,10 @@ export function listCustomers(
   const cursor = decodeFeedCursor(url.searchParams.get('cursor'));
   const search = normalizeSearch(url.searchParams.get('q') ?? '');
   const filter = url.searchParams.get('filter') ?? 'all';
+  const zeroRank = "CASE WHEN c.current_balance_units=0 AND (c.section_key<>'customer_debts' OR c.zero_review_pending=0) THEN 1 ELSE 0 END";
   const conditions = ['c.organization_id = ?', 'c.section_key = ?', 'c.deleted_at IS NULL'];
   const parameters: Array<string | number> = [organizationId, profile.sectionKey];
+  if (filter === 'pending-review') conditions.push("c.section_key='customer_debts' AND c.current_balance_units=0 AND c.zero_review_pending=1");
   if (search) {
     conditions.push('(c.normalized_name LIKE ? OR c.phone LIKE ?)');
     parameters.push(`%${search}%`, `%${search}%`);
@@ -43,7 +46,7 @@ export function listCustomers(
   else if (filter === 'pinned') conditions.push('c.is_pinned = 1');
   else if (filter === 'smart') {
     conditions.push(`NOT (
-      c.current_balance_units = 0 AND c.is_pinned = 0 AND c.inactive_since IS NOT NULL
+      c.current_balance_units = 0 AND (c.section_key <> 'customer_debts' OR c.zero_review_pending=0) AND c.is_pinned = 0 AND c.inactive_since IS NOT NULL
       AND c.inactive_since <= ?
     )`);
     parameters.push(new Date(Date.now() - 30 * 24 * 60 * 60_000).toISOString());
@@ -54,9 +57,9 @@ export function listCustomers(
   const pageParameters = [...parameters];
   if (cursor) {
     pageConditions.push(`(
-      (CASE WHEN c.current_balance_units = 0 THEN 1 ELSE 0 END) > ?
-      OR ((CASE WHEN c.current_balance_units = 0 THEN 1 ELSE 0 END) = ? AND c.financial_updated_at < ?)
-      OR ((CASE WHEN c.current_balance_units = 0 THEN 1 ELSE 0 END) = ? AND c.financial_updated_at = ? AND c.id < ?)
+      (${zeroRank}) > ?
+      OR ((${zeroRank}) = ? AND c.financial_updated_at < ?)
+      OR ((${zeroRank}) = ? AND c.financial_updated_at = ? AND c.id < ?)
     )`);
     pageParameters.push(
       cursor.zeroRank,
@@ -67,7 +70,7 @@ export function listCustomers(
   const pageWhere = pageConditions.join(' AND ');
   const rows = database.prepare(`
     SELECT c.*, cy.id AS cycle_id, cy.initial_balance_units,
-      CASE WHEN c.current_balance_units = 0 THEN 1 ELSE 0 END AS zero_rank,
+      ${zeroRank} AS zero_rank,
       (SELECT u.display_name
         FROM debt_assignments a JOIN users u ON u.id = a.assignee_user_id
         WHERE a.customer_id = c.id AND a.status = 'active'
@@ -75,7 +78,7 @@ export function listCustomers(
     FROM customers c
     JOIN customer_cycles cy ON cy.customer_id = c.id AND cy.status = 'active'
     WHERE ${pageWhere}
-    ORDER BY c.current_balance_units = 0 ASC, c.financial_updated_at DESC, c.id DESC
+    ORDER BY ${zeroRank} ASC, c.financial_updated_at DESC, c.id DESC
     LIMIT ?
   `).all(...pageParameters, limit + 1) as Record<string, unknown>[];
   const hasMore = rows.length > limit;
@@ -87,12 +90,13 @@ export function listCustomers(
     SELECT
       COALESCE(SUM(CASE WHEN current_balance_units > 0 THEN current_balance_units ELSE 0 END), 0) AS total_debt,
       COALESCE(SUM(current_balance_units), 0) AS net_balance,
-      COALESCE(SUM(CASE WHEN current_balance_units <> 0 THEN 1 ELSE 0 END), 0) AS active_cards
+      COALESCE(SUM(CASE WHEN current_balance_units <> 0 THEN 1 ELSE 0 END), 0) AS active_cards,
+      COALESCE(SUM(CASE WHEN current_balance_units=0 AND zero_review_pending=1 THEN 1 ELSE 0 END),0) AS pending_review_count
     FROM customers WHERE organization_id = ? AND section_key = ? AND deleted_at IS NULL
   `).get(
     organizationId,
     profile.sectionKey,
-  ) as { total_debt: number; active_cards: number; net_balance: number };
+  ) as { total_debt: number; active_cards: number; net_balance: number; pending_review_count: number };
   const hideBefore = Date.now() - 30 * 24 * 60 * 60_000;
   return {
     items: pageRows.map((row) => {
@@ -114,7 +118,8 @@ export function listCustomers(
         currency: profile.currency,
         isPinned,
         inactiveSince,
-        hiddenFromDefault: balanceUnits === 0 && !isPinned
+        zeroReview: zeroReviewSnapshot(row),
+        hiddenFromDefault: balanceUnits === 0 && !isPinned && !zeroReviewSnapshot(row)?.pending
           && inactiveSince !== null && new Date(inactiveSince).getTime() <= hideBefore,
         debtStartedAt,
         debtAgeDays,
@@ -134,7 +139,7 @@ export function listCustomers(
       } satisfies FeedCursor)).toString('base64url');
     })() : null,
     totalItems,
-    summary: { netBalance: Number(summary.net_balance), totalDebt: Number(summary.total_debt), activeCards: Number(summary.active_cards) },
+    summary: { netBalance: Number(summary.net_balance), totalDebt: Number(summary.total_debt), activeCards: Number(summary.active_cards), pendingReviewCount: Number(summary.pending_review_count) },
   };
 }
 
@@ -200,7 +205,8 @@ export function customerSnapshot(
     currency: profile.currency,
     isPinned,
     inactiveSince,
-    hiddenFromDefault: balanceUnits === 0 && !isPinned
+    zeroReview: zeroReviewSnapshot(row),
+    hiddenFromDefault: balanceUnits === 0 && !isPinned && !zeroReviewSnapshot(row)?.pending
       && inactiveSince !== null && new Date(inactiveSince).getTime() <= hideBefore,
     debtStartedAt,
     debtAgeDays: debtStartedAt && balanceUnits > 0

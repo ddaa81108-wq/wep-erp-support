@@ -1939,6 +1939,11 @@ test('customer record contains identity and account fields without an assignment
       'financial_updated_at',
       'system_link_key',
       'phone_normalized',
+      'zero_review_pending',
+      'zero_review_financial_version',
+      'zero_reviewed_at',
+      'zero_reviewed_by',
+      'zero_reviewed_by_name',
     ],
   );
 });
@@ -2114,7 +2119,15 @@ test('permanent customer ledger edits in place and keeps sequence through cancel
     .prepare('UPDATE customers SET inactive_since = ? WHERE id = ?')
     .run(new Date(Date.now() - 31 * 24 * 60 * 60_000).toISOString(), customer.id);
   const hiddenList = await json(await fetch(`${base}/api/customers`, { headers }));
-  assert.equal(hiddenList.data.items[0].hiddenFromDefault, true);
+  assert.equal(hiddenList.data.items[0].hiddenFromDefault, false);
+  assert.equal(hiddenList.data.items[0].zeroReview.pending, true);
+  const reviewed = await fetch(`${base}/api/customers/${customer.id}/zero-review`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ expectedFinancialVersion: hiddenList.data.items[0].zeroReview.financialVersion }),
+  });
+  assert.equal(reviewed.status, 200);
+  const afterReview = await json(await fetch(`${base}/api/customers`, { headers }));
+  assert.equal(afterReview.data.items[0].hiddenFromDefault, true);
 
   const pinned = await fetch(`${base}/api/customers/${customer.id}/pin`, {
     method: 'PATCH',

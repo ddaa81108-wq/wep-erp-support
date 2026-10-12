@@ -16,7 +16,7 @@ export const permissionPrefixFor = (section: DebtSection) => {
 };
 
 export const orderCustomerCards = (items: Customer[]) => [...items].sort((left, right) => {
-  const zeroOrder = Number(left.balanceUnits === 0) - Number(right.balanceUnits === 0);
+  const zeroOrder = Number(left.balanceUnits === 0 && !left.zeroReview?.pending) - Number(right.balanceUnits === 0 && !right.zeroReview?.pending);
   if (zeroOrder !== 0) return zeroOrder;
   return new Date(right.updatedAt ?? right.createdAt).getTime() - new Date(left.updatedAt ?? left.createdAt).getTime();
 });

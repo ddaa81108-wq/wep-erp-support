@@ -53,6 +53,7 @@ export function visibleCustomerCards(
       .toLocaleLowerCase('ar')
       .includes(normalizedQuery);
     if (!matchesSearch) return false;
+    if (filter === 'pending-review') return item.balanceUnits === 0 && Boolean(item.zeroReview?.pending);
     if (normalizedQuery) return true;
     if (filter === 'smart') return !item.hiddenFromDefault;
     if (filter === 'today') return true;

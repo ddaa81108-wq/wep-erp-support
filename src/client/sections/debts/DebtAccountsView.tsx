@@ -2,6 +2,7 @@ import { Check, CircleDollarSign, ClipboardCheck, Menu, Pin, PinOff, Plus, Searc
 import type { Customer, CustomerFilter } from '../../api.ts';
 import { debtSectionText, type DebtSection } from './sectionConfig.ts';
 import { EgyptianRateCard } from './EgyptianRateCard.tsx';
+import { ZeroReviewButton } from './ZeroReviewButton.tsx';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
 
 type Notice = { kind: 'success' | 'error'; text: string } | null;
@@ -14,6 +15,8 @@ export type DebtAccountsViewProps = {
   visibleCustomers: Customer[];
   totalDebt: number;
   activeCards: number;
+  pendingReviewCount: number;
+  onReviewZero: (customer: Customer) => Promise<void>;
   totalItems: number;
   canRead: boolean;
   canWrite: boolean;
@@ -95,7 +98,7 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
       <article className="debt-total-card"><div className="summary-icon gold"><CircleDollarSign /></div><span>{isDepositSection(section) ? 'صافي إجمالي القسم' : 'إجمالي الديون'}</span><strong>{money.format(displayedTotal)} <small>{currencyLabel(section)}</small></strong></article>
       {canWrite && <button className="add-customer-card" onClick={props.onAdd}><Plus size={22} /><span>{labels.add}</span></button>}
       {(section === 'customers' || section === 'companies') && isAdmin && <button className={`routing-card ${routing ? 'active' : ''}`} onClick={routing ? props.onCancelRouting : props.onStartRouting}><ClipboardCheck size={21} /><span>{routing ? 'إلغاء التوجيه' : 'التوجيه'}</span></button>}
-      <article className="active-cards-card"><div className="active-cards-count"><span>عدد الكروت النشطة</span><strong>{money.format(activeCards)}</strong></div><div className="compact-filters" role="tablist" aria-label="فلترة العملاء">{([['smart', 'الذكية'], ['today', 'اليوم'], ['due', 'ديون'], ['settled', 'مسدد'], ['pinned', 'مثبت']] as const).map(([value, label]) => <button key={value} role="tab" aria-selected={filter === value} className={filter === value ? 'active' : ''} onClick={() => props.onFilterChange(value)}>{label}</button>)}</div></article>
+      <article className="active-cards-card"><div className="active-cards-count"><span>عدد الكروت النشطة</span><strong>{money.format(activeCards)}</strong></div><div className="compact-filters" role="tablist" aria-label="فلترة العملاء">{([['smart', 'الذكية'], ['today', 'اليوم'], ['due', 'ديون'], ['settled', 'مسدد'], ['pinned', 'مثبت']] as const).map(([value, label]) => <button key={value} role="tab" aria-selected={filter === value} className={filter === value ? 'active' : ''} onClick={() => props.onFilterChange(value)}>{label}</button>)}{section === 'customers' && isAdmin && <button role="tab" aria-selected={filter === 'pending-review'} className={filter === 'pending-review' ? 'active pending-review-filter' : 'pending-review-filter'} onClick={() => props.onFilterChange('pending-review')}>صفر ينتظر المراجعة <b>{money.format(props.pendingReviewCount)}</b></button>}</div></article>
       <label className="dashboard-search"><span>البحث</span><div className="search"><Search size={18} /><input value={query} onChange={(event) => props.onQueryChange(event.target.value)} placeholder={`اسم ${labels.singular} أو الهاتف…`} /></div></label>
       {section === 'egyptian-deposits' && <EgyptianRateCard canWrite={canWrite} />}
     </section>
@@ -116,6 +119,7 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
                 {(section === 'customers' || section === 'companies') && customer.activeAssigneeName && <span className="customer-assignee-badge">لدى: {customer.activeAssigneeName}</span>}
                 <button className="customer-card-main" onClick={() => routing ? canRoute && props.onCustomerSelection(customer.id, !selected) : props.onOpenLedger(customer.id)}><span className="customer-card-label">{customer.systemManaged ? 'مرتبط تلقائيًا' : cardLabel(section, customer)}</span><strong className="customer-name-line"><span>{customer.name}</span></strong><b><span className="customer-balance-amount">{money.format(Math.abs(customer.balanceUnits))}</span> <small>{currencyLabel(section)}</small></b><small className="customer-last-movement">آخر حركة: {movementTime.format(new Date(customer.updatedAt ?? customer.createdAt))}</small></button>
                 {canWrite && !routing && !customer.systemManaged && <button className="pin-customer" aria-label={customer.isPinned ? `إلغاء تثبيت ${customer.name}` : `تثبيت ${customer.name}`} title={customer.isPinned ? 'إلغاء التثبيت' : 'إبقاء الكارت ظاهرًا دائمًا'} onClick={() => props.onTogglePinned(customer)}>{customer.isPinned ? <PinOff size={17} /> : <Pin size={17} />}</button>}
+                {section === 'customers' && isAdmin && !routing && <ZeroReviewButton customer={customer} onReview={props.onReviewZero} />}
               </article>;
             })}</div>{hasMore && <button className="load-more-cards" disabled={loadingMore} onClick={props.onLoadMore}>{loadingMore ? 'جارٍ تحميل المزيد…' : `تحميل المزيد — ظاهر ${money.format(customers.length)} من ${money.format(totalItems)}`}</button>}</>}
     </section>

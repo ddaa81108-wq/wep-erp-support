@@ -9,6 +9,10 @@ type AccountResult = { customerId: string; name: string; phone: string | null; c
 type TransactionResult = { transaction: LedgerItem; customerVersion: number; balanceUnits: number };
 
 export const debtsApi = {
+  reviewCustomerZero: (customerId: string, expectedFinancialVersion: number) =>
+    request<{ zeroReview: NonNullable<Customer['zeroReview']> }>(`/api/customers/${encodeURIComponent(customerId)}/zero-review`, {
+      method: 'POST', body: JSON.stringify({ expectedFinancialVersion }),
+    }),
   customers: (options?: CustomerListOptions) =>
     request<CustomerListResult>(customerListPath('/api/customers', options)),
   customerSuggestions: (query: string) => request<{ items: AccountSuggestion[] }>(`/api/customers/suggestions?q=${encodeURIComponent(query)}`),

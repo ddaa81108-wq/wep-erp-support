@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import { DEFAULT_ORGANIZATION_ID } from './domain/tenancy.ts';
 
 export const API_VERSION = '1';
-export const SCHEMA_VERSION = '44';
+export const SCHEMA_VERSION = '45';
 export const UI_VERSION = '0.14.1-masraweya-access';
 
 const intFromEnv = (name: string, fallback: number) => {

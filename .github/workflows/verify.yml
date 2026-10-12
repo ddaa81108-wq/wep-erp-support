@@ -22,4 +22,5 @@ jobs:
       - run: npm run test:coverage
       - run: npm run test:restore
       - run: npm run test:ui
+      - run: npm run test:zero-review-ui
       - run: npm audit --audit-level=high

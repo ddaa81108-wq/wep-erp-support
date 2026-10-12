@@ -18,6 +18,7 @@ import { requirePermission } from '../http/guards.ts';
 import { readJson, sendJson } from '../http/io.ts';
 import { decodePathSegment } from '../http/web.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
+import { reviewCustomerZero } from '../domain/customerZeroReview.ts';
 
 export type PermanentAccountRouteContext = {
   database: AppDatabase;
@@ -74,6 +75,10 @@ export async function routePermanentAccounts(
   const segments = path.split('/').filter(Boolean).map(decodePathSegment);
   const [id, action, transactionId, tail] = segments;
   if (!id) return false;
+
+  if (config.kind === 'customer' && method === 'POST' && action === 'zero-review' && segments.length === 2) {
+    return sendOperation(response, events, reviewCustomerZero(database, user, id, await readJson(request), correlationId));
+  }
 
   if (method === 'GET' && !action) {
     requirePermission(user, config.readPermission);

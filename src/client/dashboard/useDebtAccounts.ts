@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Customer, CustomerFilter, Ledger } from '../api.ts';
+import { api } from '../api.ts';
 import {
   getSectionAccount,
   getSectionLedger,
@@ -32,7 +33,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [listSummary, setListSummary] = useState({ totalDebt: 0, activeCards: 0, totalItems: 0, netBalance: 0 });
+  const [listSummary, setListSummary] = useState({ totalDebt: 0, activeCards: 0, totalItems: 0, netBalance: 0, pendingReviewCount: 0 });
   const [filter, setFilter] = useState<CustomerFilter>('smart');
   const listRequest = useRef(0);
   const loadedPages = useRef(1);
@@ -60,7 +61,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
       }
       setCustomers(current => append ? appendCustomerPage(current, items) : items);
       setNextCursor(result.nextCursor);
-      setListSummary({ ...result.summary, netBalance: result.summary.netBalance ?? items.reduce((sum, item) => sum + item.balanceUnits, 0), totalItems: result.totalItems });
+      setListSummary({ ...result.summary, pendingReviewCount: result.summary.pendingReviewCount ?? 0, netBalance: result.summary.netBalance ?? items.reduce((sum, item) => sum + item.balanceUnits, 0), totalItems: result.totalItems });
       loadedPages.current = append ? loadedPages.current + 1 : Math.max(1, Math.ceil(items.length / 100));
     },
     [debtSection, debouncedQuery, filter],
@@ -183,6 +184,20 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     if (ledger) await Promise.all([refreshCustomer(ledger.customer.id), loadLedger(ledger.customer.id)]);
   }
 
+  async function reviewZero(customer: Customer) {
+    if (debtSection !== 'customers' || !customer.zeroReview?.pending) return;
+    try {
+      await api.reviewCustomerZero(customer.id, customer.zeroReview.financialVersion);
+    } catch (error) {
+      onNotice({ kind: 'error', text: dashboardErrorText(error) });
+      await refreshAfterMutation().catch(() => undefined);
+      return;
+    }
+    onNotice({ kind: 'success', text: 'تمت مراجعة التصفير ونقل الكارت إلى مجموعة المسدد.' });
+    try { await refreshAfterMutation(); }
+    catch { onNotice({ kind: 'success', text: 'تم حفظ المراجعة. ستعيد المزامنة تحديث العرض تلقائيًا.' }); }
+  }
+
   async function togglePinned(customer: Customer) {
     try {
       const body = { expectedVersion: customer.version, isPinned: !customer.isPinned };
@@ -216,5 +231,6 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     mergeCustomer,
     refreshCustomer,
     refreshAfterMutation,
+    reviewZero,
   };
 }

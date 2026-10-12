@@ -18,6 +18,12 @@ export type Customer = {
   nextSequence: number;
   createdAt: string;
   updatedAt?: string;
+  zeroReview?: {
+    pending: boolean;
+    financialVersion: number;
+    reviewedAt: string | null;
+    reviewedByName: string | null;
+  };
 };
 
 export type LedgerItem = {
@@ -63,7 +69,7 @@ export type Ledger = {
   nextCursor: string | null;
 };
 
-export type CustomerFilter = 'smart' | 'today' | 'due' | 'settled' | 'pinned';
+export type CustomerFilter = 'smart' | 'today' | 'due' | 'settled' | 'pinned' | 'pending-review';
 export type AccountSuggestion = Pick<Customer, 'id' | 'name' | 'phone' | 'balanceUnits' | 'currency'>;
 export type CustomerListOptions = {
   cursor?: string | null;
@@ -75,5 +81,5 @@ export type CustomerListResult = {
   items: Customer[];
   nextCursor: string | null;
   totalItems: number;
-  summary: { totalDebt: number; activeCards: number; netBalance?: number };
+  summary: { totalDebt: number; activeCards: number; netBalance?: number; pendingReviewCount?: number };
 };

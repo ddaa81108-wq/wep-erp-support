@@ -9,6 +9,7 @@ import { masraweyaCorrectionMigrations } from './migrationsMasraweyaCorrection.t
 
 import { reliabilityMigrations } from './migrationsReliability.ts';
 import { masraweyaAutomaticMigrations } from './migrationsMasraweyaAutomatic.ts';
+import { zeroReviewMigrations } from './migrationsZeroReview.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -22,4 +23,5 @@ export const migrations: Migration[] = [
   ...masraweyaCorrectionMigrations,
   ...reliabilityMigrations,
   ...masraweyaAutomaticMigrations,
+  ...zeroReviewMigrations,
 ];

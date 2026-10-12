@@ -82,6 +82,8 @@ export function Dashboard({
     visibleCustomers: debtAccounts.visibleCustomers,
     totalDebt: debtSection === 'libyan-deposits' || debtSection === 'egyptian-deposits' ? debtAccounts.listSummary.netBalance : debtAccounts.listSummary.totalDebt,
     activeCards: debtAccounts.listSummary.activeCards,
+    pendingReviewCount: debtAccounts.listSummary.pendingReviewCount,
+    onReviewZero: debtAccounts.reviewZero,
     totalItems: debtAccounts.listSummary.totalItems,
     canRead,
     canWrite,
