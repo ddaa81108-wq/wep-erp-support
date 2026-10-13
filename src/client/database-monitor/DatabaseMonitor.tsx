@@ -1,3 +1,4 @@
+import { BUILD_INFO } from '../../shared/buildInfo.ts';
 import { DatabaseActivity } from './DatabaseActivity.tsx';
 import { useEffect, useState } from 'react';
 import { api, type User } from '../api.ts';
@@ -146,6 +147,10 @@ export function DatabaseMonitor({
                 <section className="dbm-panel">
                   <h2>قاعدة البيانات الحالية</h2>
                   <dl>
+                    <dt>إصدار الخادم</dt>
+                    <dd dir="ltr">{snapshot.build?.version ?? 'غير متاح'} · {snapshot.build?.commit?.slice(0, 12) ?? 'بناء تطوير'}{snapshot.build?.dirty ? ' (modified)' : ''}</dd>
+                    <dt>تاريخ بناء الخادم</dt><dd>{date(snapshot.build?.builtAt ?? null)}</dd>
+                    <dt>إصدار الواجهة</dt><dd dir="ltr">{BUILD_INFO.version} · {BUILD_INFO.commit?.slice(0, 12) ?? 'development'}{BUILD_INFO.dirty ? ' (modified)' : ''}</dd>
                     <dt>الملف الفعلي</dt>
                     <dd>{snapshot.database.name}</dd>
                     <dt>مسار الخادم</dt>

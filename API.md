@@ -128,3 +128,11 @@ GET /api/operations/database-monitor is read-only and requires the admin owner o
 ### Database activity telemetry
 
 Owner-only GET /api/operations/database-activity/live returns completed/current 2-second bucket measurements over the last five minutes plus history availability. GET /api/operations/database-activity/daily?day=YYYY-MM-DD returns 24 Tripoli hourly buckets with measured coverage in milliseconds, aggregated operation attempts and latest storage samples. Accepted dates: today through 29 days ago. Unobserved hours have zero coverage and must render as gaps, not measured zero activity. Both endpoints use the database monitor owner/single-organization guard. No mutations or filesystem path arguments.
+
+## تعريف النسخة والحماية — 0.15.0
+
+مسار المالك GET /api/operations/database-monitor يضيف build: version, commit, builtAt, dirty. البصمة والتاريخ null عند التشغيل المباشر دون بناء. UI version موحد مع إصدار التطبيق؛ API يبقى 1 والمخطط 47.
+
+POST /api/auth/login قد يعيد 429 LOGIN_BUSY مع Retry-After: 2 عند امتلاء حد التحقق المتزامن (8 إجماليًا، 4 لكل عنوان، 1 لكل حساب). حدود المحاولات الفاشلة السابقة باقية. لا تُحجز طوابير كلمات المرور.
+
+فلتر today في قوائم الديون يقرأ فترة يوم المؤسسة: البداية شاملة والنهاية غير شاملة. لا يغيّر تاريخ الحركة أو رصيدها.

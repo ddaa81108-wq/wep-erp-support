@@ -20,6 +20,7 @@ import {
 import {
   loginRateLimited,
   recordLoginFailure,
+  reserveLoginCheck,
   remoteAddress,
   setupIsAuthorized,
 } from '../security/loginProtection.ts';
@@ -155,9 +156,17 @@ export async function routePublicAccount(context: AccountRouteContext) {
       JOIN branches b ON b.id = u.home_branch_id AND b.organization_id = o.id
       WHERE u.username = ?
     `).get(username) as Record<string, unknown> | undefined;
-    const passwordValid = await verifyPassword(
-      password, row ? String(row.password_hash) : DUMMY_PASSWORD_HASH,
-    );
+    const release = reserveLoginCheck(database, username, address);
+    if (!release) {
+      response.setHeader('Retry-After', '2');
+      throw new HttpError(429, 'LOGIN_BUSY', 'محاولات دخول متزامنة كثيرة. أعد المحاولة بعد ثوانٍ.');
+    }
+    let passwordValid: boolean;
+    try {
+      passwordValid = await verifyPassword(password, row ? String(row.password_hash) : DUMMY_PASSWORD_HASH);
+    } finally {
+      release();
+    }
     if (!row || Number(row.is_active) !== 1 || Number(row.password_login_enabled) !== 1
       || String(row.organization_status) !== 'active' || Number(row.branch_is_active) !== 1
       || !passwordValid) {

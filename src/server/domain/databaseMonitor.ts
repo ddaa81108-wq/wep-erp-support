@@ -3,6 +3,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import type { AppDatabase } from '../db/database.ts';
 import type { ServerConfig } from '../config.ts';
 import { backupStatus } from './backupStatus.ts';
+import { BUILD_INFO } from '../../shared/buildInfo.ts';
 
 async function fileSize(path: string): Promise<number | null> {
   try {
@@ -119,6 +120,7 @@ export async function databaseMonitor(db: AppDatabase, config: ServerConfig) {
   const pageCount = Number(db.prepare('PRAGMA page_count').get()!.page_count);
   const freePages = Number(db.prepare('PRAGMA freelist_count').get()!.freelist_count);
   return {
+    build: BUILD_INFO,
     checkedAt: new Date().toISOString(),
     database: {
       name: databasePath ? basename(databasePath) : 'قاعدة مؤقتة في الذاكرة',

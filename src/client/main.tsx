@@ -4,6 +4,7 @@ import App from './App.tsx';
 import { startInternetGuard } from './internetGuard.ts';
 import './styles/foundation-auth.css';
 import './styles/workspace.css';
+import './styles/backup-center.css';
 import './styles/collections.css';
 import './styles/financial-operations.css';
 import './styles/purchases.css';

@@ -1,9 +1,10 @@
 import { resolve } from 'node:path';
+import { BUILD_INFO } from '../shared/buildInfo.ts';
 import { DEFAULT_ORGANIZATION_ID } from './domain/tenancy.ts';
 
 export const API_VERSION = '1';
 export const SCHEMA_VERSION = '47';
-export const UI_VERSION = '0.14.1-masraweya-access';
+export const UI_VERSION = BUILD_INFO.version;
 
 const intFromEnv = (name: string, fallback: number) => {
   const value = Number(process.env[name]);
@@ -47,7 +48,7 @@ export function loadConfig(overrides: Partial<ServerConfig> = {}): ServerConfig 
     databasePath: overrides.databasePath ?? resolve(process.env.ABDO_DB_PATH ?? './var/abdo-erp.sqlite'),
     sessionHours: overrides.sessionHours ?? intFromEnv('ABDO_SESSION_HOURS', 12),
     secureCookie: overrides.secureCookie ?? process.env.ABDO_COOKIE_SECURE === 'true',
-    internetRequired: overrides.internetRequired ?? true,
+    internetRequired: overrides.internetRequired ?? process.env.ABDO_INTERNET_REQUIRED === 'true',
     internetProbeUrls: overrides.internetProbeUrls ?? urlsFromEnv(),
     internetProbeTimeoutMs:
       overrides.internetProbeTimeoutMs ?? intFromEnv('ABDO_INTERNET_PROBE_TIMEOUT_MS', 5_000),

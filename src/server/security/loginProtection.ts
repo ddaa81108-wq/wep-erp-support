@@ -4,6 +4,26 @@ import type { ServerConfig } from '../config.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { nowIso } from '../db/database.ts';
 
+// Bound expensive password verification before its first await. Never queue secrets.
+const pendingChecks = new WeakMap<AppDatabase, Map<string, number>>();
+export function reserveLoginCheck(database: AppDatabase, username: string, address: string) {
+  const pending = pendingChecks.get(database) ?? new Map<string, number>();
+  pendingChecks.set(database, pending);
+  const limits = [['total', 8], [`user:${username}`, 1], [`address:${address}`, 4]] as const;
+  if (limits.some(([key, limit]) => (pending.get(key) ?? 0) >= limit)) return null;
+  for (const [key] of limits) pending.set(key, (pending.get(key) ?? 0) + 1);
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    for (const [key] of limits) {
+      const count = (pending.get(key) ?? 1) - 1;
+      if (count > 0) pending.set(key, count);
+      else pending.delete(key);
+    }
+  };
+}
+
 export function remoteAddress(request: IncomingMessage) {
   const peer = request.socket.remoteAddress ?? 'unknown';
   const loopback = peer === '127.0.0.1' || peer === '::1' || peer === '::ffff:127.0.0.1';

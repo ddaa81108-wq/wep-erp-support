@@ -1,6 +1,6 @@
 {
   "name": "abdo-erp-local",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -26,7 +26,12 @@
     "test:realtime": "node tests/realtime-ui.ts",
     "test:collections-ui": "node tests/collections-presentation-ui.ts",
     "test:zero-review-ui": "node tests/customer-zero-review-ui.ts",
-    "test:treasury-ui": "node tests/treasury-presentation-ui.ts"
+    "test:treasury-ui": "node tests/treasury-presentation-ui.ts",
+    "test:push-ui": "node tests/browser-push-ui.ts",
+    "test:notifications-ui": "node tests/notification-buttons-ui.ts",
+    "test:monitor-ui": "node tests/database-monitor-ui.ts",
+    "test:activity-ui": "node tests/database-activity-ui.ts",
+    "test:load": "node scripts/load-test.mts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

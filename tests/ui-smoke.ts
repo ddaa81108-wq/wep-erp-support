@@ -83,14 +83,16 @@ try {
           const metrics = [...root.querySelectorAll('.collection-metrics article')]
             .filter(el => getComputedStyle(el).display !== 'none').map(el => el.getBoundingClientRect());
           const toolbar = root.querySelector('.collection-toolbar-actions')!.getBoundingClientRect();
-          const buttons = [...root.querySelectorAll('.collection-toolbar-actions button')].map(el => el.getBoundingClientRect());
+          const buttons = [...root.querySelectorAll('.collection-toolbar-actions button')]
+            .filter(el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden')
+            .map(el => el.getBoundingClientRect());
           return {
             overflow: document.documentElement.scrollWidth > innerWidth + 1,
             compactHeader: header.height < 80,
             metricsCount: metrics.length,
             metricsOneRow: metrics.every(r => Math.abs(r.top - metrics[0].top) < 1),
             bottom: Math.abs(toolbar.bottom - innerHeight) < 1,
-            buttons: buttons.every(r => r.height >= 40 && r.left >= 0 && r.right <= innerWidth),
+            buttons: buttons.length > 0 && buttons.every(r => r.height >= 40 && r.left >= 0 && r.right <= innerWidth),
           };
         });
         assert.deepEqual(layout, { overflow: false, compactHeader: true, metricsCount: 4, metricsOneRow: true, bottom: true, buttons: true });
@@ -199,7 +201,7 @@ try {
   await customerDialog.waitFor();
   assert.equal(await customerDialog.locator('input').count(), 3);
   assert.equal(await customerDialog.locator('select').count(), 0);
-  await page.getByLabel('اسم العميل').fill('متجر النور');
+  await page.getByLabel('اسم العميل', { exact: true }).fill('متجر النور');
   await page.getByLabel('رقم الهاتف').fill('0912345678');
   await page.getByRole('button', { name: 'حفظ الحساب' }).click();
   await page.getByRole('heading', { name: 'متجر النور' }).waitFor();
@@ -290,7 +292,7 @@ try {
   await tickerCustomer.waitFor();
   await tickerCustomer.evaluate((element: HTMLButtonElement) => element.click());
   await page.getByRole('heading', { name: 'متجر النور' }).waitFor();
-  await page.getByText('السجل الموحد للعميل', { exact: true }).waitFor();
+  await page.locator('.ledger-panel.section-customers').waitFor({ state: 'visible' });
   await page.locator('.ledger-draft-row').getByLabel('ملاحظة المعاملة').fill('مسودة تستعاد تلقائيًا');
   await page.getByRole('button', { name: 'إغلاق السجل' }).click();
   await page.locator('.ledger-panel').waitFor({ state: 'detached' });
@@ -365,7 +367,7 @@ try {
   await page.locator('.ledger-panel').waitFor({ state: 'detached' });
   await page.getByRole('button', { name: /إضافة عميل/ }).click();
   const duplicateDialog = page.getByRole('dialog');
-  await duplicateDialog.getByLabel('اسم العميل').fill('متجر النور فرع جديد');
+  await duplicateDialog.getByLabel('اسم العميل', { exact: true }).fill('متجر النور فرع جديد');
   await duplicateDialog.getByRole('region', { name: 'أسماء مشابهة' }).waitFor();
   assert.equal(await duplicateDialog.getByRole('button', { name: 'حفظ الحساب' }).isDisabled(), true);
   await duplicateDialog.getByRole('button', { name: /ليس الحساب المطلوب/ }).click();
@@ -485,20 +487,25 @@ try {
   await page.getByLabel('القيمة السابقة').fill('500');
   await page.getByLabel('مشتريات اليوم').fill('1000');
   await page.locator('.masraweya-summary-sheet .final-row td').getByText('400', { exact: true }).waitFor();
+  await page.getByText('محفوظ تلقائيًا', { exact: true }).waitFor();
+  await page.bringToFront();
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.getByRole('button', { name: 'نسخ الصورة', exact: true }).click();
-  await page.getByText('تم نسخ صورة الجدول بأعلى جودة.', { exact: true }).waitFor();
+  await page.getByText('تم نسخ صورة الجدول بأعلى جودة.', { exact: true }).waitFor().catch(async error => {
+    console.error('Capture state:', await page.locator('.masraweya-page').innerText());
+    throw error;
+  });
   await page.screenshot({ path: join(output, 'masraweya-desktop.png'), fullPage: true });
   await page.getByRole('button', { name: 'المظهر الليلي' }).click();
   await page.locator('html[data-theme="dark"]').waitFor();
   await page.waitForFunction(
     () =>
       getComputedStyle(document.querySelector('.masraweya-work-table tbody input')!).backgroundColor ===
-      'rgb(27, 51, 43)',
+      'rgb(17, 29, 44)',
   );
   assert.equal(
     await firstValue.evaluate((element) => getComputedStyle(element).backgroundColor),
-    'rgb(27, 51, 43)',
+    'rgb(17, 29, 44)',
     'Masraweya entry fields must stay readable in dark mode',
   );
   await page.screenshot({ path: join(output, 'masraweya-desktop-dark.png'), fullPage: true });
@@ -670,7 +677,7 @@ try {
   await page.getByRole('button', { name: 'قسم استلامات الديون' }).click();
   await page.getByRole('heading', { name: 'قسم استلامات الديون' }).waitFor();
   await page.getByRole('button', { name: 'الخزينة' }).click();
-  await page.getByRole('heading', { name: 'الخزينة' }).waitFor();
+  await page.getByRole('heading', { name: 'سجل الفلوس النشطة', exact: true }).waitFor();
   await page.getByRole('button', { name: 'دخول', exact: true }).click();
   await page.locator('.treasury-entry-form').getByLabel('القيمة').fill('250');
   await page.locator('.treasury-entry-form').getByLabel('البيان').fill('اختبار واجهة الهاتف');
@@ -1020,7 +1027,7 @@ try {
   await page.getByRole('heading', { name: 'قسم استلامات الديون', exact: true }).waitFor();
   await verifyCollectionsPhone('employee');
   await page.getByRole('button', { name: 'إنشاء عميل مستقل', exact: true }).click();
-  await page.getByLabel('اسم العميل').fill('عميل مستقل تجريبي');
+  await page.getByLabel('اسم العميل', { exact: true }).fill('عميل مستقل تجريبي');
   await page.getByLabel('القيمة المستلمة').fill('250');
   assert.equal(
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 2),

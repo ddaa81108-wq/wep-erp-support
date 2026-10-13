@@ -1,4 +1,5 @@
 import { zeroReviewSnapshot } from './customerZeroReview.ts';
+import { businessDayRange, organizationBusinessDate, organizationTimezone } from './reports/businessDates.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { badRequest, notFound } from '../http/errors.ts';
 import { pageLimit } from './pagination.ts';
@@ -41,7 +42,7 @@ export function listCustomers(
     conditions.push('(c.normalized_name LIKE ? OR c.phone LIKE ?)');
     parameters.push(`%${search}%`, `%${search}%`);
   } else if (filter === 'due') conditions.push('c.current_balance_units > 0');
-  else if (filter === 'today') conditions.push('c.financial_updated_at >= ?');
+  else if (filter === 'today') conditions.push('c.financial_updated_at >= ? AND c.financial_updated_at < ?');
   else if (filter === 'settled') conditions.push('c.current_balance_units = 0');
   else if (filter === 'pinned') conditions.push('c.is_pinned = 1');
   else if (filter === 'smart') {
@@ -51,7 +52,10 @@ export function listCustomers(
     )`);
     parameters.push(new Date(Date.now() - 30 * 24 * 60 * 60_000).toISOString());
   }
-  if (!search && filter === 'today') parameters.push(new Date().toISOString().slice(0, 10));
+  if (!search && filter === 'today') {
+    const range = businessDayRange(organizationBusinessDate(database, organizationId), organizationTimezone(database, organizationId));
+    parameters.push(range.start, range.end);
+  }
   const countWhere = conditions.join(' AND ');
   const pageConditions = [...conditions];
   const pageParameters = [...parameters];

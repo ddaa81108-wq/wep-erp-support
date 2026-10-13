@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { buildMetadata } from './scripts/build-metadata.mjs';
 
 export default defineConfig({
   plugins: [react()],
+  define: { __BUILD_INFO__: JSON.stringify(buildMetadata()) },
   build: {
     outDir: 'dist/web',
     emptyOutDir: true,

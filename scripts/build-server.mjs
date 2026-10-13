@@ -1,8 +1,10 @@
 import { build } from 'esbuild';
+import { buildMetadata } from './build-metadata.mjs';
 
 await build({
   entryPoints: ['src/server/main.ts'],
   bundle: true,
+  define: { __BUILD_INFO__: JSON.stringify(buildMetadata()) },
   platform: 'node',
   format: 'esm',
   target: 'node24',
