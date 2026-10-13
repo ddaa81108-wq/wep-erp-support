@@ -1,7 +1,7 @@
 {
   "id": "/erp",
-  "name": "عبده ERP",
-  "short_name": "عبده ERP",
+  "name": "VIB Abdo Company",
+  "short_name": "VIB Abdo Company",
   "start_url": "/erp",
   "scope": "/",
   "display": "standalone",

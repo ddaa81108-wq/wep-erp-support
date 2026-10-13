@@ -17,7 +17,7 @@ const health = databaseHealth(database);
 const server = createApp(database, config);
 
 await listen(server, config.host, config.port);
-console.log(`Abdo ERP Local API: http://${config.host}:${config.port}`);
+console.log(`VIB Abdo Company API: http://${config.host}:${config.port}`);
 console.log(`Database integrity: ${health.integrity}; schema: ${health.schemaVersion}`);
 
 let shuttingDown = false;

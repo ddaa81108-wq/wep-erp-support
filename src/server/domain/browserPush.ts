@@ -167,7 +167,7 @@ export function createPushDispatcher(
       await Promise.all(
         rows.map(async (row) => {
           const payload = JSON.stringify({
-            title: 'عبده ERP',
+            title: 'VIB Abdo Company',
             body: row.notification_id
               ? 'لديك إشعار جديد في المنظومة. افتحها للمراجعة.'
               : 'وصل إشعار التجربة بنجاح.',

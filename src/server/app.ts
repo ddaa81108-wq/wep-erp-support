@@ -54,7 +54,7 @@ async function route(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Abdo ERP Local</title>
+  <title>VIB Abdo Company</title>
   <style>
     :root{font-family:Tahoma,"Segoe UI",Arial,sans-serif;color:#1e293b;background:#f1f5f9}
     *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px}
@@ -66,7 +66,7 @@ async function route(
 </head>
 <body><main>
   <div class="mark" dir="ltr">AL</div>
-  <h1>Abdo ERP Local</h1>
+  <h1>VIB Abdo Company</h1>
   <p>الخادم المحلي يعمل عبر اتصال HTTPS داخل الشبكة الخاصة.</p>
   <div class="status"><span class="dot"></span><strong>الخدمة جاهزة</strong></div>
   <p>إصدار API: <code>${API_VERSION}</code> · إصدار المخطط: <code>${SCHEMA_VERSION}</code></p>

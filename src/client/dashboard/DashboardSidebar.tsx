@@ -33,12 +33,12 @@ export function DashboardSidebar({
   onThemeToggle,
   onLogout,
 }: Props) {
-  const [systemName, setSystemName] = useState('عبده ERP');
+  const [systemName, setSystemName] = useState('VIB Abdo Company');
   useEffect(() => {
     let active = true;
     const refresh = () => {
       void api.organizationBranding().then(result => {
-        if (active) setSystemName(result.systemName);
+        if (active) setSystemName(['عبده ERP', 'عبده ERP المحلي', 'Abdo ERP Local'].includes(result.systemName.trim()) ? 'VIB Abdo Company' : result.systemName);
       }).catch(() => { /* Keep the last known name during a connection failure. */ });
     };
     refresh();

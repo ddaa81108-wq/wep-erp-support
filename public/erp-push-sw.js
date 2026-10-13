@@ -7,7 +7,7 @@ self.addEventListener('push', (event) => {
     /* Generic notification remains visible. */
   }
   event.waitUntil(
-    self.registration.showNotification('عبده ERP', {
+    self.registration.showNotification('VIB Abdo Company', {
       body:
         payload.body === 'وصل إشعار التجربة بنجاح.'
           ? payload.body

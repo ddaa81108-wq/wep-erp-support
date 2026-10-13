@@ -87,7 +87,7 @@ export function DatabaseMonitor({
     <main className="database-monitor" dir="rtl">
       <header className="dbm-header">
         <div>
-          <span className="dbm-eyebrow">ABDO ERP · متابعة التشغيل</span>
+          <span className="dbm-eyebrow">VIB Abdo Company · متابعة التشغيل</span>
           <h1>قاعدة البيانات والنسخ الاحتياطية</h1>
           <p>صفحة مستقلة للمتابعة · توقيت ليبيا</p>
         </div>

@@ -12,7 +12,7 @@ function AuthShell({ title, subtitle, children }: { title: string; subtitle: str
       <section className="auth-showcase" aria-hidden="true" />
       <section className="auth-panel">
         <div className="auth-card">
-          <div className="auth-reference-brand"><strong>عبده <b>ERP</b></strong><span>إدارة أسهل .. لعمل أكثر نجاحًا</span></div>
+          <div className="auth-reference-brand"><strong dir="ltr" translate="no">VIB <b>Abdo Company</b></strong><span>إدارة أسهل .. لعمل أكثر نجاحًا</span></div>
           <h2>{title}</h2>{subtitle && <p className="muted">{subtitle}</p>}
           {children}
         </div>
