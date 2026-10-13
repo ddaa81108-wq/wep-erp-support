@@ -34,7 +34,7 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
       </b>
       <div className="ledger-cell" data-label="اليوم والتاريخ والوقت">
         <strong>{ledgerDateFormat.format(new Date(item.transactionDate))}</strong>
-        {!item.actorIsOwner && <small className="operation-actor">بواسطة {item.actorName}</small>}
+        {!item.actorIsOwner && <small className="operation-actor" title={`بواسطة ${item.actorName}`}>بواسطة {item.actorName}</small>}
       </div>
       <span className="ledger-cell" data-label="نوع الحركة">
         {movement}

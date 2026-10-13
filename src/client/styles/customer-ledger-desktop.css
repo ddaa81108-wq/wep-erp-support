@@ -1,0 +1,53 @@
+@media (min-width: 901px) {
+  .ledger-panel.section-customers > header {
+    min-height: 44px; padding: 4px 8px; gap: 20px; justify-content: space-between;
+    border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
+  }
+  .ledger-panel.section-customers > header .ledger-customer-title,
+  .ledger-panel.section-customers > header .ledger-edit-details,
+  .ledger-panel.section-customers > header .icon-button {
+    position: static; transform: none; flex: 0 1 auto; width: auto; min-width: 0;
+    height: 34px; min-height: 34px; box-sizing: border-box; margin: 0;
+    padding: 0 14px; border: 1px solid var(--line); border-radius: 999px;
+    display: flex; align-items: center; justify-content: center; background: var(--surface-muted);
+    color: var(--ink); box-shadow: none;
+  }
+  .ledger-panel.section-customers > header .ledger-customer-title { max-width: 55%; }
+  .ledger-panel.section-customers > header .ledger-customer-title > span { display: none; }
+  .ledger-panel.section-customers > header h2 { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ledger-panel.section-customers > header .ledger-edit-details { flex-shrink: 0; gap: 7px; font-size: 11px; }
+  .ledger-panel.section-customers > header .icon-button { flex-shrink: 0; width: 42px; padding: 0; }
+  .ledger-panel.section-customers > header .icon-button svg { width: 18px; height: 18px; }
+  .ledger-panel.section-customers .ledger-grid {
+    min-width: 1280px; grid-template-columns: 48px 360px repeat(10, minmax(0, 1fr));
+    border-bottom: 1px solid #91a6b9;
+  }
+  .ledger-panel.section-customers .ledger-grid > * {
+    border: 0; border-left: 1px solid #91a6b9; overflow-wrap: anywhere;
+  }
+  .ledger-panel.section-customers .ledger-grid > :nth-child(12) { border-left: 0; }
+  .ledger-panel.section-customers .ledger-grid-head { background: var(--paper); color: var(--ink); }
+  .ledger-panel.section-customers .ledger-grid-head > span { padding: 4px 3px; }
+  .ledger-panel.section-customers .ledger-grid-head > span > b {
+    width: 100%; min-height: 28px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--surface-muted);
+    font-size: 9px; font-weight: 800;
+  }
+  .ledger-panel.section-customers .ledger-record > .ledger-cell:nth-child(2) {
+    display: flex; flex-direction: row; flex-wrap: nowrap; gap: 8px; white-space: nowrap;
+  }
+  .ledger-panel.section-customers .ledger-record > .ledger-cell:nth-child(2) > strong { flex-shrink: 0; font-size: 9px; }
+  .ledger-panel.section-customers .operation-actor {
+    display: inline-block; flex: 0 1 auto; min-width: 0; max-width: 170px;
+    padding: 3px 8px; margin: 0; border: 1px solid currentColor; border-radius: 999px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px;
+    color: inherit; background: #00000026;
+  }
+  .ledger-panel.section-customers .ledger-grid > .row-action {
+    align-self: stretch; justify-self: stretch; width: auto; height: auto; min-height: 36px;
+    border-radius: 0; margin: 0; border: 0; border-left: 1px solid #91a6b9;
+  }
+  .ledger-panel.section-customers .ledger-grid > .row-action:nth-child(12) { border-left: 0; }
+  .ledger-panel.section-customers .ledger-grid > .draft-error,
+  .ledger-panel.section-customers .ledger-grid > .draft-restored { border-left: 0; }
+}
