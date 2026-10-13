@@ -1,3 +1,5 @@
+import { startDatabaseActivity, databaseActivity, validActivityDay, activityToday } from './db/databaseActivity.ts';
+import { withoutDatabaseMeasurement } from './db/databaseInstrumentation.ts';
 import { databaseMonitor } from './domain/databaseMonitor.ts';
 import { requireBackupOwner } from './domain/emergencyBackup.ts';
 import { createPushDispatcher, type PushTransport } from './domain/browserPush.ts';
@@ -10,7 +12,7 @@ import { nowIso } from './db/database.ts';
 import type { ServerConfig } from './config.ts';
 import { API_VERSION, SCHEMA_VERSION, UI_VERSION } from './config.ts';
 import { EventHub } from './events.ts';
-import { HttpError, forbidden, unauthorized } from './http/errors.ts';
+import { HttpError, badRequest, forbidden, unauthorized } from './http/errors.ts';
 import { sendJson } from './http/io.ts';
 import { applyBrowserSecurityHeaders, serveWebAsset } from './http/web.ts';
 import { eventCursor } from './http/fields.ts';
@@ -117,6 +119,15 @@ async function route(
     );
   }
 
+  if (method === 'GET' && ['/api/operations/database-activity/live','/api/operations/database-activity/daily'].includes(url.pathname)) {
+    requireBackupOwner(database, user);
+    const activity = databaseActivity(database);
+    if (!activity) throw new HttpError(503, 'ACTIVITY_UNAVAILABLE', 'قياس النشاط غير متاح.');
+    if (url.pathname.endsWith('/live')) return sendJson(response, 200, { ok: true, data: activity.live() });
+    const day = url.searchParams.get('day') ?? activityToday();
+    if (!validActivityDay(day)) throw badRequest('INVALID_ACTIVITY_DAY', 'اختر يومًا من آخر 30 يومًا بتوقيت ليبيا.');
+    return sendJson(response, 200, { ok: true, data: activity.daily(day) });
+  }
   if (method === 'GET' && url.pathname === '/api/operations/database-monitor') {
     requireBackupOwner(database, user);
     return sendJson(response, 200, { ok: true, data: await databaseMonitor(database, config) });
@@ -275,6 +286,7 @@ export function createApp(
   config: ServerConfig,
   options: { internetCheck?: () => Promise<boolean>; pushSend?: PushTransport } = {},
 ) {
+  const activity = startDatabaseActivity(database);
   const events = new EventHub(database);
   const stopReports = startReportScheduler(database);
   const pushDispatcher = createPushDispatcher(database, config, options.pushSend);
@@ -289,7 +301,10 @@ export function createApp(
       }
       applyBrowserSecurityHeaders(response);
       response.setHeader('X-Correlation-Id', correlationId);
-      await route(database, config, events, request, response, correlationId);
+      const monitoring = (request.url ?? '').split('?')[0];
+      if (monitoring === '/api/operations/database-monitor' || monitoring.startsWith('/api/operations/database-activity/')) {
+        await withoutDatabaseMeasurement(() => route(database, config, events, request, response, correlationId));
+      } else await route(database, config, events, request, response, correlationId);
     } catch (error) {
       if (response.headersSent) {
         response.end();
@@ -322,6 +337,7 @@ export function createApp(
     stopReports();
     pushDispatcher.stop();
     events.close();
+    activity.stop();
   };
   server.on('close', server.closeRealtimeConnections);
   return server;

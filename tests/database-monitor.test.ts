@@ -76,6 +76,11 @@ test('database monitor API denies anonymous, employee and non-owner administrati
     await listen(server, '127.0.0.1', 0);
     const base = 'http://127.0.0.1:' + (server.address() as AddressInfo).port;
     const path = base + '/api/operations/database-monitor';
+    const activityPaths = [
+      base + '/api/operations/database-activity/live',
+      base + '/api/operations/database-activity/daily',
+    ];
+    for (const endpoint of activityPaths) assert.equal((await fetch(endpoint)).status, 401);
     assert.equal((await fetch(path)).status, 401);
     await fetch(base + '/api/setup/admin', {
       method: 'POST',
@@ -95,9 +100,21 @@ test('database monitor API denies anonymous, employee and non-owner administrati
     const cookie = login.headers.get('set-cookie')!.split(';')[0];
     const headers = { Cookie: cookie };
     assert.equal((await fetch(path, { headers })).status, 200);
+    for (const endpoint of activityPaths) assert.equal((await fetch(endpoint, { headers })).status, 200);
+    assert.equal((await fetch(activityPaths[1] + '?day=not-a-day', { headers })).status, 400);
+    const sum = async () => {
+      const result = await (await fetch(activityPaths[0], { headers })).json();
+      return result.data.points.reduce((total: number, p: { operations: number }) => total + p.operations, 0);
+    };
+    const beforeMonitor = await sum();
+    await fetch(path, { headers });
+    await fetch(activityPaths[1], { headers });
+    assert.equal(await sum(), beforeMonitor, 'monitor polling must not inflate operation counts');
     f.db.prepare('UPDATE users SET is_owner=0').run();
+    for (const endpoint of activityPaths) assert.equal((await fetch(endpoint, { headers })).status, 403);
     assert.equal((await fetch(path, { headers })).status, 403);
     f.db.prepare("UPDATE users SET role='employee'").run();
+    for (const endpoint of activityPaths) assert.equal((await fetch(endpoint, { headers })).status, 403);
     assert.equal((await fetch(path, { headers })).status, 403);
   } finally {
     server.closeRealtimeConnections();

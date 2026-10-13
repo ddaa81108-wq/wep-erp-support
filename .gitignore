@@ -28,3 +28,8 @@ var/data/
 /cloudflare-dns-saved.png
 /tunnel-route-review.png
 /tunnel-route-saved.png
+
+# Separate database activity history is local operational data.
+*.activity.sqlite
+*.activity.sqlite-wal
+*.activity.sqlite-shm

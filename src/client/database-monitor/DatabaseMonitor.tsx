@@ -1,3 +1,4 @@
+import { DatabaseActivity } from './DatabaseActivity.tsx';
 import { useEffect, useState } from 'react';
 import { api, type User } from '../api.ts';
 import { ApiError, request } from '../apiTransport.ts';
@@ -116,14 +117,23 @@ export function DatabaseMonitor({
               {error}
             </p>
           )}
+          <DatabaseActivity />
           {snapshot && (
             <>
               <section className="dbm-cards" aria-label="أحجام التخزين">
                 {[
                   ['ملف قاعدة البيانات', bytes(snapshot.database.sizeBytes)],
                   ['ملف الحركات WAL', bytes(snapshot.database.walBytes)],
-                  ['النسخ الموجودة', String(snapshot.backups.count)],
-                  ['حجم النسخ', bytes(snapshot.backups.totalBytes)],
+                  [
+                    'النسخ الموجودة',
+                    snapshot.backups.folderState === 'readable' ? String(snapshot.backups.count) : 'غير متاح',
+                  ],
+                  [
+                    'حجم النسخ',
+                    snapshot.backups.folderState === 'readable'
+                      ? bytes(snapshot.backups.totalBytes)
+                      : 'غير متاح',
+                  ],
                   ['المتاح على قرص القاعدة', bytes(snapshot.database.diskFreeBytes)],
                 ].map(([label, value]) => (
                   <article key={label}>

@@ -123,3 +123,8 @@ Notification inserts enqueue new recipient deliveries transactionally. Backgroun
 ## Database monitor
 
 GET /api/operations/database-monitor is read-only and requires the admin owner of the sole organization, using the same server guard as emergency backups. Returns active database file sizes, logical allocation/free pages, available disk space, configured backup folder metadata and up to 100 recent SQLite entries with creation-report status. No file download, deletion, integrity scan or restore is performed. Client-supplied filesystem paths are not accepted.
+
+
+### Database activity telemetry
+
+Owner-only GET /api/operations/database-activity/live returns completed/current 2-second bucket measurements over the last five minutes plus history availability. GET /api/operations/database-activity/daily?day=YYYY-MM-DD returns 24 Tripoli hourly buckets with measured coverage in milliseconds, aggregated operation attempts and latest storage samples. Accepted dates: today through 29 days ago. Unobserved hours have zero coverage and must render as gaps, not measured zero activity. Both endpoints use the database monitor owner/single-organization guard. No mutations or filesystem path arguments.
