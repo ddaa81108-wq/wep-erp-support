@@ -118,3 +118,8 @@ Authenticated admin or employee with collections.read; existing CSRF, same-origi
 - POST /api/browser-push/test: {endpoint}; queues a generic test, limited to once per minute per subscription. Response queued:true means accepted, not delivered.
 
 Notification inserts enqueue new recipient deliveries transactionally. Background dispatch sends encrypted generic payloads and validates active session/account/permissions. Delivery stops on logout or session expiry.
+
+
+## Database monitor
+
+GET /api/operations/database-monitor is read-only and requires the admin owner of the sole organization, using the same server guard as emergency backups. Returns active database file sizes, logical allocation/free pages, available disk space, configured backup folder metadata and up to 100 recent SQLite entries with creation-report status. No file download, deletion, integrity scan or restore is performed. Client-supplied filesystem paths are not accepted.

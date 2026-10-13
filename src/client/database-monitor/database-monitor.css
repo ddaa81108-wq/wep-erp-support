@@ -1,0 +1,248 @@
+.database-monitor {
+  max-width: 1500px;
+  margin: auto;
+  padding: 28px;
+  color: var(--ink);
+  min-height: 100vh;
+  background: var(--app-bg);
+}
+.dbm-header,
+.dbm-toolbar,
+.dbm-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.dbm-header {
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.dbm-eyebrow {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+.database-monitor h1 {
+  font-size: 26px;
+  margin: 7px 0;
+}
+.database-monitor h2 {
+  font-size: 18px;
+  margin: 0 0 16px;
+}
+.database-monitor p {
+  line-height: 1.9;
+}
+.dbm-header p {
+  margin: 0;
+  color: var(--muted);
+}
+.dbm-header nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.database-monitor button,
+.dbm-header a {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 16px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  min-height: 44px;
+}
+.database-monitor button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.database-monitor :focus-visible {
+  outline: 3px solid #c99a31;
+  outline-offset: 3px;
+}
+.dbm-toolbar {
+  margin: 20px 0;
+  font-size: 13px;
+}
+.dbm-toolbar button {
+  background: #14634e;
+  color: white;
+}
+.dbm-cards {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.dbm-cards article {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  display: grid;
+  gap: 14px;
+}
+.dbm-cards span {
+  font-size: 13px;
+  color: var(--muted);
+}
+.dbm-cards strong {
+  font-size: 25px;
+  direction: ltr;
+  text-align: right;
+  color: var(--ink);
+}
+.dbm-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.dbm-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 20px;
+  min-width: 0;
+}
+.dbm-panel dl {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.2fr);
+  gap: 12px;
+  font-size: 13px;
+}
+.dbm-panel dt {
+  color: var(--muted);
+}
+.dbm-panel dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.dbm-path {
+  direction: ltr;
+  text-align: left;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.dbm-note {
+  color: var(--muted);
+  font-size: 12px;
+}
+.dbm-warning {
+  padding: 12px;
+  border: 1px solid #caa44e;
+  border-radius: 10px;
+  background: #fff4d8;
+  color: #654913;
+  font-size: 13px;
+}
+.dbm-table-scroll {
+  overflow: auto;
+}
+.database-monitor table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+  min-width: 650px;
+}
+.database-monitor th,
+.database-monitor td {
+  text-align: right;
+  padding: 14px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.database-monitor th {
+  color: var(--muted);
+  background: var(--surface-soft);
+}
+.dbm-file {
+  direction: ltr;
+  text-align: left !important;
+  overflow-wrap: anywhere;
+  max-width: 360px;
+}
+.dbm-badge {
+  display: inline-block;
+  border-radius: 12px;
+  padding: 5px 9px;
+  background: #fff0cd;
+  color: #624610;
+  font-size: 11px;
+}
+.dbm-recorded {
+  background: #def3e8;
+  color: #18513d;
+}
+.database-monitor td small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+}
+[data-theme='dark'] .dbm-warning {
+  background: #392f19;
+  color: #f9dd96;
+}
+[data-theme='dark'] .dbm-badge {
+  background: #3d3219;
+  color: #f9dd96;
+}
+[data-theme='dark'] .dbm-recorded {
+  background: #164334;
+  color: #ccf6e1;
+}
+@media (max-width: 900px) {
+  .dbm-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .dbm-columns {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .database-monitor {
+    padding: 12px;
+  }
+  .dbm-header {
+    padding: 18px;
+  }
+  .database-monitor h1 {
+    font-size: 21px;
+  }
+  .dbm-header nav {
+    width: 100%;
+  }
+  .dbm-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dbm-cards article {
+    padding: 15px;
+  }
+  .dbm-cards strong {
+    font-size: 21px;
+  }
+  .dbm-panel {
+    padding: 16px;
+  }
+  .dbm-panel dl {
+    grid-template-columns: 1fr;
+  }
+  .dbm-panel dd {
+    margin-bottom: 6px;
+  }
+  .dbm-toolbar span {
+    line-height: 1.8;
+  }
+}
+
+.database-monitor .theme-toggle {
+  position: static;
+  inset: auto;
+}

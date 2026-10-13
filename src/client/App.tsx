@@ -5,6 +5,9 @@ import { ThemeToggle, type Theme } from './components/ThemeToggle.tsx';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard.tsx').then((module) => ({ default: module.Dashboard })));
 
+const DatabaseMonitor = lazy(() => import('./database-monitor/DatabaseMonitor.tsx').then(module => ({ default: module.DatabaseMonitor })));
+const isDatabaseMonitor = window.location.pathname.replace(/\/$/, '') === '/database-monitor';
+
 type Screen = 'boot' | 'setup' | 'login' | 'change-password' | 'app';
 
 const THEME_KEY = 'abdo-erp-theme';
@@ -41,7 +44,7 @@ export default function App() {
         try {
           const me = await api.resume();
           setUser(me.user);
-          if (window.location.pathname !== '/erp') window.history.replaceState({}, '', '/erp');
+          if (!isDatabaseMonitor && window.location.pathname !== '/erp') window.history.replaceState({}, '', '/erp');
           setScreen(me.user.mustChangePassword ? 'change-password' : 'app');
         } catch {
           setScreen('login');
@@ -56,8 +59,9 @@ export default function App() {
   let content: React.ReactNode;
   if (screen === 'boot') content = <Loading />;
   else if (screen === 'setup') content = <SetupScreen onComplete={(username) => { setInitialUsername(username); setScreen('login'); }} />;
-  else if (screen === 'login' || !user) content = <LoginScreen initialUsername={initialUsername} onLogin={(next) => { setUser(next); if (window.location.pathname !== '/erp') window.history.replaceState({}, '', '/erp'); setScreen(next.mustChangePassword ? 'change-password' : 'app'); }} />;
+  else if (screen === 'login' || !user) content = <LoginScreen initialUsername={initialUsername} onLogin={(next) => { setUser(next); if (!isDatabaseMonitor && window.location.pathname !== '/erp') window.history.replaceState({}, '', '/erp'); setScreen(next.mustChangePassword ? 'change-password' : 'app'); }} />;
   else if (screen === 'change-password') content = <RequiredPasswordChangeScreen onComplete={() => { setUser({ ...user, mustChangePassword: false }); setScreen('app'); }} />;
+  else if (isDatabaseMonitor) content = <Suspense fallback={<Loading />}><DatabaseMonitor user={user} theme={theme} onThemeToggle={toggleTheme} onLogout={() => { setUser(null); setScreen('login'); }} /></Suspense>;
   else content = <Suspense fallback={<Loading />}><Dashboard user={user} theme={theme} onThemeToggle={toggleTheme} onLogout={() => { setUser(null); setScreen('login'); }} /></Suspense>;
 
   return <>{screen !== 'app' && <div className="auth-theme-position"><ThemeToggle theme={theme} onToggle={toggleTheme} /></div>}{content}</>;

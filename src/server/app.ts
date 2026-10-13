@@ -1,3 +1,5 @@
+import { databaseMonitor } from './domain/databaseMonitor.ts';
+import { requireBackupOwner } from './domain/emergencyBackup.ts';
 import { createPushDispatcher, type PushTransport } from './domain/browserPush.ts';
 import { routeBrowserPush } from './routes/browserPushRoutes.ts';
 import { randomUUID } from 'node:crypto';
@@ -115,6 +117,10 @@ async function route(
     );
   }
 
+  if (method === 'GET' && url.pathname === '/api/operations/database-monitor') {
+    requireBackupOwner(database, user);
+    return sendJson(response, 200, { ok: true, data: await databaseMonitor(database, config) });
+  }
   if (await routeBrowserPush(database,config,user,request,response,url)) return;
 
   if (method === 'GET' && url.pathname === '/api/events') {

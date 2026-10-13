@@ -29,6 +29,7 @@ export type ServerConfig = {
   internetProbeUrls: string[];
   internetProbeTimeoutMs: number;
   internetProbeCacheMs: number;
+  backupDirectory?: string;
   pushPublicKey?: string;
   pushPrivateKey?: string;
   pushSubject?: string;
@@ -51,6 +52,7 @@ export function loadConfig(overrides: Partial<ServerConfig> = {}): ServerConfig 
     internetProbeTimeoutMs:
       overrides.internetProbeTimeoutMs ?? intFromEnv('ABDO_INTERNET_PROBE_TIMEOUT_MS', 5_000),
     internetProbeCacheMs: overrides.internetProbeCacheMs ?? intFromEnv('ABDO_INTERNET_PROBE_CACHE_MS', 2_000),
+    backupDirectory: overrides.backupDirectory ?? process.env.ABDO_BACKUP_DIRECTORY,
     pushPublicKey: overrides.pushPublicKey ?? process.env.ABDO_PUSH_PUBLIC_KEY,
     pushPrivateKey: overrides.pushPrivateKey ?? process.env.ABDO_PUSH_PRIVATE_KEY,
     pushSubject: overrides.pushSubject ?? process.env.ABDO_PUSH_SUBJECT,
