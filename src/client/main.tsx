@@ -12,6 +12,7 @@ import './styles/assistant.css';
 import './styles.css';
 import './styles/customer-toolbar.css';
 import './styles/night-theme.css';
+import './styles/company-toolbar.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {

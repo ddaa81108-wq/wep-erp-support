@@ -7,7 +7,7 @@ import { listSectionSuggestions } from '../sections/debts/debtSectionApi.ts';
 type Result = AccountSuggestion & { section: DebtSection };
 const SECTIONS: readonly DebtSection[] = ['customers', 'companies', 'libyan-deposits', 'egyptian-deposits'];
 
-export function GlobalAccountSearch({ onSelect }: { onSelect: (section: DebtSection, id: string) => void }) {
+export function GlobalAccountSearch({ onSelect, desktopLabel }: { onSelect: (section: DebtSection, id: string) => void; desktopLabel?: string }) {
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,6 +29,7 @@ export function GlobalAccountSearch({ onSelect }: { onSelect: (section: DebtSect
   }, [query]);
   return <div className="global-account-search">
     <Search size={16} />
+    {desktopLabel && !query && <span className="global-search-desktop-label" aria-hidden="true">{desktopLabel}</span>}
     <input aria-label="البحث الموحد" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="بحث موحد في كل الحسابات…" />
     {query && <button aria-label="مسح البحث" onClick={() => setQuery('')}><X size={14} /></button>}
     {query.trim().length >= 2 && <div className="global-search-results">

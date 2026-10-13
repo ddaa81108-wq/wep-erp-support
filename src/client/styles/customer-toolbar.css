@@ -13,7 +13,7 @@
   .workspace.active-section-customers > .dashboard-utility-bar .dashboard-section-title {
     border-radius: 999px;
   }
-  .workspace.section-customers .debts-toolbar:is(.admin-debts-toolbar, .employee-debts-toolbar) {
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar:is(.admin-debts-toolbar, .employee-debts-toolbar) {
     display: flex;
     align-items: stretch;
     gap: 8px;
@@ -21,8 +21,8 @@
     overflow-x: auto;
     padding-bottom: 3px;
   }
-  .workspace.section-customers .customer-summary-strip,
-  .workspace.section-customers .customer-actions-strip {
+  .workspace:is(.section-customers, .section-companies) .customer-summary-strip,
+  .workspace:is(.section-customers, .section-companies) .customer-actions-strip {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -32,12 +32,12 @@
     background: var(--desktop-card-bg);
     flex-shrink: 0;
   }
-  .workspace.section-customers .customer-summary-strip { flex-grow: 1; }
-  .workspace.section-customers .customer-actions-strip {
+  .workspace:is(.section-customers, .section-companies) .customer-summary-strip { flex-grow: 1; }
+  .workspace:is(.section-customers, .section-companies) .customer-actions-strip {
     border-color: #8b79c2;
     background: color-mix(in srgb, var(--paper) 90%, #8061c8);
   }
-  .workspace.section-customers .debts-toolbar .debt-total-card {
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .debt-total-card {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -53,20 +53,20 @@
     box-shadow: none;
     white-space: nowrap;
   }
-  .workspace.section-customers .debts-toolbar .debt-total-card .summary-icon { display: none; }
-  .workspace.section-customers .debts-toolbar .debt-total-card > strong { font-size: 14px; }
-  .workspace.section-customers .debts-toolbar .debt-total-card > span { font-size: 10px; }
-  .workspace.section-customers .debts-toolbar .active-cards-card { display: contents; }
-  .workspace.section-customers .debts-toolbar .active-cards-count,
-  .workspace.section-customers .customer-smart-mobile-label { display: none; }
-  .workspace.section-customers .customer-active-desktop-label { display: inline-flex; gap: 5px; align-items: center; }
-  .workspace.section-customers .debts-toolbar .compact-filters {
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .debt-total-card .summary-icon { display: none; }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .debt-total-card > strong { font-size: 14px; }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .debt-total-card > span { font-size: 10px; }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .active-cards-card { display: contents; }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .active-cards-count,
+  .workspace:is(.section-customers, .section-companies) .customer-smart-mobile-label { display: none; }
+  .workspace:is(.section-customers, .section-companies) .customer-active-desktop-label { display: inline-flex; gap: 5px; align-items: center; }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters {
     display: flex;
     align-items: center;
     flex-wrap: nowrap;
     gap: 5px;
   }
-  .workspace.section-customers .debts-toolbar .compact-filters button {
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -79,7 +79,7 @@
     font-size: 10px;
     white-space: nowrap;
   }
-  .workspace.section-customers .debts-toolbar .dashboard-search {
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .dashboard-search {
     display: block;
     flex: 0 0 145px;
     min-height: 34px;
@@ -91,14 +91,14 @@
     background: transparent;
     box-shadow: none;
   }
-  .workspace.section-customers .debts-toolbar .dashboard-search > span { display: none; }
-  .workspace.section-customers .debts-toolbar .dashboard-search input {
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .dashboard-search > span { display: none; }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .dashboard-search input {
     height: 34px;
     border-radius: 999px;
     font-size: 10px;
     padding-inline: 29px 8px;
   }
-  .workspace.section-customers .debts-toolbar .customer-actions-strip > button {
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .customer-actions-strip > button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -115,6 +115,6 @@
     white-space: nowrap;
     box-shadow: none;
   }
-  .workspace.section-customers .debts-toolbar .customer-actions-strip > button:hover,
-  .workspace.section-customers .debts-toolbar .customer-actions-strip > button.active { background: #493273; }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .customer-actions-strip > button:hover,
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .customer-actions-strip > button.active { background: #493273; }
 }
