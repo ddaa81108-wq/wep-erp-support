@@ -17,8 +17,8 @@ export function DebtAccountsToolbar(props: DebtAccountsViewProps) {
   const search = (<label className="dashboard-search"><span>البحث</span><div className="search"><Search size={18} /><input aria-label={`البحث باسم ${labels.singular} أو الهاتف`} value={query} onChange={(event) => props.onQueryChange(event.target.value)} placeholder={`اسم ${labels.singular} أو الهاتف…`} /></div></label>);
   return <section className={`debts-toolbar ${isAdmin ? 'admin-debts-toolbar' : 'employee-debts-toolbar'}`}>
     {hasCompactDesktopToolbar ? <>
-      <div className="customer-summary-strip">{total}{filters}{search}</div>
-      {(canWrite || isAdmin) && <div className="customer-actions-strip">{add}{route}</div>}
+      <div className="customer-summary-strip">{total}{filters}{section === 'customers' && (canWrite || isAdmin) && <div className="customer-actions-strip">{add}{route}</div>}{search}</div>
+      {section !== 'customers' && (canWrite || isAdmin) && <div className="customer-actions-strip">{add}{route}</div>}
     </> : <>{total}{add}{route}{filters}{search}</>}
     {section === 'egyptian-deposits' && <EgyptianRateCard canWrite={canWrite} />}
   </section>;
