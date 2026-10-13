@@ -1,5 +1,5 @@
 import { BrowserPushControls } from './BrowserPushControls.tsx';
-import { Bell, BellRing, CheckCheck, MessageSquareText, Volume2, VolumeX, X } from 'lucide-react';
+import { Bell, BellRing, CheckCheck, ChevronLeft, MessageSquareText, Volume2, VolumeX, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { User } from '../api.ts';
 import { isMainSection, type MainSection } from '../../shared/sections.ts';
@@ -49,6 +49,7 @@ export function NotificationCenter({
         className="utility-icon-button"
         aria-label="الإشعارات"
         title="الإشعارات"
+        aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
         {notifications.unreadCount ? <BellRing size={19} /> : <Bell size={19} />}
@@ -57,7 +58,8 @@ export function NotificationCenter({
       {open && (
         <aside className="notification-panel" aria-label={user.role === 'admin' ? 'مركز مراجعة الإدارة' : 'مركز الإشعارات'}>
           <header>
-            <div><strong>{user.role === 'admin' ? 'مركز مراجعة الإدارة' : 'الإشعارات'}</strong><small>{notifications.unreadCount} حركة تحتاج قراءة</small></div>
+            <span className="notification-heading-icon" aria-hidden="true"><BellRing size={21} /></span>
+            <div><strong>{user.role === 'admin' ? 'مركز مراجعة الإدارة' : 'الإشعارات'}</strong><small><b>{notifications.unreadCount}</b> حركة تحتاج قراءة</small></div>
             <button aria-label="إغلاق" onClick={() => setOpen(false)}><X size={17} /></button>
           </header>
           <div className="notification-insight">
@@ -65,8 +67,8 @@ export function NotificationCenter({
             <span>{insight}</span>
           </div>
           <div className="notification-actions">
-            <button disabled={!notifications.unreadCount} onClick={() => void notifications.markAllRead()}>
-              <CheckCheck size={15} /> تعليم الكل كمقروء
+            <button className="notification-mark-all" aria-label="تعليم الكل كمقروء" disabled={!notifications.unreadCount} onClick={() => void notifications.markAllRead()}>
+              <CheckCheck size={15} /> قراءة الكل
             </button>
             <button
               className="notification-toggle"
@@ -101,21 +103,22 @@ export function NotificationCenter({
           {notifications.preferencesSaving && <p className="notification-preference-status" role="status">جارٍ حفظ إعدادات التنبيه…</p>}
           {notifications.preferencesError && <p className="notification-error" role="alert">{notifications.preferencesError}</p>}
           {notifications.error && <p className="notification-error">{notifications.error}</p>}
+          <div className="notification-list-heading"><strong>آخر الحركات</strong><span>الأحدث أولًا</span></div>
           <div className="notification-list">
             {notifications.loading && <p>جارٍ تحميل الإشعارات…</p>}
-            {!notifications.loading && notifications.items.length === 0 && <p>لا توجد إشعارات حتى الآن.</p>}
+            {!notifications.loading && notifications.items.length === 0 && <p className="notification-empty"><CheckCheck size={26} aria-hidden="true" /><strong>لا توجد إشعارات حتى الآن.</strong><span>ستظهر الحركات الجديدة هنا.</span></p>}
             {notifications.items.map((item) => (
               <button
                 key={item.id}
-                className="unread"
+                className={item.readAt ? '' : 'unread'}
                 onClick={() => {
                   void notifications.markRead(item.id);
                   if (item.sectionKey && isMainSection(item.sectionKey)) onOpenSection(item.sectionKey);
                   setOpen(false);
                 }}
               >
-                <span><strong>{notificationSentence(item)}</strong><small>اضغط للقراءة والانتقال</small></span>
-                <time>{time.format(new Date(item.createdAt))}</time>
+                <span><strong>{notificationSentence(item)}</strong><time dateTime={item.createdAt}>{time.format(new Date(item.createdAt))}</time></span>
+                <ChevronLeft size={16} aria-hidden="true" />
               </button>
             ))}
           </div>

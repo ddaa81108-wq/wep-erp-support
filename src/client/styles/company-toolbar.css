@@ -10,24 +10,24 @@
 }
 
 @media (min-width: 901px) {
-  .workspace.active-section-companies > .dashboard-utility-bar {
+  .workspace:is(.active-section-companies, .active-section-treasury) > .dashboard-utility-bar {
     grid-template-columns: minmax(150px, 220px) minmax(170px, 1fr) minmax(120px, 180px) 52px;
     gap: clamp(18px, 3vw, 44px);
     border-radius: 999px;
     padding: 5px 8px;
   }
-  .workspace.active-section-companies .dashboard-utility-actions { display: contents; }
-  .workspace.active-section-companies > .dashboard-utility-bar .dashboard-section-title {
+  .workspace:is(.active-section-companies, .active-section-treasury) .dashboard-utility-actions { display: contents; }
+  .workspace:is(.active-section-companies, .active-section-treasury) > .dashboard-utility-bar .dashboard-section-title {
     height: 36px;
     min-height: 36px;
     border-radius: 999px;
     padding: 0 8px;
     box-sizing: border-box;
   }
-  .workspace.active-section-companies .dashboard-section-heading {
+  .workspace:is(.active-section-companies, .active-section-treasury) .dashboard-section-heading {
     font-size: clamp(11px, 1.1vw, 17px);
   }
-  :root .workspace.active-section-companies > .dashboard-utility-bar .global-account-search {
+  :root .workspace:is(.active-section-companies, .active-section-treasury) > .dashboard-utility-bar .global-account-search {
     height: 36px;
     min-height: 36px;
     min-width: 0;
@@ -38,24 +38,24 @@
     box-shadow: none;
     padding-inline: 32px;
   }
-  .workspace.active-section-companies .global-account-search > svg {
+  .workspace:is(.active-section-companies, .active-section-treasury) .global-account-search > svg {
     position: absolute;
     inset-inline-start: 12px;
   }
-  .workspace.active-section-companies .global-account-search > button {
+  .workspace:is(.active-section-companies, .active-section-treasury) .global-account-search > button {
     position: absolute;
     inset-inline-end: 8px;
     color: #24364a;
   }
-  .workspace.active-section-companies .global-account-search input {
+  .workspace:is(.active-section-companies, .active-section-treasury) .global-account-search input {
     width: 100%;
     text-align: center;
     color: #24364a;
     padding-inline: 0;
     font-size: 12px;
   }
-  .workspace.active-section-companies .global-account-search input::placeholder { color: transparent; }
-  .workspace.active-section-companies .global-search-desktop-label {
+  .workspace:is(.active-section-companies, .active-section-treasury) .global-account-search input::placeholder { color: transparent; }
+  .workspace:is(.active-section-companies, .active-section-treasury) .global-search-desktop-label {
     display: block;
     position: absolute;
     inset-inline: 32px;
@@ -65,11 +65,11 @@
     color: #24364a;
     pointer-events: none;
   }
-  .workspace.active-section-companies .global-account-search:focus-within .global-search-desktop-label { visibility: hidden; }
-  .workspace.active-section-companies .global-search-results {
+  .workspace:is(.active-section-companies, .active-section-treasury) .global-account-search:focus-within .global-search-desktop-label { visibility: hidden; }
+  .workspace:is(.active-section-companies, .active-section-treasury) .global-search-results {
     min-width: min(360px, 80vw);
   }
-  .workspace.active-section-companies .dashboard-utility-actions .sync-status {
+  .workspace:is(.active-section-companies, .active-section-treasury) .dashboard-utility-actions .sync-status {
     grid-column: 3;
     grid-row: 1;
     width: 100%;
@@ -78,18 +78,18 @@
     border-radius: 999px;
     box-sizing: border-box;
   }
-  .workspace.active-section-companies .dashboard-utility-actions .notification-center {
+  .workspace:is(.active-section-companies, .active-section-treasury) .dashboard-utility-actions .notification-center {
     grid-column: 4;
     grid-row: 1;
     min-width: 0;
     width: 100%;
   }
-  .workspace.active-section-companies .dashboard-utility-actions .utility-icon-button {
+  .workspace:is(.active-section-companies, .active-section-treasury) .dashboard-utility-actions .utility-icon-button {
     width: 100%;
     height: 36px;
     border-radius: 999px;
   }
-  .workspace.active-section-companies .utility-icon-button > b {
+  .workspace:is(.active-section-companies, .active-section-treasury) .utility-icon-button > b {
     inset: -4px auto auto -3px;
   }
   :root[data-theme='dark'] .workspace.section-companies .customer-actions-strip {

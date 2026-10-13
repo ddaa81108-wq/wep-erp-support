@@ -153,7 +153,7 @@ export function BrowserPushControls() {
           على iPhone افتح المنظومة من الشاشة الرئيسية.
         </p>
       )}
-      <small>صوت إشعار الخلفية تحدده إعدادات الجهاز؛ النطق يعمل داخل الصفحة فقط.</small>
+      <details><summary>معلومات الصوت والنطق</summary><small>صوت إشعار الخلفية تحدده إعدادات الجهاز؛ النطق يعمل داخل الصفحة فقط.</small></details>
       {message && <p role="status">{message}</p>}
     </section>
   );

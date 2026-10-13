@@ -34,7 +34,7 @@ export function DashboardUtilityBar({
       >
         <Menu size={19} />
       </button>
-      <GlobalAccountSearch onSelect={onOpenAccount} desktopLabel={activeSection === 'companies' ? 'البحث الموحد' : undefined} />
+      <GlobalAccountSearch onSelect={onOpenAccount} desktopLabel={(activeSection === 'companies' || activeSection === 'treasury') ? 'البحث الموحد' : undefined} />
       <div className="dashboard-section-title" aria-label={`القسم الحالي: ${SECTION_CONTRACTS[activeSection].title}`}>
         <div className="dashboard-section-heading" role={isUtilityHeading ? 'heading' : undefined} aria-level={isUtilityHeading ? 1 : undefined}>{SECTION_CONTRACTS[activeSection].title}</div>
       </div>

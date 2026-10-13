@@ -16,6 +16,9 @@ export function TreasurySection({ user }: { user: User }) {
   const [mode, setMode] = useState<TreasuryEntryMode | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [scrollRequest, setScrollRequest] = useState(0);
+  const loadedEntries = useRef<TreasuryCashEntry[]>([]);
+  const oldestCursor = useRef<number | null>(null);
   const submitting = useRef(false);
   const pendingRequestId = useRef<string | null>(null);
 
@@ -26,6 +29,23 @@ export function TreasurySection({ user }: { user: User }) {
     try {
       const [summary, ledger] = await Promise.all([api.treasury(), api.treasuryCashLedger()]);
       if (request !== latestLoad.current) return;
+      const preserveHistory = quiet && window.matchMedia('(min-width: 901px)').matches && loadedEntries.current.length > 0;
+      if (preserveHistory) {
+        // Bridge any gap after reconnecting before merging the retained history.
+        const previousLatest = loadedEntries.current.at(-1)!.sequence;
+        while (ledger.nextBefore !== null && ledger.items[0].sequence > previousLatest + 1) {
+          const page = await api.treasuryCashLedger(ledger.nextBefore);
+          if (request !== latestLoad.current) return;
+          ledger.items = [...page.items, ...ledger.items];
+          ledger.nextBefore = page.nextBefore;
+        }
+        const combined = new Map(loadedEntries.current.map((entry) => [entry.id, entry]));
+        for (const entry of ledger.items) combined.set(entry.id, entry);
+        ledger.items = [...combined.values()].sort((a, b) => a.sequence - b.sequence);
+        ledger.nextBefore = oldestCursor.current;
+      }
+      loadedEntries.current = ledger.items;
+      oldestCursor.current = ledger.nextBefore;
       setDashboard(summary);
       setEntries(ledger.items);
       setNextBefore(ledger.nextBefore);
@@ -81,6 +101,7 @@ export function TreasurySection({ user }: { user: User }) {
       setMode(null);
       setMessage(mode === 'in' ? 'تم اعتماد دخول النقدية.' : 'تم اعتماد خروج النقدية.');
       await load(true);
+      setScrollRequest((value) => value + 1);
     } catch (error) {
       setMessage(errorText(error));
     } finally {
@@ -103,9 +124,14 @@ export function TreasurySection({ user }: { user: User }) {
   async function older() {
     if (!nextBefore || busy) return;
     setBusy(true);
+    const request = latestLoad.current;
     try {
       const olderPage = await api.treasuryCashLedger(nextBefore);
-      setEntries((current) => [...olderPage.items, ...current]);
+      if (request !== latestLoad.current) return;
+      const combined = new Map([...olderPage.items, ...loadedEntries.current].map((entry) => [entry.id, entry]));
+      loadedEntries.current = [...combined.values()].sort((a, b) => a.sequence - b.sequence);
+      oldestCursor.current = olderPage.nextBefore;
+      setEntries(loadedEntries.current);
       setNextBefore(olderPage.nextBefore);
     } catch (error) {
       setMessage(errorText(error));
@@ -162,11 +188,11 @@ export function TreasurySection({ user }: { user: User }) {
         </div>
         {mode && <TreasuryCashEntryForm mode={mode} busy={busy} onCancel={cancelEntry} onSubmit={submit} />}
         {nextBefore && (
-          <button className="treasury-older" onClick={() => void older()}>
+          <button className="treasury-older" disabled={busy} onClick={() => void older()}>
             تحميل حركات أقدم
           </button>
         )}
-        <TreasuryCashLedger entries={entries} />
+        <TreasuryCashLedger entries={entries} scrollRequest={scrollRequest} />
       </section>
     </section>
   );

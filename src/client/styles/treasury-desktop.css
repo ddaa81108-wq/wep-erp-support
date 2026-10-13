@@ -1,0 +1,72 @@
+.treasury-new-movements { display: none; }
+.treasury-date-desktop { display: none; }
+.treasury-ledger-row.head b { font-weight: inherit; }
+
+@media (min-width: 901px) {
+  .workspace.active-section-treasury { height: 100dvh; min-height: 0; box-sizing: border-box; }
+  .workspace.active-section-treasury > .dashboard-utility-bar { flex-shrink: 0; }
+  .workspace.active-section-treasury .treasury-page {
+    flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 8px; padding: 4px 0 0;
+  }
+  .workspace.active-section-treasury .treasury-head { display: none; }
+  .workspace.active-section-treasury .treasury-cards {
+    flex-shrink: 0; grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px; padding: 6px; border: 1px solid var(--line); border-radius: 38px; background: var(--paper);
+  }
+  .workspace.active-section-treasury .treasury-card {
+    grid-column: auto; min-height: 66px; box-sizing: border-box; padding: 7px 9px;
+    gap: 2px; border-radius: 999px; border-width: 1px; text-align: center;
+    align-content: center; box-shadow: none;
+  }
+  .workspace.active-section-treasury .treasury-card > span { font-size: 10px; }
+  .workspace.active-section-treasury .treasury-card > b { font-size: clamp(12px, 1.2vw, 17px); }
+  .workspace.active-section-treasury .treasury-card > small { font-size: 8px; line-height: 1.3; }
+  .workspace.active-section-treasury .treasury-cash-panel {
+    flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 7px; padding: 8px;
+  }
+  .workspace.active-section-treasury .treasury-panel-head {
+    flex-shrink: 0; justify-content: flex-start; gap: 12px; padding: 4px;
+    margin: 0; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-muted);
+  }
+  .workspace.active-section-treasury .treasury-panel-head h2 {
+    display: flex; align-items: center; justify-content: center; height: 30px;
+    padding-inline: 16px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); font-size: 12px;
+  }
+  .workspace.active-section-treasury .treasury-panel-head small { display: none; }
+  .workspace.active-section-treasury .treasury-cash-actions { gap: 9px; }
+  .workspace.active-section-treasury .treasury-cash-actions > button { border-radius: 999px; height: 30px; min-width: 90px; padding: 0 14px; }
+  .workspace.active-section-treasury .treasury-entry-form { flex-shrink: 0; margin: 0; }
+  .workspace.active-section-treasury .treasury-older { flex-shrink: 0; margin: 0 auto; border-radius: 999px; padding: 4px 15px; }
+  .workspace.active-section-treasury .treasury-ledger {
+    flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; overflow-anchor: none;
+    scrollbar-gutter: stable; background: var(--paper);
+  }
+  .workspace.active-section-treasury .treasury-ledger-row {
+    min-width: 0; grid-template-columns: 52px minmax(180px, 2fr) repeat(5, minmax(0, 1fr)); align-items: stretch;
+    border-bottom: 1px solid #ffffffb3;
+  }
+  .workspace.active-section-treasury .treasury-ledger-row > span {
+    min-width: 0; min-height: 32px; padding: 5px; box-sizing: border-box; font-size: 10px;
+    text-align: center; overflow-wrap: anywhere; border-inline-start: 0; border-left: 1px solid #ffffffb3;
+  }
+  .workspace.active-section-treasury .treasury-ledger-row > span:last-child { border-left: 0; }
+  .workspace.active-section-treasury .treasury-ledger-row.head {
+    padding: 0; gap: 0; background: var(--paper); color: var(--ink); border-bottom: 1px solid var(--line);
+  }
+  .workspace.active-section-treasury .treasury-ledger-row.head > span {
+    border-left-color: var(--line); padding: 5px 3px;
+  }
+  .workspace.active-section-treasury .treasury-ledger-row.head b {
+    display: flex; align-items: center; justify-content: center; width: 100%; min-height: 28px;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--surface-muted);
+  }
+  .workspace.active-section-treasury .treasury-ledger-row.in { background: #087a50; color: #fff; }
+  .workspace.active-section-treasury .treasury-ledger-row.out { background: #b43131; color: #fff; }
+  .workspace.active-section-treasury .treasury-ledger-row:not(.head) > span:nth-child(3) { font-weight: 900; }
+  .workspace.active-section-treasury .treasury-date-phone { display: none; }
+  .workspace.active-section-treasury .treasury-date-desktop { display: inline; }
+  .treasury-new-movements {
+    display: block; flex-shrink: 0; align-self: center; border: 1px solid var(--line);
+    border-radius: 999px; background: var(--paper); color: var(--ink); padding: 5px 16px; font-size: 11px;
+  }
+}

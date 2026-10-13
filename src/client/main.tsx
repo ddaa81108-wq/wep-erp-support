@@ -13,6 +13,8 @@ import './styles.css';
 import './styles/customer-toolbar.css';
 import './styles/night-theme.css';
 import './styles/company-toolbar.css';
+import './styles/notifications.css';
+import './styles/treasury-desktop.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {
