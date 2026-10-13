@@ -1,0 +1,172 @@
+/* Night-only presentation. Keep financial state classes and responsive geometry intact. */
+:root[data-theme='dark'] {
+  --night-blue: linear-gradient(145deg, #294b80, #1a3053);
+  --night-amber: linear-gradient(145deg, #78551e, #503912);
+  --night-red: linear-gradient(145deg, #813849, #552537);
+  --night-green: linear-gradient(145deg, #24634f, #193e36);
+  --night-zero: linear-gradient(145deg, #24262b, #14161a);
+}
+
+:root[data-theme='dark'] .sidebar {
+  border-inline-end: 1px solid var(--line-soft);
+  box-shadow: -8px 0 32px #00000018;
+}
+:root[data-theme='dark'] .sidebar nav button.active {
+  background: #233d40;
+  border-color: #54796f;
+  color: #e3f7ee;
+  box-shadow: inset -3px 0 var(--gold);
+}
+:root[data-theme='dark'] :is(input, select, textarea)::placeholder {
+  color: #93a5bd;
+  opacity: 1;
+}
+:root[data-theme='dark'] :is(button, input, select, textarea, a):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Shared shell, including sections with more specific desktop headers. */
+:root[data-theme='dark'] .workspace > .dashboard-utility-bar {
+  background: var(--paper);
+  border-color: var(--line);
+  box-shadow: 0 4px 16px #00000020;
+}
+:root[data-theme='dark'] .workspace:is(.active-section-customers, .active-section-masraweya) > .dashboard-utility-bar {
+  background: var(--paper);
+  border-color: var(--line);
+}
+:root[data-theme='dark'] .workspace > .dashboard-utility-bar .dashboard-section-title {
+  background: #343329;
+  border-color: #77684a;
+  color: #f0d9a3;
+  box-shadow: inset 0 1px #ffffff0a;
+}
+:root[data-theme='dark'] .workspace:is(.active-section-customers, .active-section-masraweya) > .dashboard-utility-bar .dashboard-section-title {
+  background: #343329;
+  border-color: #77684a;
+  box-shadow: inset 0 1px #ffffff0a;
+}
+:root[data-theme='dark'] .workspace > .dashboard-utility-bar .global-account-search {
+  background: var(--field-bg);
+  border-color: var(--line);
+  box-shadow: none;
+}
+:root[data-theme='dark'] .workspace:is(.active-section-customers, .active-section-masraweya) > .dashboard-utility-bar .global-account-search {
+  background: var(--field-bg);
+  border-color: var(--line);
+  box-shadow: none;
+}
+:root[data-theme='dark'] .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) {
+  --desktop-card-bg: #22354b;
+  --desktop-card-border: #456079;
+  --desktop-card-text: #edf2fa;
+  --desktop-card-muted: #c1cede;
+}
+:root[data-theme='dark'] .workspace.section-customers .customer-actions-strip,
+:root[data-theme='dark'] .collection-toolbar-actions {
+  background: #292a41;
+  border-color: #5e5d81;
+}
+:root[data-theme='dark'] .workspace.section-customers .debts-toolbar .customer-actions-strip > button,
+:root[data-theme='dark'] .collection-toolbar-actions .compact-action {
+  background: #454264;
+  border-color: #78739b;
+  color: #f0edff;
+}
+
+/* Muted colour families preserve blue/new, amber/partial, red/received,
+   green/credit and black/zero without the previous neon gradients. */
+:root[data-theme='dark'] .workspace .customer-card.new-debt { --card-bg: var(--night-blue); }
+:root[data-theme='dark'] .workspace .customer-card.warning-debt { --card-bg: var(--night-amber); }
+:root[data-theme='dark'] .workspace .customer-card.overdue-debt { --card-bg: var(--night-red); }
+:root[data-theme='dark'] .workspace .customer-card.credit-balance { --card-bg: var(--night-green); }
+:root[data-theme='dark'] .workspace .customer-card.zero-balance { --card-bg: var(--night-zero); }
+:root[data-theme='dark'] .workspace .customer-card {
+  border-color: #64809b;
+  box-shadow: inset 0 1px #ffffff0b, 0 4px 12px #00000022;
+}
+:root[data-theme='dark'] :is(.collection-card, .admin-customer-collection-card).collection-base { background: var(--night-blue); }
+:root[data-theme='dark'] :is(.collection-card, .admin-customer-collection-card).collection-yellow {
+  background: linear-gradient(145deg, #e4c367, #cba745);
+  color: #28200d;
+}
+:root[data-theme='dark'] :is(.collection-card, .admin-customer-collection-card).collection-red { background: var(--night-red); }
+:root[data-theme='dark'] :is(.collection-card, .admin-customer-collection-card).collection-green { background: var(--night-green); }
+:root[data-theme='dark'] :is(.collection-card, .admin-customer-collection-card).zero-collection-card { background: var(--night-zero); }
+:root[data-theme='dark'] :is(.collection-card, .admin-customer-collection-card) {
+  border-color: #64809b;
+  box-shadow: inset 0 1px #ffffff0b, 0 4px 12px #00000022;
+}
+:root[data-theme='dark'] .report-row { --report-row: #172333; }
+:root[data-theme='dark'] .report-row:nth-child(even) { --report-row: #1c2a3d; }
+:root[data-theme='dark'] .report-row.review { --report-row: #373022; }
+:root[data-theme='dark'] .report-row:is(.critical, .missing_rate) { --report-row: #3a2430; }
+:root[data-theme='dark'] .ledger-draft-row { background: #302e23; }
+:root[data-theme='dark'] .account-role-badge.admin { background: #3c3423; color: #f0d9a3; }
+
+/* Inputs and numeric output need separate tones from filled action buttons. */
+:root[data-theme='dark'] .masraweya-page .masraweya-work-table tbody input {
+  background: var(--field-bg);
+  color: var(--ink);
+  border-color: var(--line);
+}
+:root[data-theme='dark'] .masraweya-page .masraweya-work-table tbody td:last-child,
+:root[data-theme='dark'] .masraweya-page .masraweya-work-table tfoot th,
+:root[data-theme='dark'] :is(.review-list em, .summary-icon.green, .customer-avatar, .customer-filters button.active) {
+  color: var(--success);
+}
+:root[data-theme='dark'] .purchase-opening,
+:root[data-theme='dark'] .purchase-inline-editor {
+  background: var(--panel-soft);
+  color: var(--ink);
+  border-color: var(--line);
+}
+:root[data-theme='dark'] .purchase-message {
+  background: var(--note-bg);
+  color: var(--note-text);
+  border-color: var(--note-line);
+}
+:root[data-theme='dark'] .purchase-day-entry.purchase-day-tone-0 { --purchase-day-bg: #23354c; }
+:root[data-theme='dark'] .purchase-day-entry.purchase-day-tone-1 { --purchase-day-bg: #233b38; }
+:root[data-theme='dark'] .purchase-day-entry.purchase-day-tone-2 { --purchase-day-bg: #302f48; }
+:root[data-theme='dark'] .purchase-day-entry .purchase-inline-editor {
+  background: color-mix(in srgb, var(--purchase-day-bg) 85%, var(--paper));
+}
+:root[data-theme='dark'] :is(.audit-refresh, .audit-actor > span) { color: var(--success); }
+:root[data-theme='dark'] .auth-page.auth-split-reference,
+:root[data-theme='dark'] .auth-split-reference .auth-panel {
+  background: var(--app-bg);
+  color: var(--ink);
+}
+:root[data-theme='dark'] .auth-split-reference .auth-showcase {
+  background-image: linear-gradient(#0d152255, #0d152277), url('/assets/login-reference-split.png');
+}
+:root[data-theme='dark'] .auth-split-reference :is(.auth-reference-brand, .auth-card h2, label) { color: var(--ink); }
+:root[data-theme='dark'] .auth-split-reference .auth-reference-brand strong b { color: var(--gold); }
+:root[data-theme='dark'] .auth-split-reference .auth-reference-brand span { color: var(--muted); }
+:root[data-theme='dark'] .auth-split-reference input {
+  background: var(--field-bg);
+  color: var(--ink);
+  border-color: var(--line);
+}
+:root[data-theme='dark'] .auth-split-reference .google-button {
+  background: var(--panel-soft);
+  color: var(--ink);
+  border-color: var(--line);
+}
+:root[data-theme='dark'] .auth-split-reference .primary { background: var(--green); color: #fff; }
+:root[data-theme='dark'] .auth-split-reference .primary:hover:not(:disabled) { background: var(--green-dark); }
+:root[data-theme='dark'] .auth-split-reference .auth-divider { border-color: var(--line); }
+:root[data-theme='dark'] .auth-split-reference .auth-divider span { color: var(--muted); background: var(--app-bg); }
+:root[data-theme='dark'] .auth-split-reference .create-account-button { color: #c5bfff; }
+:root[data-theme='dark'] .auth-split-reference :is(.approval-steps, .secondary) {
+  background: var(--panel-soft);
+  color: var(--ink);
+  border-color: var(--line);
+}
+:root[data-theme='dark'] .activity-read-line { stroke: #6bd8b8; }
+:root[data-theme='dark'] .activity-write-line { stroke: #ebc16a; }
+:root[data-theme='dark'] .activity-read-dot { fill: #6bd8b8; }
+:root[data-theme='dark'] .activity-write-dot { fill: #ebc16a; }
+

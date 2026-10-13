@@ -11,6 +11,7 @@ import './styles/reports.css';
 import './styles/assistant.css';
 import './styles.css';
 import './styles/customer-toolbar.css';
+import './styles/night-theme.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {
