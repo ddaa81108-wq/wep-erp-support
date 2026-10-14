@@ -3147,13 +3147,13 @@ button.settings-tool-card:hover {
   margin: 0;
   direction: rtl;
 }
-.permanent-ledger.section-customers .ledger-customer-title {
+.permanent-ledger:is(.section-customers, .section-companies) .ledger-customer-title {
   border-radius: 26px;
   padding: 5px 12px;
   gap: 2px;
   overflow: hidden;
 }
-.permanent-ledger.section-customers .ledger-customer-title h2 {
+.permanent-ledger:is(.section-customers, .section-companies) .ledger-customer-title h2 {
   font-size: 12px;
   font-weight: 600;
   line-height: 1.35;

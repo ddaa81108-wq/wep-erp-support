@@ -37,7 +37,7 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
         {!item.actorIsOwner && <small className="operation-actor" title={`بواسطة ${item.actorName}`}>بواسطة {item.actorName}</small>}
       </div>
       <span className="ledger-cell" data-label="نوع الحركة">
-        {section === 'customers' ? item.type === 'debt' ? 'ديون' : item.paymentMode === 'full' ? 'دفع كلي' : 'دفع جزئي' : movement}
+        {(section === 'customers' || section === 'companies') ? item.type === 'debt' ? 'ديون' : item.paymentMode === 'full' ? 'دفع كلي' : 'دفع جزئي' : movement}
         {status}
       </span>
       <span className="ledger-cell ledger-statement" data-label="البيان">
@@ -49,7 +49,7 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
       <span className="ledger-cell" data-label="العملية">
         {item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? 'ضرب' : 'قسمة'}
       </span>
-      <span className="ledger-cell" data-label={section === 'customers' ? 'السعر' : 'المعامل'}>
+      <span className="ledger-cell" data-label={(section === 'customers' || section === 'companies') ? 'السعر' : 'المعامل'}>
         {item.factorMicros ? ledgerFactor.format(item.factorMicros / 1_000_000) : '—'}
       </span>
       <strong className="ledger-cell" data-label="دين مضاف">

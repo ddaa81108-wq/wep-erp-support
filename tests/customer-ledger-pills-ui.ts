@@ -8,6 +8,7 @@ import { createApp, listen } from '../src/server/app.ts';
 import { openDatabase } from '../src/server/db/database.ts';
 import type { ServerConfig } from '../src/server/config.ts';
 
+const section = process.env.LEDGER_UI_SECTION === 'companies' ? 'companies' : 'customers';
 const directory = mkdtempSync(join(tmpdir(), 'abdo-live-ui-'));
 const database = openDatabase(join(directory, 'live.sqlite'));
 const config: ServerConfig = {
@@ -65,11 +66,12 @@ try {
     assert.ok(response.ok(), await response.text());
     return (await response.json()).data;
   };
-  const created = await mutate('/api/customers',{requestId:'ledger-pills-customer',name:'عميل تنسيق السجل',openingBalance:100});
+  const created = await mutate('/api/'+section,{requestId:'ledger-pills-customer',name:'عميل تنسيق السجل',openingBalance:100});
   const page = await writer.newPage();
   await page.goto(base+'/erp');
+  if (section === 'companies') await page.getByRole('button',{name:'قسم ديون الشركات',exact:true}).click();
   await page.locator('.customer-card-main').filter({hasText:'عميل تنسيق السجل'}).click();
-  const panel = page.locator('.ledger-panel.section-customers');
+  const panel = page.locator('.ledger-panel.section-'+section);
   const kind = panel.getByRole('group',{name:'نوع المعاملة',exact:true});
   const mode = panel.getByRole('group',{name:'طريقة الحساب',exact:true});
   await expect(kind.getByRole('button',{name:'ديون',exact:true})).toHaveAttribute('aria-pressed','true');
@@ -92,9 +94,9 @@ try {
         assert.ok(boxes.every(b=>b.height>=32&&!b.overflow));
       }
       await kind.scrollIntoViewIfNeeded();
-      await page.screenshot({path:`artifacts/ledger-pills/${theme}-${width}-choices.png`,fullPage:true});
+      await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-choices.png`,fullPage:true});
       await panel.locator('.ledger-total').scrollIntoViewIfNeeded();
-      await page.screenshot({path:`artifacts/ledger-pills/${theme}-${width}-total.png`,fullPage:true});
+      await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-total.png`,fullPage:true});
     }
   }
   await page.setViewportSize({width:1440,height:950});
@@ -104,7 +106,7 @@ try {
   await panel.getByLabel('ملاحظة المعاملة').fill('قسمة اختبار');
   await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
   await expect(panel.locator('.ledger-record').filter({hasText:'قسمة اختبار'})).toBeVisible();
-  assert.equal((await read(writer.request,'/api/customers/'+created.customer.id)).balanceUnits,130);
+  assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,130);
   await kind.getByRole('button',{name:'دفع جزئي',exact:true}).click();
   await panel.getByLabel('قيمة المعاملة',{exact:true}).fill('10');
   await panel.getByLabel('ملاحظة المعاملة').fill('جزئي اختبار');
@@ -119,7 +121,7 @@ try {
   await expect(mode.getByRole('button',{name:'مباشر',exact:true})).toBeDisabled();
   await expect(panel.getByLabel('السعر')).toBeDisabled();
   await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
-  await expect.poll(async()=>(await read(writer.request,'/api/customers/'+created.customer.id)).balanceUnits).toBe(0);
+  await expect.poll(async()=>(await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits).toBe(0);
   console.log('PASS customer ledger pills: both themes/sizes, selection, divide, partial/full, editing retains mode and factor.');
 } finally {
   await browser?.close();
