@@ -74,6 +74,7 @@ try {
   const panel = page.locator('.ledger-panel.section-'+section);
   const kind = panel.getByRole('group',{name:'نوع المعاملة',exact:true});
   const mode = panel.getByRole('group',{name:'طريقة الحساب',exact:true});
+  await expect(panel.getByLabel('قيمة المعاملة',{exact:true})).toBeFocused();
   await expect(kind.getByRole('button',{name:'ديون',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(mode.getByRole('button',{name:'مباشر',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(panel.locator('select')).toHaveCount(0);
@@ -82,9 +83,11 @@ try {
     await panel.locator('header .icon-button').click();
     if (await page.evaluate(()=>document.documentElement.dataset.theme)!==theme) await page.getByRole('button',{name:theme==='dark'?'المظهر الليلي':'المظهر النهاري',exact:true}).click();
     await page.locator('.customer-card-main').filter({hasText:'عميل تنسيق السجل'}).click();
-    for (const width of [390,1440]) {
+    for (const width of [390,1440,1920]) {
       await page.setViewportSize({width,height:950});
       await expect(panel).toHaveCSS('opacity','1');
+      const statementWidth = await panel.getByLabel('ملاحظة المعاملة').evaluate(e => e.parentElement!.getBoundingClientRect().width);
+      assert.equal(statementWidth, 100);
       await expect(kind.getByRole('button',{name:'ديون',exact:true})).toHaveCSS('background-color','rgb(166, 30, 42)');
       await expect(kind.getByRole('button',{name:'دفع جزئي',exact:true})).toHaveCSS('background-color','rgb(8, 116, 67)');
       await expect(kind.getByRole('button',{name:'دفع كلي',exact:true})).toHaveCSS('background-color','rgb(23, 25, 31)');
@@ -106,12 +109,14 @@ try {
   await panel.getByLabel('ملاحظة المعاملة').fill('قسمة اختبار');
   await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
   await expect(panel.locator('.ledger-record').filter({hasText:'قسمة اختبار'})).toBeVisible();
+  await expect(panel.getByLabel('قيمة المعاملة',{exact:true})).toBeFocused();
   assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,130);
   await kind.getByRole('button',{name:'دفع جزئي',exact:true}).click();
   await panel.getByLabel('قيمة المعاملة',{exact:true}).fill('10');
   await panel.getByLabel('ملاحظة المعاملة').fill('جزئي اختبار');
   await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
   await expect(panel.locator('.ledger-record').filter({hasText:'جزئي اختبار'})).toBeVisible();
+  await expect(panel.getByLabel('قيمة المعاملة',{exact:true})).toBeFocused();
   await panel.locator('.ledger-record').filter({hasText:'قسمة اختبار'}).getByRole('button',{name:/تعديل المعاملة/}).click();
   const editing=panel.locator('.ledger-draft-row').first();
   await expect(editing.getByRole('button',{name:'قسمة',exact:true})).toHaveAttribute('aria-pressed','true');

@@ -55,7 +55,7 @@
 /* Customer and company ledger controls share the existing financial handlers on both screen sizes. */
 .ledger-panel:is(.section-customers, .section-companies) .ledger-grid {
   min-width: 1400px;
-  grid-template-columns: 44px 360px 206px minmax(100px, 1fr) 86px 166px 78px 86px 86px 90px 48px 48px;
+  grid-template-columns: 44px 360px minmax(206px, 1.2fr) 100px 86px minmax(166px, 1fr) 78px 86px 86px 90px 48px 48px;
 }
 .ledger-panel:is(.section-customers, .section-companies) .ledger-choice-group {
   display: flex;

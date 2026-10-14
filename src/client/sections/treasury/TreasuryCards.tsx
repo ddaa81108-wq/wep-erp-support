@@ -5,7 +5,7 @@ export function TreasuryCards({ dashboard }: { dashboard: TreasuryDashboard }) {
   return (
     <div className="treasury-cards">
       {treasuryCards(dashboard).map(({ label, value, note, kind }) => (
-        <article key={label} className={`treasury-card ${kind}`}>
+        <article key={label} className={`treasury-card ${kind}${kind === 'active-cash' && value !== null ? value > 0 ? ' cash-positive' : value < 0 ? ' cash-negative' : '' : ''}`}>
           <span>{label}</span>
           <b dir="ltr">{value === null ? '—' : `${treasuryNumberFormat.format(value)} د.ل`}</b>
           <small>{note}</small>

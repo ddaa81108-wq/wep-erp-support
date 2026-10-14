@@ -60,6 +60,16 @@ export function LedgerEntriesTable({
     const frame = window.requestAnimationFrame(() => { node.scrollTop = node.scrollHeight; });
     return () => window.cancelAnimationFrame(frame);
   }, [ledger.customer.id]);
+  useEffect(() => {
+    if (!canWrite || (section !== 'customers' && section !== 'companies')) return;
+    const frame = window.requestAnimationFrame(() => {
+      const input = tableRef.current?.querySelector<HTMLInputElement>(
+        '[data-new-ledger-draft] input[aria-label="قيمة المعاملة"]:not(:disabled)',
+      );
+      input?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [ledger.customer.id, newDraftKey, canWrite, section]);
   return (
     <div className="ledger-table-wrap" ref={tableRef} onKeyDown={navigateLedgerRows}>
       <div className="ledger-grid ledger-grid-head">

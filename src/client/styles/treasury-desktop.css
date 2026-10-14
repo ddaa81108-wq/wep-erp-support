@@ -1,5 +1,8 @@
 .treasury-new-movements { display: none; }
 .treasury-date-desktop { display: none; }
+.treasury-card.active-cash.cash-positive { background: #087a50; color: #fff; border-color: #087a50; }
+.treasury-card.active-cash.cash-negative { background: #b43131; color: #fff; border-color: #b43131; }
+.treasury-card.active-cash:is(.cash-positive, .cash-negative) > small { color: #fff; }
 .treasury-ledger-row.head b { font-weight: inherit; }
 
 @media (min-width: 901px) {

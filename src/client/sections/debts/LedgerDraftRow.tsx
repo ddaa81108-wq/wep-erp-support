@@ -104,7 +104,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
   }
 
   return (
-    <form className="ledger-grid ledger-draft-row" onSubmit={submit} onKeyDown={navigateFields}>
+    <form className="ledger-grid ledger-draft-row" data-new-ledger-draft={!editing || undefined} onSubmit={submit} onKeyDown={navigateFields}>
       <div className="ledger-draft-field sequence-cell">
         <span>التسلسل</span>
         <strong>#{editing?.sequence ?? ledger.customer.nextSequence}</strong>

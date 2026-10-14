@@ -192,6 +192,31 @@ try {
   await expect(readerPage.locator('.treasury-cash-actions')).toHaveCount(0);
   await expect(readerPage.locator('[data-sequence="207"]')).toBeInViewport();
   await readerPage.screenshot({ path: 'artifacts/treasury/employee.png' });
+  // Verify full-card sign colors using real cash movements, including live updates.
+  const activeCard = page.locator('.treasury-card.active-cash');
+  for (const target of [100, -100, 0]) {
+    const current = await read(writer.request, '/api/treasury');
+    const difference = target - current.activeCashUnits;
+    await mutate('/api/treasury/cash-entries', {
+      requestId: crypto.randomUUID(), expectedVersion: current.cashVersion,
+      direction: difference > 0 ? 'in' : 'out', amountUnits: Math.abs(difference),
+      description: 'اختبار لون النقد النشط',
+    });
+    await expect(activeCard.locator('b')).toHaveText(`${target} د.ل`);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(t => { document.documentElement.dataset.theme = t; }, theme);
+      for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 950 });
+        if (target !== 0) {
+          await expect(activeCard).toHaveCSS('background-color', target > 0 ? 'rgb(8, 122, 80)' : 'rgb(180, 49, 49)');
+          await expect(activeCard).toHaveCSS('color', 'rgb(255, 255, 255)');
+        } else {
+          await expect(activeCard).not.toHaveClass(/cash-positive|cash-negative/);
+        }
+        await activeCard.screenshot({ path: `artifacts/treasury/cash-${target}-${theme}-${width}.png` });
+      }
+    }
+  }
   assert.deepEqual(errors, []);
   console.log(
     'PASS: 207 real temporary ledger entries, chronological order, initial latest, sticky header, equal cards at 901/1024/1440, both themes, realtime anchor, older history, own submission, phone layout, employee permissions',
