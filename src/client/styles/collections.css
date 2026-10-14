@@ -1236,3 +1236,21 @@
 .outstanding-cash-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 8px 0; }
 .outstanding-cash-row > span { flex: 1 1 180px; }
 .outstanding-cash-row > strong { white-space: nowrap; }
+
+.collections-page button.batch-close-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: #fff;
+  border-radius: 999px;
+}
+:root[data-theme] .collections-page button.batch-close-button.batch-empty {
+  background: #087443;
+  border: 1px solid #35bc7e;
+  opacity: 1;
+}
+:root[data-theme] .collections-page button.batch-close-button.batch-occupied {
+  background: #bb252d;
+  border: 1px solid #ff7178;
+}

@@ -33,7 +33,9 @@ export function collectionCardTone(card: CollectionCardState) {
 
 function rank(card: CollectionCardState) {
   const tone = collectionCardTone(card);
-  if (tone === 'collection-rejected') return 4;
+  if (tone === 'collection-rejected') return 5;
+  if (tone === 'collection-red') return 4;
+  if (card.balanceUnits === 0) return 3;
   if (hasAdministrativeMovement(card)) return 0;
   if (tone === 'collection-base') return 0;
   if (tone === 'collection-yellow') return 1;

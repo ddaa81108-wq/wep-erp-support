@@ -130,6 +130,8 @@ try {
     assert.ok(order[0].includes('collection-base'));
     assert.ok(order[1].includes('collection-yellow'));
     assert.ok(order[2].includes('collection-green'));
+    assert.ok(order[3].includes('zero-collection-card'));
+    assert.ok(order[4].includes('collection-red'));
     mkdirSync(resolve('artifacts','collection-states'),{recursive:true});
     for(const theme of ['light','dark']) {
       await page.setViewportSize({width:1440,height:950});
@@ -141,6 +143,9 @@ try {
         if (width===390) await expect.poll(()=>page.locator('.sidebar').evaluate(el=>el.getBoundingClientRect().left>=innerWidth)).toBe(true);
         await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2)).toBe(true);
         if (page === adminPage) {
+          await expect(page.locator('.batch-close-button:visible').first()).toHaveClass(/batch-occupied/);
+          await expect(page.locator('.batch-close-button:visible').first()).toHaveCSS('background-color','rgb(187, 37, 45)');
+          await expect(page.locator('.batch-close-button:visible').first().locator('svg')).toBeVisible();
           const desktopActions = page.locator('.collection-desktop-batch-actions');
           if (width === 390) {
             await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeHidden();
@@ -162,7 +167,27 @@ try {
   await mutate('/api/customers/'+ids[2]+'/transactions',{requestId:'colour-admin-promote',expectedVersion:version,type:'debt',inputValue:40,calculationMode:'direct'});
   await expect(adminPage.locator('.admin-collection-grid > .admin-customer-collection-card').first()).toContainText(names[2],{timeout:7000});
   await expect(employeePage.locator('.collection-grid > .collection-card').first()).toContainText(names[2],{timeout:7000});
-  console.log('PASS collections: all colours, immediate rejection removal, employee/admin ordering, mobile/desktop and light/dark, realtime administrative promotion.');
+  const promoted = await read(writer.request,'/api/customers/'+ids[2]);
+  await mutate('/api/customers/'+ids[2]+'/transactions',{requestId:'colour-admin-zero-again',expectedVersion:promoted.customer?.version ?? promoted.version,type:'payment',inputValue:40,calculationMode:'direct'});
+  for (const cards of [adminCards, employeeCards]) {
+    await expect(cards.filter({hasText:names[2]})).toHaveClass(/zero-collection-card/,{timeout:7000});
+    await expect.poll(async () => {
+      const classes = await cards.evaluateAll(elements=>elements.map(e=>e.className));
+      return classes.findIndex(c=>c.includes('zero-collection-card')) > classes.findIndex(c=>c.includes('collection-yellow'))
+        && classes.findIndex(c=>c.includes('collection-red')) > classes.findIndex(c=>c.includes('zero-collection-card'));
+    }).toBe(true);
+  }
+  const emptyDashboard = {...await read(writer.request,'/api/collections'), assignments:[], submissions:[], unlinkedReceipts:[], openBatches:[]};
+  await adminPage.route('**/api/collections', route=>route.fulfill({json:{ok:true,data:emptyDashboard}}));
+  await adminPage.reload();
+  await adminPage.getByRole('button',{name:'قسم استلامات الديون',exact:true}).click();
+  for (const width of [390,1440]) {
+    await adminPage.setViewportSize({width,height:950});
+    const emptyButton=adminPage.locator('.batch-close-button:visible').first();
+    await expect(emptyButton).toHaveCSS('background-color','rgb(8, 116, 67)');
+    await expect(emptyButton).toBeDisabled();
+  }
+  console.log('PASS collections: ordering after repeat zero, admin/employee, both themes/sizes, occupied red and empty green buttons.');
 } finally {
   await browser?.close();
   await new Promise<void>(done=>server.close(()=>done()));

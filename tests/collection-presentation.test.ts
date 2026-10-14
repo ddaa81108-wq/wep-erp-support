@@ -37,7 +37,10 @@ test('new assignments and administrative financial changes lead; employee paymen
   assert.deepEqual(sorted([zero, partial, rejected, credit, fresh]), ['new', 'partial', 'credit', 'zero', 'rejected']);
   assert.deepEqual(sorted([zero, {...partial, latestSubmissionAt: '2026-01-04', latestCashReceivedAt:'2026-01-05'}, rejected, credit, fresh]), ['new', 'partial', 'credit', 'zero', 'rejected']);
   assert.deepEqual(sorted([zero, {...partial, externalFinancialUpdatedAt:'2026-01-06'}, rejected, credit, fresh]), ['partial', 'new', 'credit', 'zero', 'rejected']);
-  assert.equal(sorted([{...zero, externalFinancialUpdatedAt:'2026-01-07'},fresh])[0], 'zero');
+  assert.equal(sorted([{...zero, externalFinancialUpdatedAt:'2026-01-07'},fresh])[0], 'new');
+  const red = {...zero, id:'red', latestCashReceivedAt:'2026-01-08'};
+  assert.deepEqual(sorted([red, {...zero, externalFinancialUpdatedAt:'2026-01-07'}, fresh]), ['new','zero','red']);
+  assert.equal(sorted([{...zero, balanceUnits:50, externalFinancialUpdatedAt:'2026-01-07'},fresh])[0], 'zero');
 });
 
 test('collection API ordering tracks financial origin and preserves approval and employee scope', () => {

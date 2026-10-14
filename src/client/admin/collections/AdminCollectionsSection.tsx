@@ -145,6 +145,8 @@ export function AdminCollectionsSection() {
       </div>
     );
   const selectedBatch = data.openBatches.find(batch => batch.id === selectedBatchId) ?? data.openBatches[0];
+  const batchHasCards = (id: string) => data.assignments.some(item => item.batchId === id)
+    || data.unlinkedReceipts.some(item => item.batchId === id && item.status !== 'rejected');
   const history = (id: string) =>
     [...data.submissions].filter((item) => item.assignmentId === id && item.status !== 'rejected').reverse();
   if (payrollOpen) {
@@ -152,10 +154,10 @@ export function AdminCollectionsSection() {
   }
   return (
     <div className="collections-page admin-collections-page">
-      <CollectionsOverview data={data} description="متابعة الموظفين، الاعتماد، واستلام النقدية" onPayroll={() => setPayrollOpen(true)} desktopBatchActions={selectedBatch && <div className="collection-desktop-batch-actions">
+      <CollectionsOverview data={data} description="متابعة الموظفين، الاعتماد، واستلام النقدية" onPayroll={() => setPayrollOpen(true)} desktopBatchActions={<div className="collection-desktop-batch-actions">
         {data.openBatches.length > 1 && <select aria-label="دفعة العمل" value={selectedBatch.id} onChange={event => setSelectedBatchId(event.target.value)}>{data.openBatches.map(batch => <option key={batch.id} value={batch.id}>{batch.businessDate} • دفعة {batch.batchNumber}</option>)}</select>}
-        <button className="compact-action" disabled={busy !== ''} title={selectedBatch.businessDate + ' • دفعة ' + selectedBatch.batchNumber} onClick={() => setClosingBatchId(selectedBatch.id)}>إغلاق ومسح الدفعة</button>
-        <button className="compact-action" disabled={busy !== ''} onClick={() => void exportPdf(selectedBatch.id, selectedBatch.businessDate)}>كشف PDF</button>
+        <button className={`compact-action batch-close-button ${selectedBatch && batchHasCards(selectedBatch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && setClosingBatchId(selectedBatch.id)}><X size={16} aria-hidden="true" />إغلاق ومسح الدفعة</button>
+        <button className="compact-action" disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && void exportPdf(selectedBatch.id, selectedBatch.businessDate)}>كشف PDF</button>
       </div>} />
       <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} onReceive={(id) => void cash(id)} />
       {error && <div className="alert error">{error}</div>}
@@ -243,9 +245,10 @@ export function AdminCollectionsSection() {
           )}
         </div>
       </section>
-      {data.openBatches.length > 0 && (
+      {(
         <section className="collection-panel day-actions">
           <h2>إغلاق دفعة العمل</h2>
+          {data.openBatches.length === 0 && <button className="batch-close-button batch-empty" disabled><X size={16} aria-hidden="true" />إغلاق ومسح الدفعة</button>}
           {data.openBatches.map((batch) => (
             <article key={batch.id}>
               <strong>
@@ -254,7 +257,7 @@ export function AdminCollectionsSection() {
               <button disabled={busy !== ''} onClick={() => void exportPdf(batch.id, batch.businessDate)}>
                 كشف PDF اختياري
               </button>
-              <button className="danger" disabled={busy !== ''} onClick={() => setClosingBatchId(batch.id)}>
+              <button className={`batch-close-button ${batchHasCards(batch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== ''} onClick={() => setClosingBatchId(batch.id)}><X size={16} aria-hidden="true" />
                 إغلاق ومسح الدفعة
               </button>
             </article>
