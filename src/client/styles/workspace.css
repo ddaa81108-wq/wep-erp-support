@@ -727,6 +727,9 @@ button.settings-tool-card:hover {
   color: #a9c2ba;
   font-size: 9px;
 }
+@media (prefers-reduced-motion: reduce) {
+  .debt-ticker { overflow-x: auto; }
+}
 .debt-ticker-track {
   width: max-content;
   min-width: 100%;
@@ -734,12 +737,9 @@ button.settings-tool-card:hover {
   align-items: center;
   gap: 8px;
   padding-inline: 8px;
-  animation: debt-ticker-scroll 28s linear infinite;
+  flex-shrink: 0;
 }
-.debt-ticker:hover .debt-ticker-track,
-.debt-ticker:focus-within .debt-ticker-track {
-  animation-play-state: paused;
-}
+
 .debt-ticker-track button {
   flex: none;
   height: 22px;
@@ -768,14 +768,6 @@ button.settings-tool-card:hover {
 }
 .debt-ticker-track button:hover {
   filter: brightness(1.12);
-}
-@keyframes debt-ticker-scroll {
-  from {
-    transform: translateX(10%);
-  }
-  to {
-    transform: translateX(-55%);
-  }
 }
 .summary-grid {
   display: grid;

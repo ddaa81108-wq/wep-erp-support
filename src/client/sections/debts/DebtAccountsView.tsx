@@ -2,6 +2,7 @@ import { Check, Menu, Pin, PinOff, ShieldCheck, Users, X } from 'lucide-react';
 import type { Customer, CustomerFilter } from '../../api.ts';
 import { debtSectionText, type DebtSection } from './sectionConfig.ts';
 import { DebtAccountsToolbar } from './DebtAccountsToolbar.tsx';
+import { DebtTicker } from './DebtTicker.tsx';
 import { ZeroReviewButton } from './ZeroReviewButton.tsx';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
 
@@ -84,14 +85,9 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
     routing, selectedCustomers, assignees, assigneeId,
   } = props;
   const labels = debtSectionText[section];
-  const tickerCustomers = customers.filter((item) => item.balanceUnits > 0 && (item.debtAgeDays ?? 0) >= 3);
 
   return <>
-    {!isDepositSection(section) && <section className={`debt-ticker ${tickerCustomers.length === 0 ? 'empty-ticker' : ''}`} aria-label="تنبيهات الديون القديمة">
-      {tickerCustomers.length === 0
-        ? <span>لا توجد ديون تجاوزت 3 أيام</span>
-        : <div className="debt-ticker-track">{[...tickerCustomers, ...tickerCustomers].map((customer, index) => <button key={`${customer.id}-${index}`} aria-hidden={index >= tickerCustomers.length || undefined} tabIndex={index >= tickerCustomers.length ? -1 : 0} className={(customer.debtAgeDays ?? 0) >= 7 ? 'urgent' : 'warning'} onClick={() => props.onOpenLedger(customer.id)}><strong>{customer.name}</strong><span>{money.format(customer.balanceUnits)} د.ل</span><em>منذ {money.format(customer.debtAgeDays ?? 0)} أيام</em></button>)}</div>}
-    </section>}
+    {!isDepositSection(section) && <DebtTicker customers={customers} onOpenLedger={props.onOpenLedger} />}
     <header className="topbar"><button className="icon-button menu-button" onClick={props.onOpenMenu}><Menu /></button><div><h1>{labels.title}</h1><p>بطاقات {labels.plural} وسجل موحد دائم لكل {labels.singular}</p></div></header>
     <DebtAccountsToolbar {...props} />
     <section className="content-card">

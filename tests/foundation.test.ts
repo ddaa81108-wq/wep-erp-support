@@ -2291,6 +2291,39 @@ test('collector overpayment stays pending until admin approval then becomes cust
     }),
   );
   const assignmentId = assignment.data.assignmentIds[0];
+  // A collector must not use another collector's assignment even with a valid session and CSRF token.
+  const otherEmployee = await fetch(`${base}/api/users`, {
+    method: 'POST', headers,
+    body: JSON.stringify({
+      username: 'other-collector', displayName: 'Other collector', password: 'Other Collector 123!',
+      permissions: ['collections.read', 'collections.write'],
+      customerDebtsAccess: 'none', companyDebtsAccess: 'none',
+      libyanDepositsAccess: 'none', egyptianDepositsAccess: 'none',
+    }),
+  });
+  assert.equal(otherEmployee.status, 201);
+  database.prepare("UPDATE users SET must_change_password=0 WHERE username='other-collector'").run();
+  const otherLogin = await fetch(`${base}/api/auth/login`, {
+    method: 'POST', headers: { 'content-type': 'application/json', 'x-client-api-version': '1' },
+    body: JSON.stringify({ username: 'other-collector', password: 'Other Collector 123!' }),
+  });
+  assert.equal(otherLogin.status, 200);
+  const otherLoginBody = await json(otherLogin);
+  const otherHeaders = {
+    ...headers, cookie: otherLogin.headers.get('set-cookie')!.split(';')[0],
+    'x-csrf-token': String(otherLoginBody.data.csrfToken),
+  };
+  const hiddenAssignments = await json(await fetch(`${base}/api/collections`, { headers: otherHeaders }));
+  assert.equal(hiddenAssignments.data.assignments.length, 0);
+  for (const suffix of ['', '/ledger']) {
+    assert.equal((await fetch(`${base}/api/customers/${customerId}${suffix}`, { headers: otherHeaders })).status, 403);
+  }
+  const forbiddenReceipt = await fetch(`${base}/api/collections/assignments/${assignmentId}/submissions`, {
+    method: 'POST', headers: otherHeaders,
+    body: JSON.stringify({ mode: 'partial', amountUnits: 100 }),
+  });
+  assert.equal(forbiddenReceipt.status, 403);
+  assert.equal(Number(database.prepare('SELECT COUNT(*) AS count FROM collection_submissions WHERE assignment_id=?').get(assignmentId)!.count), 0);
   let customerSnapshotBody = await json(await fetch(`${base}/api/customers/${customerId}`, { headers }));
   assert.equal(customerSnapshotBody.data.activeAssigneeName, 'الصغير');
   database.prepare('UPDATE users SET must_change_password=0 WHERE id=?').run(employeeId);
