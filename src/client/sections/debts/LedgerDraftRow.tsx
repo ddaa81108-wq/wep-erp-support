@@ -119,8 +119,12 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
           required
         />
       </label>
-      <label className="ledger-draft-field">
+      <div className="ledger-draft-field">
         <span>النوع</span>
+        {section === 'customers' ? <div className="ledger-choice-group" role="group" aria-label="نوع المعاملة">
+          {([['debt', 'ديون'], ['partial', 'دفع جزئي'], ['full', 'دفع كلي']] as const).map(([choice, label]) =>
+            <button type="button" key={choice} className={`ledger-choice choice-${choice}`} aria-pressed={kind === choice} onClick={() => setKind(choice)}>{label}</button>)}
+        </div> :
         <select
           aria-label="نوع المعاملة"
           value={kind}
@@ -129,8 +133,8 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
           <option value="debt">{isDepositSection(section) ? 'دخول' : 'دين'}</option>
           <option value="partial">{isDepositSection(section) ? 'خروج' : 'سداد جزئي'}</option>
           {!isDepositSection(section) && <option value="full">سداد كامل</option>}
-        </select>
-      </label>
+        </select>}
+      </div>
       <label className="ledger-draft-field">
         <span>البيان</span>
         <input
@@ -154,8 +158,12 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
           required
         />
       </label>
-      <label className="ledger-draft-field">
+      <div className="ledger-draft-field">
         <span>الحساب</span>
+        {section === 'customers' ? <div className="ledger-choice-group" role="group" aria-label="طريقة الحساب">
+          {([['direct', 'مباشر'], ['divide', 'قسمة'], ['multiply', 'ضرب']] as const).map(([choice, label]) =>
+            <button type="button" key={choice} className={`ledger-choice choice-${choice}`} aria-pressed={(kind === 'full' ? 'direct' : mode) === choice} disabled={kind === 'full'} onClick={() => setMode(choice)}>{label}</button>)}
+        </div> :
         <select
           aria-label="طريقة الحساب"
           value={kind === 'full' ? 'direct' : mode}
@@ -165,12 +173,12 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
           <option value="direct">مباشرة</option>
           <option value="multiply">ضرب</option>
           <option value="divide">قسمة</option>
-        </select>
-      </label>
+        </select>}
+      </div>
       <label className="ledger-draft-field">
-        <span>المعامل</span>
+        <span>{section === 'customers' ? 'السعر' : 'المعامل'}</span>
         <input
-          aria-label="المعامل"
+          aria-label={section === 'customers' ? 'السعر' : 'المعامل'}
           type="number"
           min="0.000001"
           step="any"

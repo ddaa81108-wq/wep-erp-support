@@ -51,3 +51,77 @@
   .ledger-panel.section-customers .ledger-grid > .draft-error,
   .ledger-panel.section-customers .ledger-grid > .draft-restored { border-left: 0; }
 }
+
+/* Customer ledger controls share the existing financial handlers on both screen sizes. */
+.ledger-panel.section-customers .ledger-grid {
+  min-width: 1400px;
+  grid-template-columns: 44px 360px 206px minmax(100px, 1fr) 86px 166px 78px 86px 86px 90px 48px 48px;
+}
+.ledger-panel.section-customers .ledger-choice-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+}
+.ledger-panel.section-customers button.ledger-choice {
+  min-width: 0;
+  min-height: 34px;
+  padding: 3px 7px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.ledger-panel.section-customers .choice-debt { background: #a61e2a; }
+.ledger-panel.section-customers .choice-partial { background: #087443; }
+.ledger-panel.section-customers .choice-full { background: #17191f; }
+.ledger-panel.section-customers .choice-direct { background: #235b8a; }
+.ledger-panel.section-customers .choice-divide { background: #69419b; }
+.ledger-panel.section-customers .choice-multiply { background: #88520d; }
+.ledger-panel.section-customers button.ledger-choice[aria-pressed='true'] {
+  border-color: #fff;
+  box-shadow: 0 0 0 1px #172b45;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ledger-panel.section-customers button.ledger-choice:focus-visible { outline: 3px solid #f3be3c; outline-offset: 2px; }
+.ledger-panel.section-customers button.ledger-choice:disabled { opacity: .55; cursor: not-allowed; }
+.ledger-panel.section-customers .ledger-grid > .row-action {
+  width: 36px;
+  height: 32px;
+  min-height: 32px;
+  align-self: center;
+  justify-self: center;
+  border-radius: 999px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid currentColor;
+}
+.ledger-panel.section-customers .ledger-grid.ledger-footer-grid {
+  min-height: 76px;
+  padding: 10px 8px;
+  border-bottom: 0;
+}
+.ledger-panel.section-customers .ledger-footer-grid > .ledger-total {
+  grid-column: 9 / 13;
+  min-width: 0;
+  width: 100%;
+  min-height: 56px;
+  padding: 7px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--ink);
+  box-shadow: none;
+}
+.ledger-panel.section-customers .ledger-total :is(span, small, em) { color: inherit; }
+.ledger-panel.section-customers .ledger-total strong { font-size: 19px; }
+@media (max-width: 900px) {
+  .ledger-panel.section-customers button.ledger-choice { min-height: 38px; }
+  .ledger-panel.section-customers .ledger-grid > .row-action { width: 40px; height: 38px; min-height: 38px; }
+}

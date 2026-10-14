@@ -272,7 +272,7 @@ try {
   await page.getByRole('button', { name: 'اعتماد المعاملة' }).click();
   await page.locator('.ledger-record').filter({ hasText: 'فاتورة اختبار محلي' }).waitFor();
 
-  await page.getByLabel('نوع المعاملة').selectOption('partial');
+  await page.getByRole('group', { name: 'نوع المعاملة', exact: true }).getByRole('button', { name: 'دفع جزئي', exact: true }).click();
   await page.getByLabel('قيمة المعاملة').fill('250');
   await page.getByRole('button', { name: 'اعتماد المعاملة' }).click();
   await page.locator('.ledger-record').nth(1).waitFor();
@@ -1090,7 +1090,7 @@ try {
   });
   await page.getByRole('heading', { name: 'قسم ديون العملاء' }).waitFor({ timeout: 7_000 });
   await page.locator('.customer-card-main').filter({ hasText: 'متجر النور' }).click();
-  await page.getByLabel('نوع المعاملة').selectOption('partial');
+  await page.getByRole('group', { name: 'نوع المعاملة', exact: true }).getByRole('button', { name: 'دفع جزئي', exact: true }).click();
   await page.getByLabel('قيمة المعاملة').fill('1');
   await page.getByLabel('ملاحظة المعاملة').fill('حركة إشعار موظف');
   await page.getByRole('button', { name: 'اعتماد المعاملة' }).click();
