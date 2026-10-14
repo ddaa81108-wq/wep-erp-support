@@ -620,17 +620,15 @@ try {
       clone.classList.add('purchase-sticky-test-row');
       register.append(clone);
     }
-    window.scrollTo(0, 750);
+    register.scrollTop = 750;
   });
   await page.waitForTimeout(100);
-  assert.ok(
-    Math.abs(
-      await page.locator('.purchase-grid-head').evaluate((element) => element.getBoundingClientRect().top),
-    ) <= 1,
-    'the purchase register head must remain at the viewport top while scrolling',
-  );
+  const purchaseHeadTop = await page.locator('.purchase-grid-head').evaluate(element => element.getBoundingClientRect().top);
+  const purchaseToolbarBottom = await page.locator('.dashboard-utility-bar').evaluate(element => element.getBoundingClientRect().bottom);
+  assert.ok(purchaseHeadTop >= purchaseToolbarBottom, 'the purchase header must not cover the section toolbar');
   await page.evaluate(() => {
     document.querySelectorAll('.purchase-sticky-test-row').forEach((element) => element.remove());
+    document.querySelector('.purchase-register')!.scrollTop = 0;
     window.scrollTo(0, 0);
   });
   await page.screenshot({ path: join(output, 'purchases-desktop.png'), fullPage: true });

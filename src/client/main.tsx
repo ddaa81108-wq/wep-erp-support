@@ -18,6 +18,7 @@ import './styles/notifications.css';
 import './styles/treasury-desktop.css';
 import './styles/customer-card-compact.css';
 import './styles/customer-ledger-desktop.css';
+import './styles/purchases-presentation.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {

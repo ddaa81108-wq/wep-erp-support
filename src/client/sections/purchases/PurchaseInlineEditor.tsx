@@ -44,6 +44,8 @@ export function PurchaseInlineEditor({
           <button
             type="button"
             key={code}
+            data-kind={code}
+            aria-pressed={draft.itemCode === code}
             className={draft.itemCode === code ? 'active' : ''}
             onClick={() => choose(code, code === 'vodafone_cash' ? 'فودافون كاش' : label)}
           >
@@ -71,6 +73,8 @@ export function PurchaseInlineEditor({
         <button
           type="button"
           className={draft.mode === 'multiply' ? 'active' : ''}
+          data-mode="multiply"
+          aria-pressed={draft.mode === 'multiply'}
           onClick={() => set('mode', 'multiply')}
         >
           ×
@@ -78,6 +82,8 @@ export function PurchaseInlineEditor({
         <button
           type="button"
           className={draft.mode === 'divide' ? 'active' : ''}
+          data-mode="divide"
+          aria-pressed={draft.mode === 'divide'}
           onClick={() => set('mode', 'divide')}
         >
           ÷

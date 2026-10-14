@@ -127,9 +127,6 @@
   color: var(--note-text);
   border-color: var(--note-line);
 }
-:root[data-theme='dark'] .purchase-day-entry.purchase-day-tone-0 { --purchase-day-bg: #23354c; }
-:root[data-theme='dark'] .purchase-day-entry.purchase-day-tone-1 { --purchase-day-bg: #233b38; }
-:root[data-theme='dark'] .purchase-day-entry.purchase-day-tone-2 { --purchase-day-bg: #302f48; }
 :root[data-theme='dark'] .purchase-day-entry .purchase-inline-editor {
   background: color-mix(in srgb, var(--purchase-day-bg) 85%, var(--paper));
 }

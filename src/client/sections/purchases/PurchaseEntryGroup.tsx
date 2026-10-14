@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Check, Pencil, Trash2 } from 'lucide-react';
 import type { PurchaseEntry, PurchaseMerchantKey } from '../../api.ts';
 import { PurchaseInlineEditor } from './PurchaseInlineEditor.tsx';
 import { purchaseNumber } from './purchaseEditorModel.ts';
@@ -38,7 +38,7 @@ export function PurchaseEntryGroup({
 }) {
   const historicalEditing = entry.dayStatus === 'finalized' && entry.correctionOpen;
   return (
-    <div className={`purchase-day-entry purchase-day-tone-${entry.dayNumber % 3}`}>
+    <div className={`purchase-day-entry purchase-day-tone-${entry.dayNumber % 5}`}>
       {showSeparator && (
         <div className="purchase-day-separator">
           <span>يوم #{entry.dayNumber}</span>
@@ -59,17 +59,20 @@ export function PurchaseEntryGroup({
         <div className="purchase-grid purchase-row"
           onDoubleClick={() => entry.dayStatus === 'draft' && canWrite && onEdit()}>
           <span data-label="التسلسل">{entry.sequence}</span>
-          <span data-label="النوع">{entry.itemLabel}
+          <span data-label="النوع"><b className="purchase-type-badge" data-kind={entry.itemCode}>{entry.itemLabel}</b>
             {!entry.actorIsOwner && <small className="operation-actor">بواسطة {entry.actorName}</small>}
           </span>
           <span data-label="القيمة ج.م" dir="ltr">{purchaseNumber.format(entry.egpValueUnits)}</span>
-          <span data-label="العملية">{entry.calculationMode === 'multiply' ? '×' : '÷'}</span>
+          <span data-label="العملية"><b className="purchase-operation-badge" data-mode={entry.calculationMode}>{entry.calculationMode === 'multiply' ? '×' : '÷'}</b></span>
           <span data-label="السعر" dir="ltr">{entry.exchangeRate}</span>
           <span data-label="الناتج" dir="ltr">{purchaseNumber.format(entry.resultUnits)}</span>
           <span data-label="المسدد" dir="ltr">{purchaseNumber.format(entry.paidUnits)}</span>
           <span data-label="الباقي" dir="ltr">{purchaseNumber.format(entry.remainingUnits)}</span>
           <span data-label="مستهلك فودافون" dir="ltr">{purchaseNumber.format(entry.vodafoneConsumedUnits)}</span>
           <span className="purchase-actions">
+            {entry.dayStatus === 'finalized' && !entry.correctionOpen && (
+              <span className="purchase-saved-mark" role="img" aria-label="تم حفظ المعاملة وترحيل اليوم" title="تم حفظ المعاملة وترحيل اليوم"><Check size={16} /></span>
+            )}
             {canWrite && entry.dayStatus === 'draft' && <>
               <button aria-label="تعديل" onClick={onEdit}><Pencil size={13} /></button>
               <button className="danger" aria-label="حذف" onClick={onRemove}><Trash2 size={13} /></button>

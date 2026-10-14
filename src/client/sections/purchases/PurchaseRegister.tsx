@@ -63,7 +63,7 @@ export function PurchaseRegister({ purchases, canWrite, canFinalize }: PurchaseR
         );
       })}
       {canWrite && (
-        <div className={`purchase-day-entry purchase-day-tone-${page.day.dayNumber % 3}`}>
+        <div className={`purchase-day-entry purchase-day-tone-${page.day.dayNumber % 5}`}>
           <PurchaseInlineEditor
             dayVersion={page.day.version}
             busy={busy}
