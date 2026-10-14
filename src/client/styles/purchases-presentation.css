@@ -23,7 +23,7 @@
   background: var(--paper); scrollbar-gutter: stable; overscroll-behavior: contain;
 }
 .purchases-page .purchase-register .purchase-grid {
-  min-width: 1160px; grid-template-columns: 48px minmax(240px, 2.2fr) minmax(90px, 1fr) 82px 65px minmax(90px, 1fr) minmax(90px, 1fr) minmax(90px, 1fr) 92px 98px;
+  min-width: 1160px; grid-template-columns: 48px 240px minmax(90px, 1fr) 82px 65px minmax(90px, 1fr) minmax(90px, 1fr) minmax(90px, 1fr) 92px 98px;
   gap: 4px;
 }
 .purchases-page .purchase-day-entry { min-width: 1160px; --purchase-day-ink: #fff; }
@@ -46,7 +46,10 @@
   border-radius: 999px; min-height: 28px; padding: 2px 5px; text-align: center; justify-items: center;
   box-shadow: inset 0 2px 0 #ffffff40; white-space: normal;
 }
-.purchases-page .purchase-row > span:nth-child(2) { display: flex; justify-content: center; align-items: center; gap: 5px; flex-wrap: wrap; }
+.purchases-page .purchase-register .purchase-row > span:nth-child(2) {
+  display: grid; grid-template-columns: 108px 108px; justify-content: center;
+  align-items: center; gap: 5px;
+}
 .purchases-page .purchase-type-badge,
 .purchases-page .purchase-row .operation-actor,
 .purchases-page .purchase-operation-badge {
@@ -54,6 +57,11 @@
   padding: 2px 9px; border: 1px solid #ffffff99; color: white; background: #17445b;
 }
 .purchases-page .purchase-row .operation-actor { margin: 0; color: white; background: #193749; }
+.purchases-page .purchase-row :is(.purchase-type-badge, .operation-actor) {
+  display: block; box-sizing: border-box; width: 108px; height: 22px;
+  padding: 0 5px; line-height: 20px; font-size: 9px; font-weight: 800;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
+}
 .purchases-page :is(.purchase-type-badge, .inline-types button)[data-kind='vodafone_cash'] { background: #ce183b; color: white; }
 .purchases-page :is(.purchase-type-badge, .inline-types button)[data-kind='cairo'] { background: #075cca; color: white; }
 .purchases-page :is(.purchase-type-badge, .inline-types button)[data-kind='mansoura'] { background: #00845d; color: white; }
@@ -132,3 +140,12 @@
 .workspace.active-section-purchases .sync-status { min-height: 38px; padding-inline: 16px; font-size: 12px; }
 .workspace.active-section-purchases .notification-center > .utility-icon-button { width: 42px; height: 38px; }
 .purchases-page .purchase-register .purchase-row > span[dir='ltr'] { font-family: Arial, sans-serif; font-variant-numeric: tabular-nums; font-size: 14px; font-weight: 800; }
+/* Keep the sticky heading sealed against scrolling rows and center draft symbols. */
+.workspace.active-section-purchases > .dashboard-utility-bar { margin-bottom: 0; }
+.workspace.active-section-purchases .purchases-page { padding-top: 0; }
+.purchases-page .purchase-register { padding-top: 0; }
+.purchases-page .purchase-register .purchase-grid-head { border-radius: 0; }
+.purchases-page .purchase-inline-editor :is(.operation-buttons, .purchase-actions) button {
+  display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;
+}
+.purchases-page .purchase-inline-editor .purchase-actions button svg { display: block; flex-shrink: 0; }

@@ -59,8 +59,8 @@ export function PurchaseEntryGroup({
         <div className="purchase-grid purchase-row"
           onDoubleClick={() => entry.dayStatus === 'draft' && canWrite && onEdit()}>
           <span data-label="التسلسل">{entry.sequence}</span>
-          <span data-label="النوع"><b className="purchase-type-badge" data-kind={entry.itemCode}>{entry.itemLabel}</b>
-            {!entry.actorIsOwner && <small className="operation-actor">بواسطة {entry.actorName}</small>}
+          <span data-label="النوع"><b className="purchase-type-badge" data-kind={entry.itemCode} title={entry.itemLabel}>{entry.itemLabel}</b>
+            {!entry.actorIsOwner && <small className="operation-actor" title={`بواسطة ${entry.actorName}`}>بواسطة {entry.actorName}</small>}
           </span>
           <span data-label="القيمة ج.م" dir="ltr">{purchaseNumber.format(entry.egpValueUnits)}</span>
           <span data-label="العملية"><b className="purchase-operation-badge" data-mode={entry.calculationMode}>{entry.calculationMode === 'multiply' ? '×' : '÷'}</b></span>

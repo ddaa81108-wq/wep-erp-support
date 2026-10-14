@@ -75,12 +75,20 @@ try {
     if(day<4) await mutate('/api/purchases/al_bayan/finalize',{requestId:crypto.randomUUID(),expectedDayVersion:p.day.version});
   }
   await mutate('/api/users',{username:'reader',displayName:'موظف قراءة',password:'Reader Test 123!',role:'employee',permissions:['purchases.read']});
+  // Isolated visual fixture: include employee attribution alongside varied type labels.
+  database.prepare("UPDATE purchase_entries SET actor_user_id=(SELECT id FROM users WHERE username='reader') WHERE sequence % 2 = 0").run();
   const page=await writer.newPage();
+  await page.setViewportSize({width:1440,height:1000});
   await page.goto(base+'/erp');
   await page.getByRole('button',{name:'قسم المشتريات',exact:true}).click();
   const register=page.locator('.purchase-register');
   await expect(page.locator('.purchase-row')).toHaveCount(15);
+  await expect.poll(() => register.evaluate(e => e.scrollHeight - e.clientHeight - e.scrollTop)).toBeLessThan(2);
+  await expect(page.getByRole('button',{name:'اعتماد الصف',exact:true})).toBeInViewport();
+  await expect(page.locator('.purchase-register-grand-total')).toBeInViewport();
+  await expect(page.locator('.purchase-vodafone-total')).toBeInViewport();
   mkdirSync('artifacts/purchase-six',{recursive:true});
+  await page.screenshot({path:'artifacts/purchase-six/initial-bottom.png',fullPage:true});
   for(const theme of ['light','dark']) {
     await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
     for(const width of [1440,1920,390]) {

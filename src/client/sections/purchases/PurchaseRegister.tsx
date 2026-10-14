@@ -36,7 +36,9 @@ export function PurchaseRegister({ purchases, canWrite, canFinalize }: PurchaseR
     if (!hasPage) return;
     const node = registerRef.current;
     if (!node) return;
-    const frame = window.requestAnimationFrame(() => node.scrollIntoView({ block: 'end', inline: 'nearest' }));
+    const frame = window.requestAnimationFrame(() => {
+      node.scrollTop = node.scrollHeight;
+    });
     return () => window.cancelAnimationFrame(frame);
   }, [hasPage, merchant, page?.day.dayNumber]);
 
