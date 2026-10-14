@@ -91,6 +91,11 @@
 }
 .ledger-panel.section-customers button.ledger-choice:focus-visible { outline: 3px solid #f3be3c; outline-offset: 2px; }
 .ledger-panel.section-customers button.ledger-choice:disabled { opacity: .55; cursor: not-allowed; }
+.ledger-panel.section-customers button.ledger-choice:is(.choice-divide, .choice-multiply) {
+  min-width: 38px;
+  font-size: 22px;
+  line-height: 1;
+}
 .ledger-panel.section-customers .ledger-grid > .row-action {
   width: 36px;
   height: 32px;
@@ -101,6 +106,20 @@
   margin: 0;
   padding: 0;
   border: 1px solid currentColor;
+}
+.ledger-panel.section-customers .ledger-grid > .row-action:is(.edit, .approve) {
+  background: #087443;
+  color: #fff;
+  border: 2px solid #55e6a3;
+}
+.ledger-panel.section-customers .ledger-grid > .row-action.cancel {
+  background: #ae192b;
+  color: #fff;
+  border: 2px solid #ff8c98;
+}
+.ledger-panel.section-customers .ledger-grid > .row-action:focus-visible {
+  outline: 3px solid #e4a900;
+  outline-offset: 2px;
 }
 .ledger-panel.section-customers .ledger-grid.ledger-footer-grid {
   min-height: 76px;

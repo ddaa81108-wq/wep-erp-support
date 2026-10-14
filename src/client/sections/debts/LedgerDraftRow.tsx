@@ -162,7 +162,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
         <span>الحساب</span>
         {section === 'customers' ? <div className="ledger-choice-group" role="group" aria-label="طريقة الحساب">
           {([['direct', 'مباشر'], ['divide', 'قسمة'], ['multiply', 'ضرب']] as const).map(([choice, label]) =>
-            <button type="button" key={choice} className={`ledger-choice choice-${choice}`} aria-pressed={(kind === 'full' ? 'direct' : mode) === choice} disabled={kind === 'full'} onClick={() => setMode(choice)}>{label}</button>)}
+            <button type="button" key={choice} className={`ledger-choice choice-${choice}`} aria-label={label} title={label} aria-pressed={(kind === 'full' ? 'direct' : mode) === choice} disabled={kind === 'full'} onClick={() => setMode(choice)}>{choice === 'divide' ? '÷' : choice === 'multiply' ? '×' : label}</button>)}
         </div> :
         <select
           aria-label="طريقة الحساب"
