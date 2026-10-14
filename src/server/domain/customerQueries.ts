@@ -285,7 +285,23 @@ export function customerLedger(
     throw badRequest('INVALID_LEDGER_CURSOR', 'مؤشر صفحة السجل غير صالح.');
   }
   const rows = database.prepare(`
-    SELECT t.*,COALESCE(u.is_owner,0) AS actor_is_owner FROM debt_transactions t
+    SELECT t.*,COALESCE(u.is_owner,0) AS actor_is_owner,
+      CASE
+        WHEN t.note = 'استلام بواسطة ' || t.actor_name
+          AND EXISTS(SELECT 1 FROM collection_submissions c
+            JOIN customers linked ON linked.id=c.customer_id
+            JOIN users collector ON collector.id=c.collector_user_id
+            WHERE c.approved_transaction_id=t.id AND c.customer_id=t.customer_id
+              AND linked.organization_id=account.organization_id AND collector.organization_id=account.organization_id)
+          THEN 'استلام'
+        WHEN t.note = 'استلام غير مربوط سُجل بواسطة ' || t.actor_name || ' وربطته الإدارة'
+          AND EXISTS(SELECT 1 FROM collection_unlinked_receipts c
+            WHERE c.approved_transaction_id=t.id AND c.organization_id=account.organization_id)
+          THEN 'استلام غير مربوط وربطته الإدارة'
+        ELSE t.note
+      END AS display_note
+    FROM debt_transactions t
+    JOIN customers account ON account.id=t.customer_id
     LEFT JOIN users u ON u.id=t.actor_user_id
     WHERE t.customer_id = ? AND t.deleted_at IS NULL AND t.transaction_status <> 'corrected'
       AND (? IS NULL OR customer_sequence < ?)
@@ -338,6 +354,7 @@ export function customerLedger(
       transactionDate: String(row.transaction_date),
       referenceNo: String(row.reference_no),
       note: String(row.note),
+      displayNote: String(row.display_note),
       actorName: String(row.actor_name),
       actorIsOwner: Number(row.actor_is_owner) === 1,
       sequence: Number(row.customer_sequence),

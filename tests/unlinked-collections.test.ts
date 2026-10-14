@@ -1,3 +1,4 @@
+import { customerLedger } from '../src/server/domain/customerQueries.ts';
 import assert from 'node:assert/strict';
 import { afterEach, test } from 'node:test';
 import { openDatabase, type AppDatabase } from '../src/server/db/database.ts';
@@ -111,3 +112,26 @@ test('administration can create a new customer or company directly from a pendin
   assert.equal(after.metrics.unlinkedPendingCount, 0);
   assert.equal((after.unlinkedReceipts[0] as {status:string}).status, 'approved');
 });
+
+for (const kind of ['customer', 'company'] as const) {
+  test(`collection attribution display preserves stored notes and balances: ${kind}`, () => {
+    const { db, admin, employee } = setup();
+    const created = createCustomer(db, admin, {requestId:'display-create',name:'عرض الاستلام',openingBalance:1000}, 'display', kind);
+    const customerId = String((created.body.customer as {id:string}).id);
+    const receipt = createUnlinkedCollectionReceipt(db, employee, {requestId:'display-receipt',customerName:'عرض الاستلام',amountUnits:300}, 'display');
+    decideUnlinkedCollectionReceipt(db, admin, receipt.id, {decision:'approve',customerId,entryType:'payment'}, 'display');
+    const ledger = () => customerLedger(db, customerId, new URL('http://localhost/ledger'), admin.organizationId, kind);
+    const item = ledger().items.find(item => item.type === 'payment')!;
+    assert.ok('displayNote' in item);
+    assert.equal(item.actorName, 'الصغير');
+    assert.equal(item.actorIsOwner, false);
+    assert.equal(item.displayNote, 'استلام غير مربوط وربطته الإدارة');
+    assert.equal(item.note, 'استلام غير مربوط سُجل بواسطة الصغير وربطته الإدارة');
+    assert.equal(db.prepare('SELECT note FROM debt_transactions WHERE id=?').get(item.id)!.note, item.note);
+    assert.equal(ledger().customer.balanceUnits, 700);
+    db.prepare('UPDATE debt_transactions SET note=? WHERE id=?').run(item.note+' — ملاحظة يدوية', item.id);
+    const updated = ledger().items.find(row=>row.id===item.id)!;
+    assert.ok('displayNote' in updated);
+    assert.equal(updated.displayNote, item.note+' — ملاحظة يدوية');
+  });
+}

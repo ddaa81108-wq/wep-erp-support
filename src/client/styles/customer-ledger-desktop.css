@@ -66,7 +66,7 @@
 }
 .ledger-panel:is(.section-customers, .section-companies) button.ledger-choice {
   min-width: 0;
-  min-height: 34px;
+  min-height: 36px;
   padding: 3px 7px;
   border: 2px solid transparent;
   border-radius: 999px;
@@ -143,4 +143,32 @@
 @media (max-width: 900px) {
   .ledger-panel:is(.section-customers, .section-companies) button.ledger-choice { min-height: 38px; }
   .ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .row-action { width: 40px; height: 38px; min-height: 38px; }
+}
+
+/* Fixed presentation slots keep dates and attribution aligned without altering ledger data. */
+.ledger-panel:is(.section-customers, .section-companies) .ledger-record-pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box; width: 78px; min-width: 78px; height: 28px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid #ffffffb3; color: #fff; font-size: 11px; font-weight: 800;
+  line-height: 1.2; white-space: nowrap;
+}
+.ledger-panel:is(.section-customers, .section-companies) .ledger-record-pill:is(.choice-divide,.choice-multiply) { font-size: 22px; }
+.ledger-panel:is(.section-customers, .section-companies) .ledger-record > .ledger-cell:nth-child(2) {
+  display: grid; grid-template-columns: 205px minmax(0, 1fr); align-items: center; gap: 6px;
+}
+.ledger-panel:is(.section-customers, .section-companies) .ledger-date-parts {
+  display: grid; grid-template-columns: 44px 82px 67px; gap: 6px;
+  font-size: 9px; white-space: nowrap; text-align: center;
+}
+.ledger-panel:is(.section-customers, .section-companies) .ledger-record .operation-actor {
+  display: block; width: 100%; min-width: 0; box-sizing: border-box; margin: 0;
+  padding: 3px 5px; border: 1px solid currentColor; border-radius: 999px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px;
+  color: inherit; background: #00000026; text-align: center;
+}
+
+.ledger-panel:is(.section-customers, .section-companies) .ledger-choice-group > button.ledger-choice {
+  flex: 1 1 0; width: 0; min-width: 0; box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 36px; padding: 3px 4px;
 }

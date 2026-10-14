@@ -38,6 +38,7 @@ export type LedgerItem = {
   transactionDate: string;
   referenceNo: string;
   note: string;
+  displayNote?: string;
   actorName: string;
   actorIsOwner: boolean;
   sequence: number;

@@ -127,6 +127,17 @@ try {
   await expect(panel.getByLabel('السعر')).toBeDisabled();
   await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
   await expect.poll(async()=>(await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits).toBe(0);
+  await expect(panel.locator('.ledger-record-pill.choice-divide')).toHaveText('÷');
+  await expect(panel.locator('.ledger-record-pill.choice-partial')).toHaveCount(1);
+  await expect(panel.locator('.ledger-record-pill.choice-full')).toHaveCount(1);
+  for (const theme of ['light','dark']) {
+    await page.evaluate(t => document.documentElement.dataset.theme=t, theme);
+    for (const width of [1440,390]) {
+      await page.setViewportSize({width,height:950});
+      await panel.locator('.ledger-record').first().scrollIntoViewIfNeeded();
+      await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-records.png`,fullPage:true});
+    }
+  }
   console.log('PASS customer ledger pills: both themes/sizes, selection, divide, partial/full, editing retains mode and factor.');
 } finally {
   await browser?.close();

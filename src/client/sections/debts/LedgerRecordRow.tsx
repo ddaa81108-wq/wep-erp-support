@@ -16,6 +16,9 @@ type Props = {
 
 export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, onEdit, onCancel }: Props) {
   const editable = canWrite && item.status === 'posted';
+  const debtLedger = section === 'customers' || section === 'companies';
+  const dateParts = ledgerDateFormat.formatToParts(new Date(item.transactionDate));
+  const part = (type: Intl.DateTimeFormatPartTypes) => dateParts.find(value => value.type === type)?.value ?? '';
   const movement = isDepositSection(section)
     ? item.type === 'debt'
       ? 'دخول'
@@ -33,21 +36,29 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
         #{item.sequence}
       </b>
       <div className="ledger-cell" data-label="اليوم والتاريخ والوقت">
-        <strong>{ledgerDateFormat.format(new Date(item.transactionDate))}</strong>
+        {debtLedger ? <strong className="ledger-date-parts">
+          <span>{part('weekday')}</span>
+          <span dir="ltr">{part('day')}/{part('month')}/{part('year')}</span>
+          <span>{part('hour')}:{part('minute')} {part('dayPeriod')}</span>
+        </strong> : <strong>{ledgerDateFormat.format(new Date(item.transactionDate))}</strong>}
         {!item.actorIsOwner && <small className="operation-actor" title={`بواسطة ${item.actorName}`}>بواسطة {item.actorName}</small>}
       </div>
       <span className="ledger-cell" data-label="نوع الحركة">
-        {(section === 'customers' || section === 'companies') ? item.type === 'debt' ? 'ديون' : item.paymentMode === 'full' ? 'دفع كلي' : 'دفع جزئي' : movement}
+        {debtLedger ? <span className={`ledger-record-pill choice-${item.type === 'debt' ? 'debt' : item.paymentMode === 'full' ? 'full' : 'partial'}`}>
+          {item.type === 'debt' ? 'ديون' : item.paymentMode === 'full' ? 'دفع كلي' : 'دفع جزئي'}
+        </span> : movement}
         {status}
       </span>
       <span className="ledger-cell ledger-statement" data-label="البيان">
-        {item.note || '—'}
+        {(debtLedger ? item.displayNote ?? item.note : item.note) || '—'}
       </span>
       <span className="ledger-cell" data-label="القيمة">
         {ledgerMoney.format(item.inputValue)}
       </span>
       <span className="ledger-cell" data-label="العملية">
-        {item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? 'ضرب' : 'قسمة'}
+        {debtLedger ? <span className={`ledger-record-pill choice-${item.calculationMode}`} title={item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? 'ضرب' : 'قسمة'}>
+          {item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? '×' : '÷'}
+        </span> : item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? 'ضرب' : 'قسمة'}
       </span>
       <span className="ledger-cell" data-label={(section === 'customers' || section === 'companies') ? 'السعر' : 'المعامل'}>
         {item.factorMicros ? ledgerFactor.format(item.factorMicros / 1_000_000) : '—'}
