@@ -1,70 +1,70 @@
 @media (min-width: 901px) {
-  .ledger-panel:is(.section-customers, .section-companies) > header {
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header {
     min-height: 44px; padding: 4px 8px; gap: 20px; justify-content: space-between;
     border: 1px solid var(--line); border-radius: 12px; background: var(--paper);
   }
-  .ledger-panel:is(.section-customers, .section-companies) > header .ledger-customer-title,
-  .ledger-panel:is(.section-customers, .section-companies) > header .ledger-edit-details,
-  .ledger-panel:is(.section-customers, .section-companies) > header .icon-button {
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header .ledger-customer-title,
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header .ledger-edit-details,
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header .icon-button {
     position: static; transform: none; flex: 0 1 auto; width: auto; min-width: 0;
     height: 34px; min-height: 34px; box-sizing: border-box; margin: 0;
     padding: 0 14px; border: 1px solid var(--line); border-radius: 999px;
     display: flex; align-items: center; justify-content: center; background: var(--surface-muted);
     color: var(--ink); box-shadow: none;
   }
-  .ledger-panel:is(.section-customers, .section-companies) > header .ledger-customer-title { max-width: 55%; }
-  .ledger-panel:is(.section-customers, .section-companies) > header .ledger-customer-title > span { display: none; }
-  .ledger-panel:is(.section-customers, .section-companies) > header h2 { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ledger-panel:is(.section-customers, .section-companies) > header .ledger-edit-details { flex-shrink: 0; gap: 7px; font-size: 11px; }
-  .ledger-panel:is(.section-customers, .section-companies) > header .icon-button { flex-shrink: 0; width: 42px; padding: 0; }
-  .ledger-panel:is(.section-customers, .section-companies) > header .icon-button svg { width: 18px; height: 18px; }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid {
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header .ledger-customer-title { max-width: 55%; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header .ledger-customer-title > span { display: none; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header h2 { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header .ledger-edit-details { flex-shrink: 0; gap: 7px; font-size: 11px; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header .icon-button { flex-shrink: 0; width: 42px; padding: 0; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) > header .icon-button svg { width: 18px; height: 18px; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid {
     min-width: 1280px; grid-template-columns: 48px 360px repeat(10, minmax(0, 1fr));
     border-bottom: 1px solid #91a6b9;
   }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid > * {
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > * {
     border: 0; border-left: 1px solid #91a6b9; overflow-wrap: anywhere;
   }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid > :nth-child(12) { border-left: 0; }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid-head { background: var(--paper); color: var(--ink); }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid-head > span { padding: 4px 3px; }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid-head > span > b {
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > :nth-child(12) { border-left: 0; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid-head { background: var(--paper); color: var(--ink); }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid-head > span { padding: 4px 3px; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid-head > span > b {
     width: 100%; min-height: 28px; display: flex; align-items: center; justify-content: center;
     border: 1px solid var(--line); border-radius: 999px; background: var(--surface-muted);
     font-size: 9px; font-weight: 800;
   }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-record > .ledger-cell:nth-child(2) {
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-record > .ledger-cell:nth-child(2) {
     display: flex; flex-direction: row; flex-wrap: nowrap; gap: 8px; white-space: nowrap;
   }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-record > .ledger-cell:nth-child(2) > strong { flex-shrink: 0; font-size: 9px; }
-  .ledger-panel:is(.section-customers, .section-companies) .operation-actor {
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-record > .ledger-cell:nth-child(2) > strong { flex-shrink: 0; font-size: 9px; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .operation-actor {
     display: inline-block; flex: 0 1 auto; min-width: 0; max-width: 170px;
     padding: 3px 8px; margin: 0; border: 1px solid currentColor; border-radius: 999px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px;
     color: inherit; background: #00000026;
   }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .row-action {
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .row-action {
     align-self: stretch; justify-self: stretch; width: auto; height: auto; min-height: 36px;
     border-radius: 0; margin: 0; border: 0; border-left: 1px solid #91a6b9;
   }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .row-action:nth-child(12) { border-left: 0; }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .draft-error,
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .draft-restored { border-left: 0; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .row-action:nth-child(12) { border-left: 0; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .draft-error,
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .draft-restored { border-left: 0; }
 }
 
 /* Customer and company ledger controls share the existing financial handlers on both screen sizes. */
-.ledger-panel:is(.section-customers, .section-companies) .ledger-grid {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid {
   min-width: 1400px;
   grid-template-columns: 44px 360px minmax(206px, 1.2fr) 100px 86px minmax(166px, 1fr) 78px 86px 86px 90px 48px 48px;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-choice-group {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-choice-group {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
   width: 100%;
 }
-.ledger-panel:is(.section-customers, .section-companies) button.ledger-choice {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) button.ledger-choice {
   min-width: 0;
   min-height: 36px;
   padding: 3px 7px;
@@ -77,26 +77,26 @@
   white-space: nowrap;
   box-shadow: none;
 }
-.ledger-panel:is(.section-customers, .section-companies) .choice-debt { background: #a61e2a; }
-.ledger-panel:is(.section-customers, .section-companies) .choice-partial { background: #087443; }
-.ledger-panel:is(.section-customers, .section-companies) .choice-full { background: #17191f; }
-.ledger-panel:is(.section-customers, .section-companies) .choice-direct { background: #235b8a; }
-.ledger-panel:is(.section-customers, .section-companies) .choice-divide { background: #69419b; }
-.ledger-panel:is(.section-customers, .section-companies) .choice-multiply { background: #88520d; }
-.ledger-panel:is(.section-customers, .section-companies) button.ledger-choice[aria-pressed='true'] {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .choice-debt { background: #a61e2a; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .choice-partial { background: #087443; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .choice-full { background: #17191f; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .choice-direct { background: #235b8a; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .choice-divide { background: #69419b; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .choice-multiply { background: #88520d; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) button.ledger-choice[aria-pressed='true'] {
   border-color: #fff;
   box-shadow: 0 0 0 1px #172b45;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.ledger-panel:is(.section-customers, .section-companies) button.ledger-choice:focus-visible { outline: 3px solid #f3be3c; outline-offset: 2px; }
-.ledger-panel:is(.section-customers, .section-companies) button.ledger-choice:disabled { opacity: .55; cursor: not-allowed; }
-.ledger-panel:is(.section-customers, .section-companies) button.ledger-choice:is(.choice-divide, .choice-multiply) {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) button.ledger-choice:focus-visible { outline: 3px solid #f3be3c; outline-offset: 2px; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) button.ledger-choice:disabled { opacity: .55; cursor: not-allowed; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) button.ledger-choice:is(.choice-divide, .choice-multiply) {
   min-width: 38px;
   font-size: 22px;
   line-height: 1;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .row-action {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .row-action {
   width: 36px;
   height: 32px;
   min-height: 32px;
@@ -107,26 +107,26 @@
   padding: 0;
   border: 1px solid currentColor;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .row-action:is(.edit, .approve) {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .row-action:is(.edit, .approve) {
   background: #087443;
   color: #fff;
   border: 2px solid #55e6a3;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .row-action.cancel {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .row-action.cancel {
   background: #ae192b;
   color: #fff;
   border: 2px solid #ff8c98;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .row-action:focus-visible {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .row-action:focus-visible {
   outline: 3px solid #e4a900;
   outline-offset: 2px;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-grid.ledger-footer-grid {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid.ledger-footer-grid {
   min-height: 76px;
   padding: 10px 8px;
   border-bottom: 0;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-footer-grid > .ledger-total {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-footer-grid > .ledger-total {
   grid-column: 9 / 13;
   min-width: 0;
   width: 100%;
@@ -138,36 +138,36 @@
   color: var(--ink);
   box-shadow: none;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-total :is(span, small, em) { color: inherit; }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-total strong { font-size: 19px; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-total :is(span, small, em) { color: inherit; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-total strong { font-size: 19px; }
 @media (max-width: 900px) {
-  .ledger-panel:is(.section-customers, .section-companies) button.ledger-choice { min-height: 38px; }
-  .ledger-panel:is(.section-customers, .section-companies) .ledger-grid > .row-action { width: 40px; height: 38px; min-height: 38px; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) button.ledger-choice { min-height: 38px; }
+  .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-grid > .row-action { width: 40px; height: 38px; min-height: 38px; }
 }
 
 /* Fixed presentation slots keep dates and attribution aligned without altering ledger data. */
-.ledger-panel:is(.section-customers, .section-companies) .ledger-record-pill {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-record-pill {
   display: inline-flex; align-items: center; justify-content: center;
   box-sizing: border-box; width: 78px; min-width: 78px; height: 28px; padding: 2px 8px; border-radius: 999px;
   border: 1px solid #ffffffb3; color: #fff; font-size: 11px; font-weight: 800;
   line-height: 1.2; white-space: nowrap;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-record-pill:is(.choice-divide,.choice-multiply) { font-size: 22px; }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-record > .ledger-cell:nth-child(2) {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-record-pill:is(.choice-divide,.choice-multiply) { font-size: 22px; }
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-record > .ledger-cell:nth-child(2) {
   display: grid; grid-template-columns: 205px minmax(0, 1fr); align-items: center; gap: 6px;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-date-parts {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-date-parts {
   display: grid; grid-template-columns: 44px 82px 67px; gap: 6px;
   font-size: 9px; white-space: nowrap; text-align: center;
 }
-.ledger-panel:is(.section-customers, .section-companies) .ledger-record .operation-actor {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-record .operation-actor {
   display: block; width: 100%; min-width: 0; box-sizing: border-box; margin: 0;
   padding: 3px 5px; border: 1px solid currentColor; border-radius: 999px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px;
   color: inherit; background: #00000026; text-align: center;
 }
 
-.ledger-panel:is(.section-customers, .section-companies) .ledger-choice-group > button.ledger-choice {
+.ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits) .ledger-choice-group > button.ledger-choice {
   flex: 1 1 0; width: 0; min-width: 0; box-sizing: border-box;
   display: inline-flex; align-items: center; justify-content: center;
   height: 36px; padding: 3px 4px;
