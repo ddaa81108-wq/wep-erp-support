@@ -21,8 +21,8 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
   const part = (type: Intl.DateTimeFormatPartTypes) => dateParts.find(value => value.type === type)?.value ?? '';
   const movement = isDepositSection(section)
     ? item.type === 'debt'
-      ? 'دخول'
-      : 'خروج'
+      ? (section === 'libyan-deposits' ? 'إيداع أمانة' : 'دخول')
+      : (section === 'libyan-deposits' ? 'سحب أمانة' : 'خروج')
     : item.type === 'debt'
       ? 'إضافة دين'
       : item.paymentMode === 'full'
@@ -63,10 +63,10 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
       <span className="ledger-cell" data-label={(section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? 'السعر' : 'المعامل'}>
         {item.factorMicros ? ledgerFactor.format(item.factorMicros / 1_000_000) : '—'}
       </span>
-      <strong className="ledger-cell" data-label="دين مضاف">
+      <strong className="ledger-cell" data-label={section === 'libyan-deposits' ? 'إيداع أمانة' : 'دين مضاف'}>
         {item.type === 'debt' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}
       </strong>
-      <strong className="ledger-cell" data-label="مدفوع">
+      <strong className="ledger-cell" data-label={section === 'libyan-deposits' ? 'سحب أمانة' : 'مدفوع'}>
         {item.type === 'payment' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}
       </strong>
       <strong className="ledger-cell ledger-row-balance" data-label="الرصيد">

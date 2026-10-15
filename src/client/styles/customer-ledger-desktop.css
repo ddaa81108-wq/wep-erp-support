@@ -172,3 +172,12 @@
   display: inline-flex; align-items: center; justify-content: center;
   height: 36px; padding: 3px 4px;
 }
+
+/* Libyan trusts: positive funds belong to the customer; withdrawals reduce them. */
+.ledger-panel.section-libyan-deposits .choice-debt { background: #087443; }
+.ledger-panel.section-libyan-deposits :is(.choice-partial, .choice-full) { background: #a61e2a; }
+.ledger-panel.section-libyan-deposits .ledger-footer-grid > .ledger-total[data-balance-sign='positive'] { background: #087443; color: #fff; }
+.ledger-panel.section-libyan-deposits .ledger-footer-grid > .ledger-total[data-balance-sign='negative'] { background: #a61e2a; color: #fff; }
+.ledger-panel.section-libyan-deposits .ledger-footer-grid > .ledger-total[data-balance-sign='zero'] { background: #334155; color: #fff; }
+:root[data-theme] .workspace.section-libyan-deposits .customer-card.credit-balance { --card-bg: #087443; --card-accent: #d9f8e5; }
+:root[data-theme] .workspace.section-libyan-deposits .customer-card.overdue-debt { --card-bg: #a61e2a; --card-accent: #ffe0e3; }

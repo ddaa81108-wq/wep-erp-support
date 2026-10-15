@@ -73,7 +73,7 @@ export function LedgerEntriesTable({
   return (
     <div className="ledger-table-wrap" ref={tableRef} onKeyDown={navigateLedgerRows}>
       <div className="ledger-grid ledger-grid-head">
-        {['التسلسل', 'اليوم والتاريخ والوقت', 'نوع الحركة', 'البيان', 'القيمة', 'العملية', (section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? 'السعر' : 'المعامل', 'دين مضاف', 'مدفوع', 'الرصيد', 'تعديل', 'إلغاء'].map((title) => <span key={title}>{(section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? <b>{title}</b> : title}</span>)}
+        {['التسلسل', 'اليوم والتاريخ والوقت', 'نوع الحركة', 'البيان', 'القيمة', 'العملية', (section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? 'السعر' : 'المعامل', section === 'libyan-deposits' ? 'إيداع أمانة' : 'دين مضاف', section === 'libyan-deposits' ? 'سحب أمانة' : 'مدفوع', 'الرصيد', 'تعديل', 'إلغاء'].map((title) => <span key={title}>{(section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? <b>{title}</b> : title}</span>)}
       </div>
       {ledger.nextCursor && (
         <button className="ledger-load-older" disabled={loadingOlder} onClick={async () => {

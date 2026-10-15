@@ -74,7 +74,7 @@ try {
   const panel = page.locator('.ledger-panel.section-'+section);
   const kind = panel.getByRole('group',{name:'نوع المعاملة',exact:true});
   const mode = panel.getByRole('group',{name:'طريقة الحساب',exact:true});
-  await expect(kind.getByRole('button',{name:'دخول',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(kind.getByRole('button',{name:'إيداع أمانة',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(mode.getByRole('button',{name:'مباشر',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(panel.locator('select')).toHaveCount(0);
   mkdirSync('artifacts/ledger-pills',{recursive:true});
@@ -85,10 +85,11 @@ try {
     for (const width of [390,1440,1920]) {
       await page.setViewportSize({width,height:950});
       await expect(panel).toHaveCSS('opacity','1');
+      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(8, 116, 67)');
       const statementWidth = await panel.getByLabel('ملاحظة المعاملة').evaluate(e => e.parentElement!.getBoundingClientRect().width);
       assert.equal(statementWidth, 100);
-      await expect(kind.getByRole('button',{name:'دخول',exact:true})).toHaveCSS('background-color','rgb(166, 30, 42)');
-      await expect(kind.getByRole('button',{name:'خروج',exact:true})).toHaveCSS('background-color','rgb(8, 116, 67)');
+      await expect(kind.getByRole('button',{name:'إيداع أمانة',exact:true})).toHaveCSS('background-color','rgb(8, 116, 67)');
+      await expect(kind.getByRole('button',{name:'سحب أمانة',exact:true})).toHaveCSS('background-color','rgb(166, 30, 42)');
       for (const group of [kind,mode]) {
         const boxes=await group.locator('button').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {y:r.y,height:r.height,overflow:e.scrollWidth>e.clientWidth+1}}));
         assert.equal(new Set(boxes.map(b=>b.y)).size,1);
@@ -108,7 +109,7 @@ try {
   await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
   await expect(panel.locator('.ledger-record').filter({hasText:'قسمة اختبار'})).toBeVisible();
   assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,130);
-  await kind.getByRole('button',{name:'خروج',exact:true}).click();
+  await kind.getByRole('button',{name:'سحب أمانة',exact:true}).click();
   await panel.getByLabel('قيمة المعاملة',{exact:true}).fill('10');
   await panel.getByLabel('ملاحظة المعاملة').fill('جزئي اختبار');
   await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
@@ -131,7 +132,25 @@ try {
       await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-records.png`,fullPage:true});
     }
   }
-  console.log('PASS customer ledger pills: both themes/sizes, selection, divide, partial/full, editing retains mode and factor.');
+  for (const [amount, balance, color] of [[120, 0, 'rgb(51, 65, 85)'], [20, -20, 'rgb(166, 30, 42)']] as const) {
+    await kind.getByRole('button',{name:'سحب أمانة',exact:true}).click();
+    await panel.getByLabel('قيمة المعاملة',{exact:true}).fill(String(amount));
+    await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
+    await expect(panel.locator('.ledger-total')).toHaveCSS('background-color', color);
+    assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,balance);
+  }
+  for (const theme of ['light','dark']) {
+    await page.evaluate(t => document.documentElement.dataset.theme=t, theme);
+    for (const width of [1440,390]) {
+      await page.setViewportSize({width,height:950});
+      await panel.locator('.ledger-total').scrollIntoViewIfNeeded();
+      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(166, 30, 42)');
+      await page.screenshot({path:`artifacts/ledger-pills/libyan-negative-${theme}-${width}.png`,fullPage:true});
+    }
+  }
+  await panel.locator('header .icon-button').click();
+  await expect(page.locator('.customer-card.overdue-debt')).toHaveCSS('--card-bg','#a61e2a');
+  console.log('PASS Libyan deposits: deposit/withdrawal labels and colors, both themes/sizes, positive/zero/negative balances, calculations unchanged.');
 } finally {
   await browser?.close();
   server.closeRealtimeConnections();
