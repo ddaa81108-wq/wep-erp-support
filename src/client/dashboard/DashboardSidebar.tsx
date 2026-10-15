@@ -5,6 +5,7 @@ import { AdminNavigation } from '../admin/AdminNavigation.tsx';
 import { EmployeeNavigation } from '../employee/EmployeeNavigation.tsx';
 import type { MainSection } from '../sections/debts/sectionConfig.ts';
 import { ThemeToggle, type Theme } from '../components/ThemeToggle.tsx';
+import { useSidebarPalette } from './useSidebarPalette.ts';
 
 type Props = {
   user: User;
@@ -33,6 +34,7 @@ export function DashboardSidebar({
   onThemeToggle,
   onLogout,
 }: Props) {
+  const palette = useSidebarPalette();
   const [systemName, setSystemName] = useState('VIB Abdo Company');
   useEffect(() => {
     let active = true;
@@ -56,9 +58,11 @@ export function DashboardSidebar({
   };
 
   return <>
-    <aside className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
+    <aside data-palette={palette} className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
       <div className="sidebar-identity">
-        <span className="brand-mark">ع</span>
+        <span className="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 74 40" fill="none"><path d="M3 7 23 33V7M33 7v26M43 7h16l9 7-9 6H43m0 0h17l8 6-9 7H43V7" stroke="currentColor" strokeWidth="6" strokeLinejoin="miter" /></svg>
+        </span>
         <div className="identity-app"><strong title={systemName}>{systemName}</strong><small>محلي</small></div>
         <div className="identity-user"><strong title={user.displayName}>{user.displayName}</strong><small>{user.role === 'admin' ? 'مدير النظام' : user.username}</small></div>
         <button className="sidebar-hide-button" onClick={onHide} aria-label="إخفاء الشريط الجانبي" title="إخفاء الشريط الجانبي"><PanelRightClose size={17} /></button>

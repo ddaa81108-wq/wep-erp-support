@@ -20,6 +20,7 @@ import './styles/customer-card-compact.css';
 import './styles/customer-ledger-desktop.css';
 import './styles/purchases-presentation.css';
 import './styles/debt-summary-desktop.css';
+import './styles/sidebar-gold.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {
