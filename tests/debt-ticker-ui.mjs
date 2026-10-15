@@ -14,7 +14,7 @@ const bundle = await build({
   format: 'iife',
   jsx: 'automatic',
 });
-const css = ['foundation-auth.css', 'workspace.css', 'night-theme.css']
+const css = ['foundation-auth.css', 'workspace.css', 'night-theme.css', 'customer-header-gold.css']
   .map((f) => readFileSync('src/client/styles/' + f, 'utf8'))
   .join('\n');
 mkdirSync('artifacts/ticker', { recursive: true });
@@ -25,7 +25,7 @@ for (const channel of [undefined, 'msedge']) {
       for (const theme of ['light', 'dark']) {
         const p = await b.newPage({ viewport: { width, height: 500 } });
         await p.setContent(
-          `<html dir="rtl" data-theme="${theme}"><head><style>${css}</style></head><body><div id="root"></div></body></html>`,
+          `<html dir="rtl" data-theme="${theme}"><head><style>${css}</style></head><body><div id="root" class="workspace active-section-customers"></div></body></html>`,
         );
         await p.addScriptTag({ content: bundle.outputFiles[0].text });
         await p.waitForSelector('.debt-ticker button');
@@ -72,3 +72,4 @@ for (const channel of [undefined, 'msedge']) {
     await b.close();
   }
 }
+

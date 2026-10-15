@@ -1,0 +1,46 @@
+/* Customer desktop header 5 and ticker 10: presentation only. */
+@media (min-width: 901px) {
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar {
+    min-height: 62px; max-height: 62px; padding: 8px 12px; gap: 14px; border: 3px double #ffdc60; border-radius: 999px;
+    background: linear-gradient(170deg, #535047, #191815 22%, #030303 52%, #242017);
+    box-shadow: inset 0 1px 2px #fff3aa, inset 0 -2px 2px #ad7d14, 0 2px 5px #0005;
+  }
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar :is(.dashboard-section-title, .global-account-search, .sync-status, .utility-icon-button) {
+    height: 40px; min-height: 40px; border-radius: 999px; border: 1px solid #f8d260;
+    background: linear-gradient(170deg, #3d3b32, #080808 48%, #17130a);
+    color: #fff; box-shadow: inset 0 1px 1px #fff0ad88, inset 0 -1px 1px #a77c1a;
+  }
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar .dashboard-section-title {
+    background: linear-gradient(175deg, #fffde0, #fff29a 13%, #ffdb35 36%, #eab600 57%, #ffdb29 82%, #fff0a0);
+    border: 3px double #fff1a1; padding-inline: 18px;
+  }
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar .dashboard-section-heading { color: #231900; font-size: 16px; }
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar .global-account-search input { color: #fff; }
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar .global-account-search input::placeholder { color: #f3eee3; opacity: 1; }
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar .global-account-search > button { color: #ffe58b; }
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar .utility-icon-button { width: 44px; color: #ffdf58; }
+  :root[data-theme] .workspace.active-section-customers > .dashboard-utility-bar .dashboard-utility-actions { gap: 14px; }
+  :root[data-theme] .workspace.active-section-customers .debt-ticker {
+    position: relative; height: 48px; min-height: 48px; border: 3px double #ffdb5d; border-radius: 999px;
+    background: linear-gradient(175deg, #575044, #181610 22%, #020202 53%, #211b0c);
+    box-shadow: inset 0 1px 2px #fff4a9, inset 0 -2px 2px #be8c19, 0 2px 4px #0004;
+    color: #fff4cd;
+  }
+  :root[data-theme] .workspace.active-section-customers .debt-ticker::after {
+    content: 'نشرة الديون'; position: absolute; inset-inline-start: 5px; top: 4px; bottom: 4px;
+    width: 130px; display: grid; place-items: center; border-radius: 999px; border: 3px double #fff0a1;
+    background: linear-gradient(175deg, #fffde0, #ffe76a 30%, #e4ac00 60%, #fff0a0);
+    color: #241a00; font-size: 14px; font-weight: 800; box-shadow: 0 0 0 4px #0a0906;
+    pointer-events: none;
+  }
+  :root[data-theme] .workspace.active-section-customers .debt-ticker.empty-ticker { padding-inline-start: 145px; font-size: 12px; }
+  :root[data-theme] .workspace.active-section-customers .debt-ticker-track { padding-inline-start: 145px; gap: 12px; }
+  :root[data-theme] .workspace.active-section-customers .debt-ticker-track button {
+    height: 32px; padding: 3px 15px; font-size: 12px; color: #fff; border: 1px solid #d7b34a;
+    background: linear-gradient(175deg, #28261e, #030303 55%, #161209); box-shadow: inset 0 1px 1px #fff0ad55;
+  }
+  :root[data-theme] .workspace.active-section-customers .debt-ticker-track button span { color: #ffe15a; }
+  :root[data-theme] .workspace.active-section-customers .debt-ticker-track button em { color: #fff2cb; font-size: 11px; }
+  :root[data-theme] .workspace.active-section-customers .debt-ticker-track button.urgent { border-color: #ffbc66; }
+}
+
