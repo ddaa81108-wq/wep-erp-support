@@ -19,6 +19,7 @@ import './styles/treasury-desktop.css';
 import './styles/customer-card-compact.css';
 import './styles/customer-ledger-desktop.css';
 import './styles/purchases-presentation.css';
+import './styles/debt-summary-desktop.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {

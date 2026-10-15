@@ -1,0 +1,37 @@
+/* Desktop-only debt summaries; section data and handlers remain independent. */
+@media (min-width: 901px) {
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .customer-summary-strip {
+    gap: 10px; padding: 7px; border-radius: 18px; flex: 1 0 auto;
+  }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters {
+    flex: 1 0 auto; gap: 10px;
+  }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button {
+    flex: 1 0 66px; width: 66px; height: 38px; min-height: 38px;
+    border: 1px solid #ffffff80; color: white; font-size: 11px; font-weight: 800;
+    box-shadow: inset 0 2px 0 #ffffff55; padding: 3px 9px;
+  }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button:nth-child(1) { background: #008653; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button:nth-child(2) { background: #1262dc; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button:nth-child(3) { background: #c52239; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button:nth-child(4) { background: #f48a19; color: #172434; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button:nth-child(5) { background: #202936; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button.pending-review-filter { flex: 0 0 auto; width: auto; background: #79512c; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters button[aria-selected='true'] {
+    outline: 2px solid #f0bf35; outline-offset: 1px; text-decoration: underline; text-underline-offset: 4px;
+  }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .debt-total-card {
+    background: #075d84; color: white; height: 38px; min-height: 38px; max-height: 38px;
+    box-shadow: inset 0 2px 0 #ffffff55;
+  }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .debt-total-card > :is(span,strong) { color: white; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .customer-summary-strip > .customer-actions-strip { gap: 10px; margin: 0; background: transparent; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .customer-actions-strip > button {
+    width: 100px; min-height: 38px; max-height: 38px; height: 38px;
+    border: 1px solid #ffffff80; box-shadow: inset 0 2px 0 #ffffff55; font-weight: 800;
+  }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .customer-actions-strip > .add-customer-card { background: #ffd129; color: #172434; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .customer-actions-strip > .routing-card { background: #663bc3; color: white; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .customer-actions-strip > .routing-card.active { outline: 2px solid #f0bf35; outline-offset: 1px; }
+  :root[data-theme] .workspace:is(.section-customers, .section-companies) .debts-toolbar .dashboard-search { margin-inline-start: 0; }
+}

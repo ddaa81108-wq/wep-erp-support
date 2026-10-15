@@ -70,6 +70,18 @@ try {
   const page = await writer.newPage();
   await page.goto(base+'/erp');
   if (section === 'companies') await page.getByRole('button',{name:'قسم ديون الشركات',exact:true}).click();
+  const originalTheme = await page.evaluate(()=>document.documentElement.dataset.theme);
+  mkdirSync('artifacts/debt-summary',{recursive:true});
+  for (const theme of ['light','dark']) {
+    await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+    for (const width of [1440,1920,390]) {
+      await page.setViewportSize({width,height:950});
+      await page.waitForTimeout(250);
+      await page.screenshot({path:`artifacts/debt-summary/${section}-${theme}-${width}.png`,fullPage:true});
+    }
+  }
+  await page.evaluate(t=>document.documentElement.dataset.theme=t,originalTheme);
+  await page.setViewportSize({width:1440,height:950});
   await page.locator('.customer-card-main').filter({hasText:'عميل تنسيق السجل'}).click();
   const panel = page.locator('.ledger-panel.section-'+section);
   const kind = panel.getByRole('group',{name:'نوع المعاملة',exact:true});
