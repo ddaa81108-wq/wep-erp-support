@@ -7,6 +7,7 @@ export type PurchaseEntry = {
   dayNumber: number;
   businessDate: string;
   dayStatus: 'draft' | 'finalized';
+  dayClosingDebtUnits: number;
   dayVersion: number;
   correctionOpen: boolean;
   itemCode: string;

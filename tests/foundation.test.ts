@@ -440,6 +440,7 @@ test('purchases keep exact summaries, merchant isolation, idempotency, and manua
   const next = (await json(await fetch(`${base}/api/purchases/al_bayan`, { headers }))).data;
   assert.equal(next.day.dayNumber, 2);
   assert.equal(next.day.previousDebtUnits, 1057);
+  assert.ok(next.entries.every((entry: Record<string, unknown>) => entry.dayClosingDebtUnits === 1057));
   assert.equal(next.day.previousVodafoneUnits, 1300);
   const locked = await fetch(
     `${base}/api/purchases/al_bayan/entries/${encodeURIComponent(page.entries[0].id)}`,
@@ -485,6 +486,7 @@ test('purchases keep exact summaries, merchant isolation, idempotency, and manua
   correctionPage = (await json(await fetch(`${base}/api/purchases/al_bayan`, { headers }))).data;
   historical = correctionPage.entries.find((entry: Record<string, unknown>) => Number(entry.sequence) === 1);
   assert.equal(correctionPage.day.previousDebtUnits, 1075);
+  assert.equal(historical.dayClosingDebtUnits, 1075);
   assert.equal(correctionPage.day.previousVodafoneUnits, 1400);
   const closed = await fetch(
     `${base}/api/purchases/al_bayan/days/${encodeURIComponent(String(historical.dayId))}/correction`,

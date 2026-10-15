@@ -83,6 +83,8 @@ try {
   await page.getByRole('button',{name:'قسم المشتريات',exact:true}).click();
   const register=page.locator('.purchase-register');
   await expect(page.locator('.purchase-row')).toHaveCount(15);
+  await expect(page.locator('.purchase-day-closing')).toHaveCount(4);
+  await expect(page.locator('.purchase-day-closing-value')).toHaveText(['2,400', '4,800', '7,200', '9,600']);
   await expect.poll(() => register.evaluate(e => e.scrollHeight - e.clientHeight - e.scrollTop)).toBeLessThan(2);
   await expect(page.getByRole('button',{name:'اعتماد الصف',exact:true})).toBeInViewport();
   await expect(page.locator('.purchase-register-grand-total')).toBeInViewport();
@@ -121,6 +123,7 @@ try {
   await page.getByLabel('المسدد',{exact:true}).fill('20');
   await page.getByRole('button',{name:'اعتماد الصف',exact:true}).click();
   await expect(page.locator('.purchase-row')).toHaveCount(16);
+  await expect(page.locator('.purchase-day-closing-value')).toHaveText(['2,400', '4,800', '7,200', '9,600']);
   const saved=await read(writer.request,'/api/purchases/al_bayan');
   assert.equal(saved.day.todayResultUnits,3100);
   assert.equal(saved.day.todayPaidUnits,620);

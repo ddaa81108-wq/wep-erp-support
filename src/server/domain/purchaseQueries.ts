@@ -44,7 +44,7 @@ export function listPurchases(
       : integer(beforeValue, 'مؤشر السجل');
   const rows = db
     .prepare(
-      `SELECT e.*,d.day_number,d.business_date,d.status day_status,d.version day_version,d.correction_open,u.display_name actor_name,u.is_owner actor_is_owner
+      `SELECT e.*,d.day_number,d.business_date,d.status day_status,d.version day_version,d.correction_open,d.total_debt_units day_closing_debt_units,u.display_name actor_name,u.is_owner actor_is_owner
       FROM purchase_entries e JOIN purchase_days d ON d.id=e.day_id JOIN users u ON u.id=e.actor_user_id
       WHERE e.organization_id=? AND e.merchant_id=? AND e.deleted_at IS NULL AND e.sequence<?
       ORDER BY e.sequence DESC LIMIT ?`,

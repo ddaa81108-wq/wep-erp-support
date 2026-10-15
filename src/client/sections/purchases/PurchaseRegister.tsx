@@ -57,6 +57,7 @@ export function PurchaseRegister({ purchases, canWrite, canFinalize }: PurchaseR
         return (
           <PurchaseEntryGroup key={`${entry.id}-${entry.version}-${entry.dayVersion}`}
             entry={entry} showSeparator={index === 0 || entries[index - 1].dayNumber !== entry.dayNumber}
+            showClosing={entry.dayStatus === 'finalized' && entries[index + 1]?.dayId !== entry.dayId}
             editing={editingId === entry.id} busy={busy} canWrite={canWrite} canFinalize={canFinalize}
             merchant={merchant} onEdit={() => setEditingId(entry.id)} onRemove={() => void remove(entry)}
             onToggleCorrection={(open) => void toggleCorrection(entry, open)} onMarkDirty={markDirty}

@@ -6,6 +6,7 @@ import { purchaseNumber } from './purchaseEditorModel.ts';
 export function PurchaseEntryGroup({
   entry,
   showSeparator,
+  showClosing,
   editing,
   busy,
   canWrite,
@@ -22,6 +23,7 @@ export function PurchaseEntryGroup({
 }: {
   entry: PurchaseEntry;
   showSeparator: boolean;
+  showClosing: boolean;
   editing: boolean;
   busy: boolean;
   canWrite: boolean;
@@ -78,6 +80,14 @@ export function PurchaseEntryGroup({
               <button className="danger" aria-label="حذف" onClick={onRemove}><Trash2 size={13} /></button>
             </>}
           </span>
+        </div>
+      )}
+      {showClosing && Number.isFinite(entry.dayClosingDebtUnits) && (
+        <div className="purchase-grid purchase-day-closing" data-day-id={entry.dayId}>
+          <span className="purchase-day-closing-label">الباقي المُرحّل لليوم التالي — يوم #{entry.dayNumber}</span>
+          <strong className="purchase-day-closing-value" dir="ltr" aria-label={`الباقي المرحل لليوم ${entry.dayNumber}`}>
+            {purchaseNumber.format(entry.dayClosingDebtUnits)}
+          </strong>
         </div>
       )}
     </div>

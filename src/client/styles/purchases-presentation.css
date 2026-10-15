@@ -149,3 +149,19 @@
   display: inline-flex; align-items: center; justify-content: center; padding: 0; line-height: 1;
 }
 .purchases-page .purchase-inline-editor .purchase-actions button svg { display: block; flex-shrink: 0; }
+
+/* Closing balance comes from the saved day, aligned with the remaining column. */
+.purchases-page .purchase-day-closing {
+  background: #16475a; color: #fff; border-radius: 12px;
+  padding-block: 5px; margin-block: 4px 8px; align-items: center;
+}
+.purchases-page .purchase-day-closing-label {
+  grid-column: 1 / 8; justify-self: end; padding-inline: 12px;
+  font-size: 12px; font-weight: 700;
+}
+.purchases-page .purchase-day-closing-value {
+  grid-column: 8; display: flex; align-items: center; justify-content: center;
+  min-height: 28px; border-radius: 999px; background: #ffdb2d; color: #17212d;
+  font: 800 14px Arial, sans-serif; font-variant-numeric: tabular-nums;
+  padding-inline: 5px;
+}

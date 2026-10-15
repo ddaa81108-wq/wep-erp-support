@@ -278,6 +278,7 @@ export function mapEntry(row: Record<string, unknown>) {
     dayNumber: Number(row.day_number),
     businessDate: String(row.business_date),
     dayStatus: String(row.day_status),
+    dayClosingDebtUnits: Number(row.day_closing_debt_units),
     itemCode: String(row.item_code),
     itemLabel: String(row.item_label),
     egpValueUnits: Number(row.egp_value_units),
