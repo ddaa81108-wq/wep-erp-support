@@ -4,7 +4,7 @@ import { purchaseNumber } from './purchaseEditorModel.ts';
 export function PurchaseMetrics({ day }: { day: PurchasesPage['day'] }) {
   return (
     <div className="purchase-metrics">
-      <article className={day.previousDebtUnits >= 0 ? 'positive' : 'negative'}>
+      <article className={day.previousDebtUnits > 0 ? 'positive liability' : day.previousDebtUnits < 0 ? 'negative credit' : 'zero'}>
         <span>القيمة السابقة</span>
         <b dir="ltr">{purchaseNumber.format(day.previousDebtUnits)} د.ل</b>
       </article>
@@ -16,7 +16,7 @@ export function PurchaseMetrics({ day }: { day: PurchasesPage['day'] }) {
         <span>إجمالي المسدد</span>
         <b dir="ltr">{purchaseNumber.format(day.todayPaidUnits)} د.ل</b>
       </article>
-      <article className={day.totalDebtUnits >= 0 ? 'positive' : 'negative'}>
+      <article className={day.totalDebtUnits > 0 ? 'positive liability' : day.totalDebtUnits < 0 ? 'negative credit' : 'zero'}>
         <span>إجمالي الديون</span>
         <b dir="ltr">{purchaseNumber.format(day.totalDebtUnits)} د.ل</b>
       </article>

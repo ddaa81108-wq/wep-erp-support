@@ -17,7 +17,7 @@ export function LedgerTotal({ section, ledger }: { section: DebtSection; ledger:
 
   return (
     <div className="ledger-grid ledger-footer-grid">
-      <div className={`ledger-total ${balance < 0 ? 'credit-total' : ''}`} data-balance-sign={balance > 0 ? 'positive' : balance < 0 ? 'negative' : 'zero'}>
+      <div className={`ledger-total ${balance < 0 ? 'credit-total' : ''}`} data-balance-owner={balance === 0 ? 'zero' : (section === 'libyan-deposits' ? balance > 0 : balance < 0) ? 'customer' : 'system'} data-balance-sign={balance > 0 ? 'positive' : balance < 0 ? 'negative' : 'zero'}>
         <span>{label}</span>
         <strong>
           {ledgerMoney.format(Math.abs(balance))} <small>{currencyLabel(section)}</small>

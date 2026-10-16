@@ -1,12 +1,23 @@
 /* Green = owed to system; red = owed to customer. Balance ownership colors only: no amount or transaction logic. */
-:root[data-theme] .workspace .customer-card[data-balance-owner='system'] { background:linear-gradient(160deg,#219e6d,#075534 55%,#092b20);border-color:#65dba3; }
-:root[data-theme] .workspace .customer-card[data-balance-owner='customer'] { background:linear-gradient(160deg,#bd3b47,#781425 55%,#350d16);border-color:#f08895; }
-:root[data-theme] .workspace .customer-card[data-balance-owner='zero'] { background:linear-gradient(#343434,#080808);border-color:#928b79; }
-:root[data-theme] .workspace .customer-card[data-balance-owner] .customer-card-main > :is(b,strong,span,small) { color:#fff; }
-:root[data-theme] .ledger-panel:is(.section-customers,.section-companies,.section-egyptian-deposits) .ledger-total[data-balance-sign='negative'],
-:root[data-theme] .ledger-panel.section-libyan-deposits .ledger-total[data-balance-sign='positive'] { background-color:#a61e2a;background-image:linear-gradient(#ef5266,#a61e2a);color:#fff;border-color:#f5a3ae; }
-:root[data-theme] .ledger-panel:is(.section-customers,.section-companies,.section-egyptian-deposits) .ledger-total[data-balance-sign='positive'],
-:root[data-theme] .ledger-panel.section-libyan-deposits .ledger-total[data-balance-sign='negative'] { background-color:#087443;background-image:linear-gradient(#1eb47b,#087443);color:#fff;border-color:#8ee0b6; }
-:root[data-theme] .ledger-panel:is(.section-customers,.section-companies,.section-libyan-deposits,.section-egyptian-deposits) .ledger-total[data-balance-sign='zero'] { background:#334155;color:#fff;border-color:#94a3b8; }
+:root[data-theme] .workspace:is(.section-libyan-deposits,.section-egyptian-deposits) .customer-card[data-balance-owner='system'] { background:linear-gradient(160deg,#219e6d,#075534 55%,#092b20);border-color:#65dba3; }
+:root[data-theme] .workspace:is(.section-libyan-deposits,.section-egyptian-deposits) .customer-card[data-balance-owner='customer'] { background:linear-gradient(160deg,#bd3b47,#781425 55%,#350d16);border-color:#f08895; }
+:root[data-theme] .workspace:is(.section-libyan-deposits,.section-egyptian-deposits) .customer-card[data-balance-owner='zero'] { background:linear-gradient(#343434,#080808);border-color:#928b79; }
+:root[data-theme] .workspace:is(.section-libyan-deposits,.section-egyptian-deposits) .customer-card[data-balance-owner] .customer-card-main > :is(b,strong,span,small) { color:#fff; }
+:root[data-theme] .ledger-panel:is(.section-libyan-deposits,.section-egyptian-deposits) .ledger-footer-grid > .ledger-total[data-balance-owner='system'] { background-color:#087443;background-image:linear-gradient(#1eb47b,#087443);color:#fff;border-color:#8ee0b6; }
+:root[data-theme] .ledger-panel:is(.section-libyan-deposits,.section-egyptian-deposits) .ledger-footer-grid > .ledger-total[data-balance-owner='customer'] { background-color:#a61e2a;background-image:linear-gradient(#ef5266,#a61e2a);color:#fff;border-color:#f5a3ae; }
+:root[data-theme] .ledger-panel:is(.section-libyan-deposits,.section-egyptian-deposits) .ledger-footer-grid > .ledger-total[data-balance-owner='zero'] { background:#334155;color:#fff;border-color:#94a3b8; }
 :root[data-theme] .workspace:is(.section-customers,.section-companies,.section-libyan-deposits,.section-egyptian-deposits) .customer-card[data-balance-owner] .customer-card-main > b,
 :root[data-theme] .workspace:is(.section-customers,.section-companies,.section-libyan-deposits,.section-egyptian-deposits) .customer-card[data-balance-owner] .customer-balance-amount { color:#fff; }
+
+/* Purchases liabilities have the opposite sign to debt accounts. */
+:root[data-theme] .purchases-page .purchase-metrics article.liability,
+:root[data-theme] .purchases-page .purchase-register-total .purchase-total-remaining.liability { background:linear-gradient(#ef5266,#a61e2a);color:#fff;border-color:#f5a3ae; }
+:root[data-theme] .purchases-page .purchase-metrics article.credit,
+:root[data-theme] .purchases-page .purchase-register-total .purchase-total-remaining.credit { background:linear-gradient(#1eb47b,#087443);color:#fff;border-color:#8ee0b6; }
+:root[data-theme] .purchases-page .purchase-metrics article.zero,
+:root[data-theme] .purchases-page .purchase-register-total .purchase-total-remaining.zero { background:#334155;color:#fff;border-color:#94a3b8; }
+:root[data-theme] .purchases-page .purchase-metrics article:is(.liability,.credit,.zero) :is(span,b) { color:inherit; }
+/* Debt accounts keep age-based exterior colors and a stable gold ledger total. */
+:root[data-theme] .ledger-panel:is(.section-customers,.section-companies) .ledger-footer-grid > .ledger-total[data-balance-sign] {
+ background:linear-gradient(175deg,#fff8cc,#ffe57b 17%,#e7ae12 58%,#ffdf60 85%,#fff0a1);color:#211600;border:2px solid #ffedab;
+}

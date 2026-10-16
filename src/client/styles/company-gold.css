@@ -1,0 +1,190 @@
+/* Companies use the approved customer visual language. Presentation only. */
+/* Customer desktop header 5 and ticker 10: presentation only. */
+@media (min-width: 901px) {
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar {
+    min-height: 62px; max-height: 62px; padding: 8px 12px; gap: 14px; border: 3px double #ffdc60; border-radius: 999px;
+    background: linear-gradient(170deg, #535047, #191815 22%, #030303 52%, #242017);
+    box-shadow: inset 0 1px 2px #fff3aa, inset 0 -2px 2px #ad7d14, 0 2px 5px #0005;
+  }
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar :is(.dashboard-section-title, .global-account-search, .sync-status, .utility-icon-button) {
+    height: 40px; min-height: 40px; border-radius: 999px; border: 1px solid #f8d260;
+    background: linear-gradient(170deg, #3d3b32, #080808 48%, #17130a);
+    color: #fff; box-shadow: inset 0 1px 1px #fff0ad88, inset 0 -1px 1px #a77c1a;
+  }
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar .dashboard-section-title {
+    background: linear-gradient(175deg, #fffde0, #fff29a 13%, #ffdb35 36%, #eab600 57%, #ffdb29 82%, #fff0a0);
+    border: 3px double #fff1a1; padding-inline: 18px;
+  }
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar .dashboard-section-heading { color: #231900; font-size: 16px; }
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar .global-account-search input { color: #fff; }
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar .global-account-search input::placeholder { color: #f3eee3; opacity: 1; }
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar .global-account-search > button { color: #ffe58b; }
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar .utility-icon-button { width: 44px; color: #ffdf58; }
+  :root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar .dashboard-utility-actions { gap: 14px; }
+  :root[data-theme] .workspace.active-section-companies .debt-ticker {
+    position: relative; height: 48px; min-height: 48px; border: 3px double #ffdb5d; border-radius: 999px;
+    background: linear-gradient(175deg, #575044, #181610 22%, #020202 53%, #211b0c);
+    box-shadow: inset 0 1px 2px #fff4a9, inset 0 -2px 2px #be8c19, 0 2px 4px #0004;
+    color: #fff4cd;
+  }
+  :root[data-theme] .workspace.active-section-companies .debt-ticker::after {
+    content: 'نشرة الديون'; position: absolute; inset-inline-start: 5px; top: 4px; bottom: 4px;
+    width: 130px; display: grid; place-items: center; border-radius: 999px; border: 3px double #fff0a1;
+    background: linear-gradient(175deg, #fffde0, #ffe76a 30%, #e4ac00 60%, #fff0a0);
+    color: #241a00; font-size: 14px; font-weight: 800; box-shadow: 0 0 0 4px #0a0906;
+    pointer-events: none;
+  }
+  :root[data-theme] .workspace.active-section-companies .debt-ticker.empty-ticker { padding-inline-start: 145px; font-size: 12px; }
+  :root[data-theme] .workspace.active-section-companies .debt-ticker-track { padding-inline-start: 145px; gap: 12px; }
+  :root[data-theme] .workspace.active-section-companies .debt-ticker-track button {
+    height: 32px; padding: 3px 15px; font-size: 12px; color: #fff; border: 1px solid #d7b34a;
+    background: linear-gradient(175deg, #28261e, #030303 55%, #161209); box-shadow: inset 0 1px 1px #fff0ad55;
+  }
+  :root[data-theme] .workspace.active-section-companies .debt-ticker-track button span { color: #ffe15a; }
+  :root[data-theme] .workspace.active-section-companies .debt-ticker-track button em { color: #fff2cb; font-size: 11px; }
+  :root[data-theme] .workspace.active-section-companies .debt-ticker-track button.urgent { border-color: #ffbc66; }
+}
+
+/* Customer ledger concept 5: visual surfaces only; existing geometry and handlers retained. */
+:root[data-theme] .ledger-panel.section-companies {
+  --ledger-gold: #e9c45a; color: #fff; background: linear-gradient(150deg, #28251d, #050505 22%, #11100b 85%, #302611);
+  border: 3px double #ffdf75; border-radius: 20px;
+  box-shadow: inset 0 1px 2px #fff5bd, inset 0 -2px 2px #a77713, 0 0 0 2px #171207, 0 6px 22px #0006;
+}
+:root[data-theme] .ledger-panel.section-companies > header {
+  background: linear-gradient(165deg, #514939, #090909 35%, #020202 70%, #403319);
+  border: 1px solid #f3cf63; border-radius: 999px; box-shadow: inset 0 1px 2px #fff0ac9c;
+}
+:root[data-theme] .ledger-panel.section-companies > header :is(.ledger-customer-title, .ledger-edit-details, .icon-button) {
+  background: linear-gradient(170deg, #38332a, #050505 55%, #1e180b); color: #fff4cb;
+  border: 1px solid #f4cf60; border-radius: 999px; box-shadow: inset 0 1px 1px #fff1ad88;
+}
+:root[data-theme] .ledger-panel.section-companies > header :is(h2, small, span) { color: inherit; }
+:root[data-theme] .ledger-panel.section-companies .ledger-table-wrap {
+  border: 3px double #efc656; border-radius: 15px; background: #070707;
+  box-shadow: inset 0 1px 2px #fff1a3;
+}
+:root[data-theme] .ledger-panel.section-companies .ledger-grid { border-color: #776237; }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid > * { border-color: #776237; }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid-head {
+  color: #fff5ce; background: linear-gradient(#353027, #070707 65%);
+}
+:root[data-theme] .ledger-panel.section-companies .ledger-grid-head > span > b {
+  color: #fff5ce; background: linear-gradient(165deg, #3b3423, #080808 55%, #211a0b);
+  border: 1px solid #f4cf60; border-radius: 999px; box-shadow: inset 0 1px 1px #fff0b077;
+}
+:root[data-theme] .ledger-panel.section-companies .ledger-record {
+  background: linear-gradient(110deg, #151515, #060606); color: #fff;
+}
+:root[data-theme] .ledger-panel.section-companies .ledger-record:nth-child(even) { background: linear-gradient(110deg, #22211d, #10100e); }
+:root[data-theme] .ledger-panel.section-companies .ledger-record .operation-actor {
+  color: #fff1bc; border-color: #b79b52; background: linear-gradient(#393326, #12100b);
+}
+:root[data-theme] .ledger-panel.section-companies :is(input, select, textarea) {
+  color: #fff; background: #141414; border-color: #a78b48; color-scheme: dark;
+}
+:root[data-theme] .ledger-panel.section-companies :is(input, textarea)::placeholder { color: #cfc8b7; opacity: 1; }
+:root[data-theme] .ledger-panel.section-companies :is(input, select, textarea):focus { outline: 2px solid #ffe087; outline-offset: -2px; }
+:root[data-theme] .ledger-panel.section-companies :is(.ledger-choice, .ledger-record-pill) {
+  box-shadow: inset 0 1px 2px #ffffff8c, inset 0 -1px 2px #0008;
+}
+:root[data-theme] .ledger-panel.section-companies .choice-debt { background: linear-gradient(#f74a5c, #a70920 60%, #d91b32); color: #fff; }
+:root[data-theme] .ledger-panel.section-companies .choice-partial { background: linear-gradient(#18bc75, #006536 65%, #079956); color: #fff; }
+:root[data-theme] .ledger-panel.section-companies .choice-full { background: linear-gradient(#525252, #050505 65%, #252525); color: #fff; }
+:root[data-theme] .ledger-panel.section-companies :is(.choice-direct, .choice-divide, .choice-multiply) {
+  background: linear-gradient(#4c4026, #090806 65%, #30230c); color: #fff3c1; border-color: #eac25a;
+}
+:root[data-theme] .ledger-panel.section-companies .ledger-grid > .row-action:is(.edit, .approve) { background: linear-gradient(#20bd7b, #006b3b 65%, #079b57); }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid > .row-action.cancel { background: linear-gradient(#f04c60, #ac1028 65%, #d9213b); }
+:root[data-theme] .ledger-panel.section-companies .ledger-footer-grid { background: linear-gradient(170deg, #242017, #030303 55%, #231a09); }
+:root[data-theme] .ledger-panel.section-companies .ledger-footer-grid > .ledger-total {
+  background: linear-gradient(175deg, #fff8cc, #ffe57b 17%, #e7ae12 58%, #ffdf60 85%, #fff0a1);
+  color: #211600; border: 2px solid #ffedab; border-radius: 999px;
+  box-shadow: inset 0 2px 2px #fffbdc, inset 0 -2px 2px #b67b07, 0 0 6px #edc13e55;
+}
+:root[data-theme] .ledger-panel.section-companies .choice-debt { background-color: #a61e2a; }
+:root[data-theme] .ledger-panel.section-companies .choice-partial { background-color: #087443; }
+:root[data-theme] .ledger-panel.section-companies .choice-full { background-color: #17191f; }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid-head > span:first-child > b { font-size: 8px; white-space: nowrap; }
+
+@media(min-width:901px) {
+  /* Customer-only glossy black/gold toolbar. Keep every control on one line. */
+  :root[data-theme] .workspace.section-companies .customer-summary-strip {
+    gap: 7px; padding: 8px; border-radius: 24px;
+    background: linear-gradient(180deg, #25231c, #050505 48%, #100e08);
+    border: 1px solid #b78d18; box-shadow: inset 0 1px 1px #fff0a652;
+  }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters,
+  :root[data-theme] .workspace.section-companies .customer-summary-strip > .customer-actions-strip { display: contents; }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters button:nth-child(n),
+  :root[data-theme] .workspace.section-companies .debts-toolbar .customer-actions-strip > button,
+  :root[data-theme] .workspace.section-companies .debts-toolbar .debt-total-card,
+  :root[data-theme] .workspace.section-companies .debts-toolbar .dashboard-search input {
+    height: 42px; min-height: 42px; max-height: 42px; border-radius: 999px;
+    border: 1px solid #f7d34a;
+    background: linear-gradient(170deg, #42413b 0%, #191914 22%, #060606 51%, #121008 85%, #30270d);
+    color: #fff; text-shadow: 0 0 3px #ffffff38;
+    box-shadow: inset 0 1px 1px #fff3af99, inset 0 -1px 1px #a67d0c, 0 0 3px #eac43d33;
+  }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters button:nth-child(n) {
+    flex: 1 0 auto; width: auto; min-width: 56px; padding-inline: 12px; font-size: 12px;
+  }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .customer-actions-strip > button {
+    flex: 1.25 0 auto; width: auto; padding-inline: 12px; font-size: 11px;
+  }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .debt-total-card { flex: 1.8 0 auto; padding-inline: 14px; }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters button:first-child,
+  :root[data-theme] .workspace.section-companies .debts-toolbar .customer-actions-strip > :is(.add-customer-card, .routing-card) {
+    background: linear-gradient(175deg, #fffde0, #fff29a 13%, #ffdb35 36%, #eab600 57%, #ffdb29 82%, #fff0a0);
+    color: #201600; text-shadow: none; border-color: #fff3a0;
+    box-shadow: inset 0 2px 2px #fffbd4, inset 0 -2px 2px #a97400, 0 0 5px #ffd52b55;
+  }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters button[aria-selected='true'] {
+    outline: 2px solid #fff2a4; outline-offset: -4px; text-decoration: underline; text-underline-offset: 4px;
+  }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .dashboard-search {
+    margin-inline-start: 0; flex: 1.3 0 125px; width: 125px; min-height: 42px; max-height: 42px;
+  }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .dashboard-search input { font-size: 11px; }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .dashboard-search input::placeholder { color: #eee8d8; opacity: 1; }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .dashboard-search svg { color: #ffe67d; }
+  :root[data-theme] .workspace.section-companies .debts-toolbar button:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+}/* Glossy black frame with a fine gold inner edge; customer cards only. */
+:root[data-theme] .workspace.section-companies .customer-card {
+  border: 1px solid #060606; border-radius: 16px;
+  box-shadow: 0 3px 5px #0006, inset 0 0 0 5px #080808, inset 0 0 0 6px #ebc653;
+}
+:root[data-theme] .workspace.section-companies .customer-card::after {
+  content: ''; display: block; position: absolute; inset: 0; z-index: 4;
+  border-radius: inherit; pointer-events: none;
+  border: 5px solid transparent;
+  background: linear-gradient(155deg, #b5b5b5 0%, #272727 12%, #020202 34%, #191919 62%, #090909 80%, #686868) border-box;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  box-shadow: inset 0 1px 1px #ffffff88;
+}
+:root[data-theme] .workspace.section-companies .customer-card::before {
+  content: ''; position: absolute; inset: 5px; z-index: 4; pointer-events: none;
+  border: 1px solid #eac04a; border-radius: 10px;
+  box-shadow: inset 0 1px 1px #fff2b055, 0 0 1px #ffd966;
+}
+:root[data-theme] .workspace.section-companies .customer-card-status-row { top: 8px; right: 9px; left: 38px; }
+:root[data-theme] .workspace.section-companies .customer-card .pin-customer { top: 8px; left: 9px; }
+:root[data-theme] .workspace.section-companies .customer-card .customer-card-main { padding-inline: 9px; padding-bottom: 9px; }
+
+:root[data-theme] .workspace.active-section-companies { background:#10100c; }
+:root[data-theme] .workspace.section-companies .content-card { background:#10100c;border-color:#ad8c34; }
+:root[data-theme='light'] .workspace.active-section-companies { background:linear-gradient(145deg,#fffdf7,#eee8dc);color:#302818; }
+:root[data-theme='light'] .workspace.section-companies .content-card { background:linear-gradient(145deg,#fffefa,#f5f0e4);border-color:#c9ad65; }
+:root[data-theme='light'] .ledger-panel.section-companies { background:linear-gradient(145deg,#fffdf4,#eee6d5);color:#302818; }
+:root[data-theme='light'] .ledger-panel.section-companies .ledger-record { background:#fffdf6;color:#302818; }
+:root[data-theme='light'] .ledger-panel.section-companies .ledger-record:nth-child(even) { background:#f2ecde; }
+:root[data-theme='light'] .ledger-panel.section-companies :is(input,select,textarea) { background:#fffdf6;color:#302818;color-scheme:light; }
+:root[data-theme='light'] .ledger-panel.section-companies :is(input,textarea)::placeholder { color:#76694c; }
+/* Readability fixes for the existing company-specific wrappers. */
+:root[data-theme] .workspace.active-section-companies .global-search-desktop-label { display:none; }
+:root[data-theme] .workspace.section-companies .debts-toolbar .debt-total-card > :is(strong,span,small) { color:#fff; }
+:root[data-theme] .workspace.section-companies .customer-card .pin-customer { background:linear-gradient(#393326,#080808);color:#ffe58b;border-color:#c9a84c; }
+:root[data-theme='light'] .ledger-panel.section-companies .ledger-table-wrap { background:#fffdf6; }
+:root[data-theme='light'] .ledger-panel.section-companies .ledger-footer-grid { background:linear-gradient(#f8f0d9,#ece0bf); }
+:root[data-theme='light'] .ledger-panel.section-companies .ledger-draft-row { background:#f2ecde;color:#302818; }

@@ -58,7 +58,7 @@ export function DashboardSidebar({
   };
 
   return <>
-    <aside data-palette={activeSection === 'egyptian-deposits' ? 'gold' : activeSection === 'companies' ? 'blue' : activeSection === 'customers' || activeSection === 'purchases' ? 'gold' : palette} data-appearance={activeSection === 'customers' ? 'customer-gold-two' : activeSection === 'purchases' ? 'purchases-compact' : activeSection === 'companies' ? 'company-royal' : activeSection === 'egyptian-deposits' ? 'customer-gold-two' : undefined} className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
+    <aside data-palette={activeSection === 'egyptian-deposits' ? 'gold' : activeSection === 'companies' ? 'gold' : activeSection === 'customers' || activeSection === 'purchases' ? 'gold' : palette} data-appearance={activeSection === 'customers' ? 'customer-gold-two' : activeSection === 'purchases' ? 'purchases-compact' : activeSection === 'companies' ? 'customer-gold-two' : activeSection === 'egyptian-deposits' ? 'customer-gold-two' : undefined} className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
       <div className="sidebar-identity">
         <span className="brand-mark" aria-hidden="true">
           VIB

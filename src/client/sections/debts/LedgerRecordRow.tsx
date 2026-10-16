@@ -1,3 +1,4 @@
+import { ledgerDisplayDates } from './ledgerDisplayDates.ts';
 import { Pencil, X } from 'lucide-react';
 import type { LedgerItem } from '../../api.ts';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
@@ -17,8 +18,7 @@ type Props = {
 export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, onEdit, onCancel }: Props) {
   const editable = canWrite && item.status === 'posted';
   const debtLedger = section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits';
-  const dateParts = ledgerDateFormat.formatToParts(new Date(item.transactionDate));
-  const part = (type: Intl.DateTimeFormatPartTypes) => dateParts.find(value => value.type === type)?.value ?? '';
+  const dates = ledgerDisplayDates(item.transactionDate, item.createdAt);
   const movement = isDepositSection(section)
     ? item.type === 'debt'
       ? (section === 'libyan-deposits' ? 'إيداع أمانة' : 'إيداع مصري')
@@ -37,9 +37,9 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
       </b>
       <div className="ledger-cell" data-label="اليوم والتاريخ والوقت">
         {debtLedger ? <strong className="ledger-date-parts">
-          <span>{part('weekday')}</span>
-          <span dir="ltr">{part('day')}/{part('month')}/{part('year')}</span>
-          <span>{part('hour')}:{part('minute')} {part('dayPeriod')}</span>
+          <span title="يوم الحركة المحاسبي">{dates.weekday}</span>
+          <span dir="ltr" title="تاريخ الحركة المحاسبي">{dates.date}</span>
+          <span title={dates.recordingTitle} aria-label={dates.recordingTitle}>تسجيل {dates.time}</span>
         </strong> : <strong>{ledgerDateFormat.format(new Date(item.transactionDate))}</strong>}
         {!item.actorIsOwner && <small className="operation-actor" title={`بواسطة ${item.actorName}`}>بواسطة {item.actorName}</small>}
       </div>

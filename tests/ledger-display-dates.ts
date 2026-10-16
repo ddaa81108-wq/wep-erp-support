@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { ledgerDisplayDates } from '../src/client/sections/debts/ledgerDisplayDates.ts';
+const current = ledgerDisplayDates('2026-10-16T00:00:00.000Z', '2026-10-16T06:30:00.000Z');
+assert.equal(current.date, '16/10/2026');
+assert.match(current.time, /8:30/);
+const backdated = ledgerDisplayDates('2026-10-10T00:00:00.000Z', '2026-10-16T06:30:00.000Z');
+assert.equal(backdated.date, '10/10/2026');
+assert.equal(backdated.time, current.time);
+assert.match(backdated.recordingTitle, /16/);
+const midnight = ledgerDisplayDates('2026-10-16T00:00:00Z', '2026-10-15T22:30:00Z');
+assert.match(midnight.time, /12:30/);
+assert.equal(ledgerDisplayDates('2026-10-16T00:00:00Z','').time, 'غير متاح');
+console.log('PASS display: Libya recording time, accounting date preserved, backdating and midnight boundary.');
