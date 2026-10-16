@@ -1,0 +1,52 @@
+/* Light reading surfaces for approved designs. Brand chrome, semantic badges,
+   card states, dimensions, and the existing dark designs stay unchanged. */
+:root[data-theme='light'] .workspace.active-section-companies {
+  background: linear-gradient(145deg,#f2f8ff,#dcecff); color:#123966;
+}
+:root[data-theme='light'] .workspace.section-companies .content-card {
+  background: linear-gradient(145deg,#ffffff,#eaf3ff); border-color:#89b7e8;
+}
+:root[data-theme='light'] .workspace.active-section-customers {
+  background: linear-gradient(145deg,#fffdf7,#eee8dc); color:#302818;
+}
+:root[data-theme='light'] .workspace.section-customers .content-card {
+  background: linear-gradient(145deg,#fffefa,#f5f0e4); border-color:#c9ad65;
+}
+:root[data-theme='light'] .ledger-panel.section-customers {
+  background: linear-gradient(145deg,#fffdf4,#eee6d5); color:#302818;
+}
+:root[data-theme='light'] .ledger-panel.section-companies {
+  background: linear-gradient(145deg,#f7fbff,#dfedff); color:#123966;
+}
+:root[data-theme='light'] .ledger-panel:is(.section-customers,.section-companies) .ledger-table-wrap { background:#fff; }
+:root[data-theme='light'] .ledger-panel.section-customers .ledger-record { background:#fffdf6; color:#302818; }
+:root[data-theme='light'] .ledger-panel.section-customers .ledger-record:nth-child(even) { background:#f2ecde; }
+:root[data-theme='light'] .ledger-panel.section-companies .ledger-record { background:#fff; color:#123966; }
+:root[data-theme='light'] .ledger-panel.section-companies .ledger-record:nth-child(even) { background:#eaf3ff; }
+:root[data-theme='light'] .ledger-panel:is(.section-customers,.section-companies) .ledger-draft-row { background:#f1f5fa; color:#172f4b; }
+:root[data-theme='light'] .ledger-panel:is(.section-customers,.section-companies) .ledger-grid :is(input,select,textarea) {
+  background:#fff; color:#162f4e; color-scheme:light;
+}
+:root[data-theme='light'] .ledger-panel:is(.section-customers,.section-companies) :is(input,textarea)::placeholder { color:#52647a; }
+:root[data-theme='light'] .ledger-panel:is(.section-customers,.section-companies) .ledger-record > b.ledger-cell { color:inherit; }
+:root[data-theme='light'] .ledger-panel.section-customers .ledger-footer-grid { background:linear-gradient(#f8f0d9,#ece0bf); }
+:root[data-theme='light'] .ledger-panel.section-companies .ledger-footer-grid { background:linear-gradient(#eaf4ff,#cfe3fc); }
+:root[data-theme='light'] .workspace.active-section-purchases { background:#f4f0e5; color:#302818; }
+:root[data-theme='light'] .purchases-page .purchase-register { background:linear-gradient(#fffefa,#f3edde); }
+:root[data-theme='light'] .purchases-page .purchase-register .purchase-row > span {
+  background:linear-gradient(#fffefa,#f7f2e6); color:#302818; border-color:#c9bc99;
+}
+:root[data-theme='light'] .purchases-page .purchase-day-entry:nth-child(even) .purchase-row > span { background:linear-gradient(#f2ecdc,#eae2cf); }
+:root[data-theme='light'] .purchases-page .purchase-day-closing { background:#eee3c9; }
+:root[data-theme='light'] .purchases-page .purchase-day-closing-label { color:#4c3a13; }
+:root[data-theme='light'] .purchases-page .purchase-register .purchase-inline-editor { background:#f4eddc; color:#302818; }
+:root[data-theme='light'] .purchases-page .purchase-inline-editor input { background:#fffefa; color:#302818; border-color:#a18b53; color-scheme:light; }
+:root[data-theme='light'] .purchases-page .purchase-inline-editor input::placeholder { color:#695c40; }
+:root[data-theme='light'] .purchases-page .purchase-register-total { background:#e7d7af; color:#302818; }
+:root[data-theme='light'] .purchases-page .purchase-workbar { background:#f5efdf; }
+:root[data-theme='light'] .purchases-page .purchase-metrics article:not(.negative):not(.liability) {
+  background:linear-gradient(#fffef5,#eee2bc); color:#42320c;
+}
+:root[data-theme='light'] .purchases-page .purchase-metrics article.vodafone.credit { color:#086439; }
+/* Keep dark brand navigation and glossy accents in both modes. Theme changes
+   are expressed in the reading surfaces, without replacing the chosen identity. */

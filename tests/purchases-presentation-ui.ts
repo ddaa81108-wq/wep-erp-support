@@ -103,7 +103,7 @@ try {
       for(let tone=0;tone<5;tone++) {
         const cell=page.locator(`.purchase-day-tone-${tone} .purchase-row > span`).first();
         await expect(cell).toHaveCSS('border-radius','0px');
-        await expect(cell).toHaveCSS('color','rgb(255, 255, 255)');
+        await expect(cell).toHaveCSS('color',theme === 'light' ? 'rgb(48, 40, 24)' : 'rgb(255, 255, 255)');
       }
       await page.screenshot({path:`artifacts/purchase-six/${theme}-${width}.png`,fullPage:true});
       await register.evaluate(e=>e.scrollTop=e.scrollHeight);
