@@ -22,6 +22,7 @@ import './styles/purchases-presentation.css';
 import './styles/debt-summary-desktop.css';
 import './styles/sidebar-gold.css';
 import './styles/customer-header-gold.css';
+import './styles/customer-ledger-gold.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {
@@ -32,5 +33,6 @@ void startInternetGuard(() => {
     </StrictMode>,
   );
 });
+
 
 

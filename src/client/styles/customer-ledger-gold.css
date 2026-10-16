@@ -1,0 +1,61 @@
+/* Customer ledger concept 5: visual surfaces only; existing geometry and handlers retained. */
+:root[data-theme] .ledger-panel.section-customers {
+  --ledger-gold: #e9c45a; color: #fff; background: linear-gradient(150deg, #28251d, #050505 22%, #11100b 85%, #302611);
+  border: 3px double #ffdf75; border-radius: 20px;
+  box-shadow: inset 0 1px 2px #fff5bd, inset 0 -2px 2px #a77713, 0 0 0 2px #171207, 0 6px 22px #0006;
+}
+:root[data-theme] .ledger-panel.section-customers > header {
+  background: linear-gradient(165deg, #514939, #090909 35%, #020202 70%, #403319);
+  border: 1px solid #f3cf63; border-radius: 999px; box-shadow: inset 0 1px 2px #fff0ac9c;
+}
+:root[data-theme] .ledger-panel.section-customers > header :is(.ledger-customer-title, .ledger-edit-details, .icon-button) {
+  background: linear-gradient(170deg, #38332a, #050505 55%, #1e180b); color: #fff4cb;
+  border: 1px solid #f4cf60; border-radius: 999px; box-shadow: inset 0 1px 1px #fff1ad88;
+}
+:root[data-theme] .ledger-panel.section-customers > header :is(h2, small, span) { color: inherit; }
+:root[data-theme] .ledger-panel.section-customers .ledger-table-wrap {
+  border: 3px double #efc656; border-radius: 15px; background: #070707;
+  box-shadow: inset 0 1px 2px #fff1a3;
+}
+:root[data-theme] .ledger-panel.section-customers .ledger-grid { border-color: #776237; }
+:root[data-theme] .ledger-panel.section-customers .ledger-grid > * { border-color: #776237; }
+:root[data-theme] .ledger-panel.section-customers .ledger-grid-head {
+  color: #fff5ce; background: linear-gradient(#353027, #070707 65%);
+}
+:root[data-theme] .ledger-panel.section-customers .ledger-grid-head > span > b {
+  color: #fff5ce; background: linear-gradient(165deg, #3b3423, #080808 55%, #211a0b);
+  border: 1px solid #f4cf60; border-radius: 999px; box-shadow: inset 0 1px 1px #fff0b077;
+}
+:root[data-theme] .ledger-panel.section-customers .ledger-record {
+  background: linear-gradient(110deg, #151515, #060606); color: #fff;
+}
+:root[data-theme] .ledger-panel.section-customers .ledger-record:nth-child(even) { background: linear-gradient(110deg, #22211d, #10100e); }
+:root[data-theme] .ledger-panel.section-customers .ledger-record .operation-actor {
+  color: #fff1bc; border-color: #b79b52; background: linear-gradient(#393326, #12100b);
+}
+:root[data-theme] .ledger-panel.section-customers :is(input, select, textarea) {
+  color: #fff; background: #141414; border-color: #a78b48; color-scheme: dark;
+}
+:root[data-theme] .ledger-panel.section-customers :is(input, textarea)::placeholder { color: #cfc8b7; opacity: 1; }
+:root[data-theme] .ledger-panel.section-customers :is(input, select, textarea):focus { outline: 2px solid #ffe087; outline-offset: -2px; }
+:root[data-theme] .ledger-panel.section-customers :is(.ledger-choice, .ledger-record-pill) {
+  box-shadow: inset 0 1px 2px #ffffff8c, inset 0 -1px 2px #0008;
+}
+:root[data-theme] .ledger-panel.section-customers .choice-debt { background: linear-gradient(#f74a5c, #a70920 60%, #d91b32); color: #fff; }
+:root[data-theme] .ledger-panel.section-customers .choice-partial { background: linear-gradient(#18bc75, #006536 65%, #079956); color: #fff; }
+:root[data-theme] .ledger-panel.section-customers .choice-full { background: linear-gradient(#525252, #050505 65%, #252525); color: #fff; }
+:root[data-theme] .ledger-panel.section-customers :is(.choice-direct, .choice-divide, .choice-multiply) {
+  background: linear-gradient(#4c4026, #090806 65%, #30230c); color: #fff3c1; border-color: #eac25a;
+}
+:root[data-theme] .ledger-panel.section-customers .ledger-grid > .row-action:is(.edit, .approve) { background: linear-gradient(#20bd7b, #006b3b 65%, #079b57); }
+:root[data-theme] .ledger-panel.section-customers .ledger-grid > .row-action.cancel { background: linear-gradient(#f04c60, #ac1028 65%, #d9213b); }
+:root[data-theme] .ledger-panel.section-customers .ledger-footer-grid { background: linear-gradient(170deg, #242017, #030303 55%, #231a09); }
+:root[data-theme] .ledger-panel.section-customers .ledger-footer-grid > .ledger-total {
+  background: linear-gradient(175deg, #fff8cc, #ffe57b 17%, #e7ae12 58%, #ffdf60 85%, #fff0a1);
+  color: #211600; border: 2px solid #ffedab; border-radius: 999px;
+  box-shadow: inset 0 2px 2px #fffbdc, inset 0 -2px 2px #b67b07, 0 0 6px #edc13e55;
+}
+:root[data-theme] .ledger-panel.section-customers .choice-debt { background-color: #a61e2a; }
+:root[data-theme] .ledger-panel.section-customers .choice-partial { background-color: #087443; }
+:root[data-theme] .ledger-panel.section-customers .choice-full { background-color: #17191f; }
+:root[data-theme] .ledger-panel.section-customers .ledger-grid-head > span:first-child > b { font-size: 8px; white-space: nowrap; }
