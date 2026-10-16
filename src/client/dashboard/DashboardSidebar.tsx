@@ -1,4 +1,4 @@
-import { LogOut, PanelRightClose, PanelRightOpen, X } from 'lucide-react';
+import { Building2, UserRound, LogOut, PanelRightClose, PanelRightOpen, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api, type User } from '../api.ts';
 import { AdminNavigation } from '../admin/AdminNavigation.tsx';
@@ -61,10 +61,10 @@ export function DashboardSidebar({
     <aside data-palette={palette} className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
       <div className="sidebar-identity">
         <span className="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 74 40" fill="none"><path d="M3 7 23 33V7M33 7v26M43 7h16l9 7-9 6H43m0 0h17l8 6-9 7H43V7" stroke="currentColor" strokeWidth="6" strokeLinejoin="miter" /></svg>
+          VIB
         </span>
-        <div className="identity-app"><strong title={systemName}>{systemName}</strong><small>محلي</small></div>
-        <div className="identity-user"><strong title={user.displayName}>{user.displayName}</strong><small>{user.role === 'admin' ? 'مدير النظام' : user.username}</small></div>
+        <div className="identity-app"><Building2 aria-hidden="true" size={19} /><strong title={systemName}>{systemName}</strong><small>محلي</small></div>
+        <div className="identity-user"><span className="identity-avatar" aria-hidden="true"><UserRound size={22} /></span><div className="identity-user-copy"><strong title={user.displayName}>{user.displayName}</strong><small>{user.role === 'admin' ? 'مدير النظام' : user.username}</small></div></div>
         <button className="sidebar-hide-button" onClick={onHide} aria-label="إخفاء الشريط الجانبي" title="إخفاء الشريط الجانبي"><PanelRightClose size={17} /></button>
         <button className="sidebar-mobile-close" onClick={onCloseMenu} aria-label="إغلاق القائمة الرئيسية" title="إغلاق القائمة الرئيسية"><X size={18} /></button>
       </div>
@@ -80,3 +80,4 @@ export function DashboardSidebar({
     {menuOpen && <button className="drawer-shade" onClick={onCloseMenu} aria-label="إغلاق القائمة" />}
   </>;
 }
+
