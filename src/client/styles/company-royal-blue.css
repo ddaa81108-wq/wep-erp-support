@@ -1,0 +1,121 @@
+/* Company concept 4. Presentation only, scoped independently from other ledgers. */
+:root[data-theme] :is(.workspace.active-section-companies, .workspace.section-companies, .ledger-panel.section-companies, .sidebar[data-appearance='company-royal']) {
+  --royal-surface: linear-gradient(155deg, #1277e9, #0646ab 36%, #042b72 80%, #0752bb);
+  --royal-pill: linear-gradient(175deg, #3197ff, #0c61d0 26%, #063c91 67%, #1266ca);
+  --royal-orange: linear-gradient(175deg, #ffe0a2, #ffb139 13%, #ff8500 43%, #ef6500 72%, #ff9b19);
+  --royal-edge: #58aaff;
+}
+:root[data-theme] .workspace.active-section-companies {
+  background: radial-gradient(ellipse at 50% 0, #167ce8, #063a96 48%, #032763); color: #fff;
+}
+:root[data-theme] .workspace.active-section-companies > .dashboard-utility-bar {
+  background: linear-gradient(170deg, #1686f5, #0647ae 55%, #04317e);
+  border: 1px solid #65b4ff; border-radius: 22px;
+  box-shadow: inset 0 1px 1px #ccecff99, 0 5px 12px #001b5644;
+}
+:root[data-theme] .workspace.active-section-companies .dashboard-section-title {
+  background: var(--royal-orange); color: #251200; border: 1px solid #ffe0a4; border-radius: 999px;
+  box-shadow: inset 0 2px 1px #fff2c9, inset 0 -2px 2px #b94b00;
+}
+:root[data-theme] .workspace.active-section-companies .dashboard-section-heading { color: #251200; }
+:root[data-theme] .workspace.active-section-companies :is(.sync-status, .utility-icon-button) {
+  background: var(--royal-pill); border: 1px solid #85c5ff; color: #fff; border-radius: 999px;
+  box-shadow: inset 0 1px 1px #e1f2ff88;
+}
+:root[data-theme] .workspace.active-section-companies .global-account-search { background: #fff; color: #12396d; border-color: #8dcaff; border-radius: 999px; }
+:root[data-theme] .workspace.active-section-companies .global-account-search input { color: #12396d; }
+:root[data-theme] .workspace.active-section-companies .global-account-search input::placeholder { color: #516d91; }
+:root[data-theme] .workspace.active-section-companies .debt-ticker {
+  background: linear-gradient(180deg, #0754b2, #042c72); color: #fff; border: 1px solid #5daeff; border-radius: 999px;
+}
+:root[data-theme] .workspace.active-section-companies .debt-ticker-track button { background: #073578; color: #fff; border-color: #83bdff; }
+:root[data-theme] .workspace.active-section-companies .debt-ticker-track button span { color: #ffd290; }
+:root[data-theme] .workspace.section-companies .customer-summary-strip {
+  background: var(--royal-surface); border: 1px solid #6ab8ff; border-radius: 22px;
+  box-shadow: inset 0 1px 1px #d8eeff88, 0 4px 12px #001b5633;
+}
+:root[data-theme] .workspace.section-companies .debts-toolbar :is(.debt-total-card, .add-customer-card, .routing-card, .active-cards-card),
+:root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters button:nth-child(n) {
+  background: var(--royal-pill); border: 1px solid #80c2ff; color: #fff; border-radius: 999px;
+  box-shadow: inset 0 1px 2px #e1f2ff99, inset 0 -1px 2px #00245288;
+}
+:root[data-theme] .workspace.section-companies .debts-toolbar :is(.debt-total-card, .add-customer-card),
+:root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters button[aria-selected='true'] {
+  background: var(--royal-orange); border-color: #ffe4b2; color: #291400;
+  box-shadow: inset 0 2px 1px #fff1c4, inset 0 -2px 2px #ba5000;
+}
+:root[data-theme] .workspace.section-companies .debts-toolbar .debt-total-card > :is(span,strong) { color: #291400; }
+:root[data-theme] .workspace.section-companies .customer-actions-strip { background: transparent; border: 0; }
+:root[data-theme] .workspace.section-companies .dashboard-search input { background: #062f79; color: #fff; border-color: #82bfff; border-radius: 999px; }
+:root[data-theme] .workspace.section-companies .dashboard-search input::placeholder { color: #d8eaff; opacity: 1; }
+:root[data-theme] .workspace.section-companies .dashboard-search svg { color: #fff; }
+:root[data-theme] .workspace.section-companies .customer-card {
+  background: linear-gradient(145deg, #1472d5, #063f9a 40%, #042768); border: 2px solid #ff9e22; border-radius: 17px;
+  box-shadow: inset 0 1px 2px #d5eaff99, inset 0 -3px 7px #00194666, 0 4px 8px #001b5644;
+}
+:root[data-theme] .workspace.section-companies .customer-card-main { color: #fff; }
+:root[data-theme] .workspace.section-companies .customer-card-label { color: #e0edff; }
+:root[data-theme] .workspace.section-companies .customer-card.zero-balance { background: linear-gradient(145deg, #373d48, #101722 60%, #060d18); border-color: #9cabbe; }
+:root[data-theme] .workspace.section-companies .customer-card.credit-balance { background: linear-gradient(145deg, #149962, #046139 60%, #023f2c); border-color: #54e9a7; }
+:root[data-theme] .workspace.section-companies .customer-card.warning-debt { background: linear-gradient(145deg, #a96f09, #785003 60%, #593a01); border-color: #ffe179; }
+:root[data-theme] .workspace.section-companies .customer-card.overdue-debt { background: linear-gradient(145deg, #c73948, #891424 60%, #600b1a); border-color: #ff9dab; }
+:root[data-theme] .workspace.section-companies .pin-customer { background: linear-gradient(#166ed0, #063375); border-color: #8dc9ff; color: #ffe0a1; border-radius: 999px; }
+:root[data-theme] .workspace.section-companies .pin-customer[aria-pressed='true'] { background: var(--royal-orange); color: #291400; }
+:root[data-theme] .sidebar[data-appearance='company-royal'] {
+  background: linear-gradient(165deg, #1279ea, #0646a8 30%, #032a70 80%, #084fa8); border-color: #6db8ff;
+  --sb-edge: #78bcff; --sb-light: #d7edff; --sb-line: #579ce2; --sb-glow: #2495ff44;
+  box-shadow: inset 0 1px 2px #d8efff, inset 0 0 0 3px #1464b733, -3px 0 12px #00295c44;
+}
+:root[data-theme] .sidebar[data-appearance='company-royal'] nav button {
+  background: var(--royal-pill); color: #fff; border: 1px solid #71b5ff; border-radius: 999px;
+  box-shadow: inset 0 1px 2px #c8e8ff99, inset 0 -1px 2px #002957; min-height: 44px;
+}
+:root[data-theme] .sidebar[data-appearance='company-royal'] nav button.active {
+  background: var(--royal-orange); color: #291400; border-color: #ffe2a9;
+  box-shadow: inset 0 2px 2px #fff2c6, inset 0 -2px 2px #b84e00, 0 2px 8px #00225177;
+}
+:root[data-theme] .sidebar[data-appearance='company-royal'] nav button svg { color: inherit; background: transparent; border-color: #9acaff; }
+:root[data-theme] .sidebar[data-appearance='company-royal'] :is(.sidebar-identity,.identity-user,.sidebar-controls button) { background: linear-gradient(145deg, #0b59b8, #04357f); border-color: #64adf5; color: #fff; }
+:root[data-theme] .sidebar[data-appearance='company-royal'] .brand-mark { color: #ffb83e; text-shadow: 0 1px 0 #ffe9bc, 0 3px 3px #4b2701; }
+:root[data-theme] .ledger-panel.section-companies {
+  background: var(--royal-surface); color: #fff; border: 2px solid #72b8ff; border-radius: 20px;
+  box-shadow: inset 0 1px 2px #d6ecff, 0 8px 28px #00152c88;
+}
+:root[data-theme] .ledger-panel.section-companies > header { background: linear-gradient(160deg, #126bdd, #063783); border: 1px solid #70b7ff; border-radius: 999px; }
+:root[data-theme] .ledger-panel.section-companies > header :is(.ledger-customer-title,.ledger-edit-details,.icon-button) {
+  background: var(--royal-pill); color: #fff; border: 1px solid #8bc9ff; border-radius: 999px; box-shadow: inset 0 1px 1px #e6f4ff99;
+}
+:root[data-theme] .ledger-panel.section-companies > header .ledger-edit-details { background: var(--royal-orange); color: #291400; border-color: #ffe2ab; }
+:root[data-theme] .ledger-panel.section-companies > header :is(h2,small,span) { color: inherit; }
+:root[data-theme] .ledger-panel.section-companies .ledger-table-wrap { background: #063075; border: 1px solid #71b9ff; border-radius: 14px; }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid { border-color: #4e82bd; }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid > * { border-color: #4e82bd; }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid-head { background: linear-gradient(#1376df, #06449d); color: #fff; }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid-head > span > b { background: var(--royal-pill); color: #fff; border: 1px solid #85c7ff; border-radius: 999px; box-shadow: inset 0 1px 1px #d5edff77; }
+:root[data-theme] .ledger-panel.section-companies .ledger-record { background: linear-gradient(100deg, #07377f, #052a67); color: #fff; }
+:root[data-theme] .ledger-panel.section-companies .ledger-record:nth-child(even) { background: linear-gradient(100deg, #0c4896, #073878); }
+:root[data-theme] .ledger-panel.section-companies .operation-actor { background: #1055a5; color: #fff; border-color: #85bcf5; }
+:root[data-theme] .ledger-panel.section-companies :is(input,select,textarea) { background: #06285e; color: #fff; border-color: #7aafe6; color-scheme: dark; }
+:root[data-theme] .ledger-panel.section-companies :is(input,textarea)::placeholder { color: #d4e7ff; opacity: 1; }
+:root[data-theme] .ledger-panel.section-companies :is(.ledger-choice,.ledger-record-pill) { box-shadow: inset 0 1px 2px #ffffff88, inset 0 -1px 2px #0007; }
+:root[data-theme] .ledger-panel.section-companies .choice-debt { background-image: linear-gradient(#ed4555,#a61e2a); color: #fff; }
+:root[data-theme] .ledger-panel.section-companies .choice-partial { background-image: linear-gradient(#139b64,#087443); color: #fff; }
+:root[data-theme] .ledger-panel.section-companies .choice-full { background-image: linear-gradient(#444c59,#17191f); color: #fff; }
+:root[data-theme] .ledger-panel.section-companies :is(.choice-direct,.choice-divide,.choice-multiply) { background-image: var(--royal-pill); color: #fff; border-color: #90caff; }
+:root[data-theme] .ledger-panel.section-companies .ledger-footer-grid { background: linear-gradient(100deg,#0c5ec6,#063783); }
+:root[data-theme] .ledger-panel.section-companies .ledger-footer-grid > .ledger-total { background: var(--royal-orange); color: #291400; border: 2px solid #ffe3a7; border-radius: 999px; box-shadow: inset 0 2px 2px #fff0c6, inset 0 -2px 2px #bb4c00; }
+:root[data-theme] :is(.workspace.section-companies,.ledger-panel.section-companies,.sidebar[data-appearance='company-royal']) :is(button,input,textarea,select):focus-visible { outline: 2px solid #ffcf73; outline-offset: -3px; }
+:root[data-theme] .ledger-panel.section-companies .ledger-choice[aria-pressed='true'] { outline: 2px solid #fff; outline-offset: -3px; }
+:root[data-theme] .workspace.section-companies .content-card { background: linear-gradient(150deg,#094baf,#062e77); border: 1px solid #5b9fe6; border-radius: 18px; }
+:root[data-theme] .workspace.section-companies .debts-toolbar .customer-actions-strip > .add-customer-card { background: var(--royal-orange); color: #291400; border-color: #ffe2a9; }
+:root[data-theme] .workspace.section-companies .debts-toolbar .customer-actions-strip > .routing-card { background: var(--royal-pill); color: #fff; border-color: #8bc9ff; }
+:root[data-theme] .ledger-panel.section-companies .ledger-draft-row { background: #124b92; }
+:root[data-theme] .ledger-panel.section-companies .ledger-grid-head > span:first-child > b { font-size: 8px; white-space: nowrap; }
+@media (min-width: 901px) {
+  :root[data-theme] .workspace.active-section-companies .global-account-search input::placeholder { color: transparent; }
+  :root[data-theme] .workspace.section-companies .customer-summary-strip { gap: 8px; }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters,
+  :root[data-theme] .workspace.section-companies .customer-summary-strip > .customer-actions-strip { display: contents; }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .compact-filters button:nth-child(n) { flex: 1 0 auto; width: auto; min-width: 52px; padding-inline: 10px; }
+  :root[data-theme] .workspace.section-companies .debts-toolbar .customer-actions-strip > button { flex: 1 0 auto; width: auto; padding-inline: 12px; }
+}
