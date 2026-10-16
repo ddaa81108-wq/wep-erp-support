@@ -121,8 +121,8 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       </label>
       <div className="ledger-draft-field">
         <span>النوع</span>
-        {(section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? <div className="ledger-choice-group" role="group" aria-label="نوع المعاملة">
-          {(section === 'libyan-deposits' ? [['debt', 'إيداع أمانة'], ['partial', 'سحب أمانة']] as const : [['debt', 'ديون'], ['partial', 'دفع جزئي'], ['full', 'دفع كلي']] as const).map(([choice, label]) =>
+        {(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? <div className="ledger-choice-group" role="group" aria-label="نوع المعاملة">
+          {(section === 'egyptian-deposits' ? [['debt', 'إيداع مصري'], ['partial', 'سحب مصري']] as const : section === 'libyan-deposits' ? [['debt', 'إيداع أمانة'], ['partial', 'سحب أمانة']] as const : [['debt', 'ديون'], ['partial', 'دفع جزئي'], ['full', 'دفع كلي']] as const).map(([choice, label]) =>
             <button type="button" key={choice} className={`ledger-choice choice-${choice}`} aria-pressed={kind === choice} onClick={() => setKind(choice)}>{label}</button>)}
         </div> :
         <select
@@ -160,7 +160,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       </label>
       <div className="ledger-draft-field">
         <span>الحساب</span>
-        {(section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? <div className="ledger-choice-group" role="group" aria-label="طريقة الحساب">
+        {(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? <div className="ledger-choice-group" role="group" aria-label="طريقة الحساب">
           {([['direct', 'مباشر'], ['divide', 'قسمة'], ['multiply', 'ضرب']] as const).map(([choice, label]) =>
             <button type="button" key={choice} className={`ledger-choice choice-${choice}`} aria-label={label} title={label} aria-pressed={(kind === 'full' ? 'direct' : mode) === choice} disabled={kind === 'full'} onClick={() => setMode(choice)}>{choice === 'divide' ? '÷' : choice === 'multiply' ? '×' : label}</button>)}
         </div> :
@@ -176,9 +176,9 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
         </select>}
       </div>
       <label className="ledger-draft-field">
-        <span>{(section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? 'السعر' : 'المعامل'}</span>
+        <span>{(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? 'السعر' : 'المعامل'}</span>
         <input
-          aria-label={(section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? 'السعر' : 'المعامل'}
+          aria-label={(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? 'السعر' : 'المعامل'}
           type="number"
           min="0.000001"
           step="any"
@@ -190,11 +190,11 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
         />
       </label>
       <div className="ledger-draft-field draft-result debt-value">
-        <span>{isDepositSection(section) ? (section === 'libyan-deposits' ? 'إيداع أمانة' : 'دخول') : 'دين مضاف'}</span>
+        <span>{isDepositSection(section) ? (section === 'libyan-deposits' ? 'إيداع أمانة' : 'إيداع مصري') : 'دين مضاف'}</span>
         <strong>{kind === 'debt' ? `${ledgerMoney.format(result)} ${currencyLabel(section)}` : '—'}</strong>
       </div>
       <div className="ledger-draft-field draft-result payment-value">
-        <span>{isDepositSection(section) ? (section === 'libyan-deposits' ? 'سحب أمانة' : 'خروج') : 'مدفوع'}</span>
+        <span>{isDepositSection(section) ? (section === 'libyan-deposits' ? 'سحب أمانة' : 'سحب مصري') : 'مدفوع'}</span>
         <strong>{kind !== 'debt' ? `${ledgerMoney.format(result)} ${currencyLabel(section)}` : '—'}</strong>
       </div>
       <div className="ledger-draft-field draft-result">

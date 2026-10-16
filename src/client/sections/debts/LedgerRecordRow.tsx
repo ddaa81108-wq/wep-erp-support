@@ -16,13 +16,13 @@ type Props = {
 
 export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, onEdit, onCancel }: Props) {
   const editable = canWrite && item.status === 'posted';
-  const debtLedger = section === 'customers' || section === 'companies' || section === 'libyan-deposits';
+  const debtLedger = section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits';
   const dateParts = ledgerDateFormat.formatToParts(new Date(item.transactionDate));
   const part = (type: Intl.DateTimeFormatPartTypes) => dateParts.find(value => value.type === type)?.value ?? '';
   const movement = isDepositSection(section)
     ? item.type === 'debt'
-      ? (section === 'libyan-deposits' ? 'إيداع أمانة' : 'دخول')
-      : (section === 'libyan-deposits' ? 'سحب أمانة' : 'خروج')
+      ? (section === 'libyan-deposits' ? 'إيداع أمانة' : 'إيداع مصري')
+      : (section === 'libyan-deposits' ? 'سحب أمانة' : 'سحب مصري')
     : item.type === 'debt'
       ? 'إضافة دين'
       : item.paymentMode === 'full'
@@ -45,7 +45,7 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
       </div>
       <span className="ledger-cell" data-label="نوع الحركة">
         {debtLedger ? <span className={`ledger-record-pill choice-${item.type === 'debt' ? 'debt' : item.paymentMode === 'full' ? 'full' : 'partial'}`}>
-          {section === 'libyan-deposits' ? movement : item.type === 'debt' ? 'ديون' : item.paymentMode === 'full' ? 'دفع كلي' : 'دفع جزئي'}
+          {isDepositSection(section) ? movement : item.type === 'debt' ? 'ديون' : item.paymentMode === 'full' ? 'دفع كلي' : 'دفع جزئي'}
         </span> : movement}
         {status}
       </span>
@@ -60,13 +60,13 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
           {item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? '×' : '÷'}
         </span> : item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? 'ضرب' : 'قسمة'}
       </span>
-      <span className="ledger-cell" data-label={(section === 'customers' || section === 'companies' || section === 'libyan-deposits') ? 'السعر' : 'المعامل'}>
+      <span className="ledger-cell" data-label={(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? 'السعر' : 'المعامل'}>
         {item.factorMicros ? ledgerFactor.format(item.factorMicros / 1_000_000) : '—'}
       </span>
-      <strong className="ledger-cell" data-label={section === 'libyan-deposits' ? 'إيداع أمانة' : 'دين مضاف'}>
+      <strong className="ledger-cell" data-label={section === 'egyptian-deposits' ? 'إيداع مصري' : section === 'libyan-deposits' ? 'إيداع أمانة' : 'دين مضاف'}>
         {item.type === 'debt' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}
       </strong>
-      <strong className="ledger-cell" data-label={section === 'libyan-deposits' ? 'سحب أمانة' : 'مدفوع'}>
+      <strong className="ledger-cell" data-label={section === 'egyptian-deposits' ? 'سحب مصري' : section === 'libyan-deposits' ? 'سحب أمانة' : 'مدفوع'}>
         {item.type === 'payment' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}
       </strong>
       <strong className="ledger-cell ledger-row-balance" data-label="الرصيد">

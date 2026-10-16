@@ -1,0 +1,148 @@
+/* Egyptian deposits: customer black/gold visual identity; financial semantics unchanged. */
+:root[data-theme] :is(.workspace.active-section-egyptian-deposits,.workspace.section-egyptian-deposits,.ledger-panel.section-egyptian-deposits,.sidebar[data-appearance='egypt-pink']) {
+  --eg-pink:linear-gradient(175deg,#fffde0,#fff29a 14%,#eab600 55%,#a77c1a 78%,#ffdb29);
+  --eg-green:linear-gradient(175deg,#77f2ba,#12a866 20%,#006337 65%,#08834e);
+  --eg-paper:#080808; --eg-row:#151515; --eg-alt:#22211d; --eg-ink:#fff4cb; --eg-line:#776237;
+}
+:root[data-theme='light'] :is(.workspace.active-section-egyptian-deposits,.workspace.section-egyptian-deposits,.ledger-panel.section-egyptian-deposits) {
+  --eg-paper:#fffdf7; --eg-row:#fff; --eg-alt:#f2ecde; --eg-ink:#302818; --eg-line:#c9ad65;
+}
+:root[data-theme] .workspace.active-section-egyptian-deposits { background:var(--eg-paper); color:var(--eg-ink); }
+:root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar { background:var(--eg-pink); border:2px solid #e9c45a; border-radius:20px; box-shadow:inset 0 1px 2px #fff1ad,0 3px 9px #680d3e44; }
+:root[data-theme] .workspace.active-section-egyptian-deposits :is(.dashboard-section-title,.sync-status,.utility-icon-button) { background:linear-gradient(#38332a,#050505); color:#fff; border:1px solid #e9c45a; border-radius:999px; }
+:root[data-theme] .workspace.active-section-egyptian-deposits .dashboard-section-heading { color:#fff; }
+:root[data-theme] .workspace.active-section-egyptian-deposits .global-account-search { background:#fff; color:#302818; border-color:#e9c45a; border-radius:999px; }
+:root[data-theme] .workspace.active-section-egyptian-deposits .global-account-search input { color:#302818; }
+:root[data-theme] .workspace.active-section-egyptian-deposits .global-account-search input::placeholder { color:#655a43; }
+:root[data-theme] .workspace.section-egyptian-deposits .content-card { background:var(--eg-paper); border:1px solid #e9c45a; border-radius:18px; }
+:root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar :is(.debt-total-card,.active-cards-card,.add-customer-card) { background:var(--eg-pink); color:#fff; border:1px solid #e9c45a; border-radius:999px; box-shadow:inset 0 2px 2px #fff1adaa,inset 0 -2px 2px #570527; }
+:root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar .debt-total-card { background:var(--eg-green); border-color:#69e7ac; }
+:root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar :is(strong,span) { color:inherit; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search input { background:var(--eg-row); color:var(--eg-ink); border-color:#e9c45a; border-radius:999px; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search input::placeholder { color:var(--eg-ink); opacity:.8; }
+:root[data-theme] .workspace.section-egyptian-deposits :is(.dashboard-search,.exchange-rate-card) { background:linear-gradient(#393326,#12100b); color:#fff; border:1px solid #e9c45a; border-radius:16px; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-card-head small { color:#fff1ad; }
+:root[data-theme] .workspace.section-egyptian-deposits .compact-filters button { border-radius:999px; border:1px solid #e9c45a; background:#16130b; color:#fff; }
+:root[data-theme] .workspace.section-egyptian-deposits .compact-filters button[aria-selected='true'] { background:var(--eg-green); border-color:#abffd5; }
+:root[data-theme] .workspace.section-egyptian-deposits .customer-card { background:linear-gradient(155deg,#38332a,#080808 65%); border:2px solid #e9c45a; border-radius:17px; box-shadow:inset 0 1px 2px #fff1ad, inset 0 0 0 4px #510d3444,0 3px 8px #22091744; --card-accent:#e6bcd2; }
+:root[data-theme] .workspace.section-egyptian-deposits .customer-card-main { color:#fff; }
+:root[data-theme] .workspace.section-egyptian-deposits .customer-card-main > b { color:#9ff4ca; }
+:root[data-theme] .workspace.section-egyptian-deposits .customer-card.overdue-debt { border-color:#ff839d; }
+:root[data-theme] .workspace.section-egyptian-deposits .customer-card.overdue-debt .customer-card-main > b { color:#ffb1c0; }
+:root[data-theme] .workspace.section-egyptian-deposits .customer-card.zero-balance { background:linear-gradient(#3e3b45,#14131b); border-color:#aaa4b4; }
+:root[data-theme] .workspace.section-egyptian-deposits .customer-card.zero-balance .customer-card-main > b { color:#fff; }
+:root[data-theme] .workspace.section-egyptian-deposits .pin-customer { background:#30230c; color:#fff1ad; border-color:#e9c45a; border-radius:999px; }
+:root[data-theme] .sidebar[data-appearance='egypt-pink'] { background:linear-gradient(160deg,#a91c65,#4b0b34 48%,#20091e); border:2px solid #e9c45a; --sb-edge:#ef72b0; --sb-line:#a43b73; --sb-light:#ffe0ef; --sb-glow:#fc3c9655; }
+:root[data-theme] .sidebar[data-appearance='egypt-pink'] nav button { background:var(--eg-pink); color:#fff; border:1px solid #ffabd0; border-radius:999px; box-shadow:inset 0 1px 2px #ffe4f2aa,inset 0 -2px 2px #4d052b; }
+:root[data-theme] .sidebar[data-appearance='egypt-pink'] nav button.active { background:var(--eg-green); color:#fff; border-color:#adffcf; }
+:root[data-theme] .sidebar[data-appearance='egypt-pink'] nav button svg { color:inherit; background:transparent; border-color:#ffbadc; }
+:root[data-theme] .sidebar[data-appearance='egypt-pink'] :is(.sidebar-identity,.identity-user,.sidebar-controls button) { background:linear-gradient(#67234c,#270b23); color:#fff; border-color:#e77eb3; }
+:root[data-theme] .sidebar[data-appearance='egypt-pink'] .brand-mark { color:#e9c45a; text-shadow:0 1px 1px #fff,0 3px 4px #76043d; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits { background:var(--eg-paper); color:var(--eg-ink); border:2px solid #e9c45a; border-radius:20px; box-shadow:inset 0 1px 2px #fff1ad,0 8px 24px #26051f66; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits > header { background:var(--eg-pink); color:#fff; border:1px solid #e9c45a; border-radius:999px; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits > header :is(.ledger-customer-title,.ledger-edit-details,.icon-button) { background:linear-gradient(#38332a,#050505); color:#fff; border:1px solid #e9c45a; border-radius:999px; box-shadow:inset 0 1px 1px #fff1ad88; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits > header :is(span,h2,small) { color:inherit; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-table-wrap { background:var(--eg-paper); border:1px solid #e9c45a; border-radius:14px; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-grid,
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-grid > * { border-color:var(--eg-line); }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-grid-head { background:linear-gradient(#09834e,#03442a); color:#fff; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-grid-head > span > b { background:var(--eg-green); color:#fff; border:1px solid #81dbb1; border-radius:999px; box-shadow:inset 0 1px 1px #ceffe588; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-grid-head > span:first-child > b { font-size:8px; white-space:nowrap; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-record { background:var(--eg-row); color:var(--eg-ink); }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-record:nth-child(even) { background:var(--eg-alt); }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-record > b { color:inherit; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .operation-actor { background:#393326; color:#fff1ad; border-color:#e9c45a; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-draft-row { background:var(--eg-alt); color:var(--eg-ink); }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-grid :is(input,select,textarea) { background:var(--eg-paper); color:var(--eg-ink); border-color:#e9c45a; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits :is(input,textarea)::placeholder { color:var(--eg-ink); opacity:.7; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits :is(.choice-debt,.ledger-total[data-balance-sign='positive']) { background-color:#087443; background-image:var(--eg-green); color:#fff; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits :is(.choice-partial,.ledger-total[data-balance-sign='negative']) { background-color:#a61e2a; background-image:linear-gradient(#f04c60,#a61e2a); color:#fff; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-total[data-balance-sign='zero'] { background:#334155; color:#fff; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits :is(.choice-direct,.choice-divide,.choice-multiply) { background:var(--eg-pink); color:#fff; border-color:#e9c45a; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-footer-grid { background:var(--eg-alt); }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-total { border-radius:999px; border:1px solid #99e7bc; box-shadow:inset 0 2px 2px #ddffeb88; }
+:root[data-theme] :is(.workspace.section-egyptian-deposits,.ledger-panel.section-egyptian-deposits,.sidebar[data-appearance='egypt-pink']) :is(button,input,select):focus-visible { outline:2px solid #e9c45a; outline-offset:-3px; }
+@media(max-width:900px) {
+  :root[data-theme] .ledger-panel.section-egyptian-deposits > header { display:flex; align-items:center; gap:6px; padding:5px; min-height:44px; }
+  :root[data-theme] .ledger-panel.section-egyptian-deposits > header .ledger-customer-title { position:static; transform:none; flex:1; min-width:0; height:34px; padding:0 8px; display:flex; align-items:center; justify-content:center; }
+  :root[data-theme] .ledger-panel.section-egyptian-deposits > header .ledger-customer-title > span { display:none; }
+  :root[data-theme] .ledger-panel.section-egyptian-deposits > header h2 { font-size:12px; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  :root[data-theme] .ledger-panel.section-egyptian-deposits > header .ledger-edit-details { position:static; transform:none; width:auto; flex:0 0 auto; height:34px; padding:0 10px; font-size:10px; }
+  :root[data-theme] .ledger-panel.section-egyptian-deposits > header .icon-button { position:static; transform:none; flex:0 0 34px; width:34px; height:34px; padding:5px; }
+}
+
+
+/* Customer desktop header 5 and ticker 10: presentation only. */
+@media (min-width: 901px) {
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar {
+    min-height: 62px; max-height: 62px; padding: 8px 12px; gap: 14px; border: 3px double #ffdc60; border-radius: 999px;
+    background: linear-gradient(170deg, #535047, #191815 22%, #030303 52%, #242017);
+    box-shadow: inset 0 1px 2px #fff3aa, inset 0 -2px 2px #ad7d14, 0 2px 5px #0005;
+  }
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar :is(.dashboard-section-title, .global-account-search, .sync-status, .utility-icon-button) {
+    height: 40px; min-height: 40px; border-radius: 999px; border: 1px solid #f8d260;
+    background: linear-gradient(170deg, #3d3b32, #080808 48%, #17130a);
+    color: #fff; box-shadow: inset 0 1px 1px #fff0ad88, inset 0 -1px 1px #a77c1a;
+  }
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar .dashboard-section-title {
+    background: linear-gradient(175deg, #fffde0, #fff29a 13%, #ffdb35 36%, #eab600 57%, #ffdb29 82%, #fff0a0);
+    border: 3px double #fff1a1; padding-inline: 18px;
+  }
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar .dashboard-section-heading { color: #231900; font-size: 16px; }
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar .global-account-search input { color: #fff; }
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar .global-account-search input::placeholder { color: #f3eee3; opacity: 1; }
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar .global-account-search > button { color: #ffe58b; }
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar .utility-icon-button { width: 44px; color: #ffdf58; }
+  :root[data-theme] .workspace.active-section-egyptian-deposits > .dashboard-utility-bar .dashboard-utility-actions { gap: 14px; }
+
+}
+
+:root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar { padding:6px; gap:7px; border:3px double #ffdc60; border-radius:22px; background:linear-gradient(170deg,#535047,#191815 22%,#030303 52%,#242017); box-shadow:inset 0 1px 2px #fff3aa,inset 0 -2px 2px #ad7d14; }
+:root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar .active-cards-card { background:linear-gradient(#38332a,#050505);color:#fff4cb; }
+:root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar .add-customer-card { color:#231900; }
+:root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar .debt-total-card { background:var(--eg-pink);color:#231900;border:1px solid #fff1a1; }
+:root[data-theme] .workspace.section-egyptian-deposits .compact-filters button[aria-selected='true'] { background:var(--eg-pink);color:#231900;border-color:#ffe58b; }
+:root[data-theme] .workspace.section-egyptian-deposits .customer-card { border:3px double #e9c45a;box-shadow:inset 0 1px 2px #fff1ad,0 3px 8px #0005; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits > header { background:linear-gradient(165deg,#514939,#090909 35%,#020202 70%,#403319); }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-grid-head { background:linear-gradient(#353027,#070707 65%); }
+:root[data-theme] .ledger-panel.section-egyptian-deposits .ledger-grid-head > span > b { background:linear-gradient(165deg,#3b3423,#080808 55%,#211a0b);color:#fff5ce;border-color:#f4cf60; }
+:root[data-theme] .ledger-panel.section-egyptian-deposits :is(.choice-direct,.choice-divide,.choice-multiply) { background:linear-gradient(#4c4026,#090806 65%,#30230c);color:#fff3c1; }
+/* Egyptian summary controls: aligned, legible search and exchange editor. */
+:root[data-theme] .workspace.section-egyptian-deposits { --section-accent:#b98b1f; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-card-head { display:grid;gap:2px;text-align:center; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-card-head strong { font-size:10px;line-height:1.4;color:#fff2bb; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-card-head small { font-size:8px;line-height:1.4;white-space:normal;overflow:visible; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-editor { gap:5px;grid-template-columns:max-content 10px minmax(50px,1fr) max-content 54px; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-editor input { height:28px;border-radius:999px;border:1px solid #e9c45a;background:#fffdf6;color:#302818;font-size:12px; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-editor button { height:28px;min-height:28px;width:54px;border-radius:999px;border:1px solid #fff1a1;background:var(--eg-pink);color:#231900;font-size:10px; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search .search { color:#fff2bb; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search input { height:32px;background:#fffdf6;color:#302818;border:1px solid #e9c45a; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search input::placeholder { color:#655a43; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search > span { color:#fff2bb;font-size:10px; }
+@media(min-width:1100px) {
+ :root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar { grid-template-columns:minmax(155px,.9fr) 82px minmax(250px,1.4fr) minmax(170px,1fr) minmax(290px,1.4fr); }
+ :root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar > :is(.debt-total-card,.add-customer-card,.active-cards-card,.dashboard-search,.exchange-rate-card) { min-width:0;height:72px;min-height:72px;max-height:72px;padding:6px 9px;border-radius:22px; }
+ :root[data-theme] .workspace.section-egyptian-deposits .dashboard-search { display:grid;align-content:center;gap:5px; }
+ :root[data-theme] .workspace.section-egyptian-deposits .exchange-rate-card { gap:3px; }
+}
+/* Compact Egyptian summary: all existing inputs retain their handlers. */
+:root[data-theme] .workspace.section-egyptian-deposits .egypt-active-count { display:flex;align-items:center;justify-content:center;gap:8px; }
+:root[data-theme] .workspace.section-egyptian-deposits .egypt-active-count strong { font-size:18px;color:#ffe58b; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search { text-align:center; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search input { text-align:center;padding-inline:24px; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-editor input { text-align:center; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-card-head { display:flex;justify-content:center;gap:8px; }
+:root[data-theme] .workspace.section-egyptian-deposits .rate-editor { width:100%;max-width:340px;margin-inline:auto;grid-template-columns:42px 10px minmax(50px,1fr) 30px 54px; }
+@media(min-width:1100px) {
+ :root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar { grid-template-columns:minmax(160px,1fr) 94px 96px minmax(190px,1.2fr) minmax(370px,1.8fr);padding:5px; }
+ :root[data-theme] .workspace.section-egyptian-deposits .debts-toolbar > :is(.debt-total-card,.add-customer-card,.active-cards-card,.dashboard-search,.exchange-rate-card) { height:54px;min-height:54px;max-height:54px;padding:4px 9px;border-radius:999px; }
+ :root[data-theme] .workspace.section-egyptian-deposits .dashboard-search { gap:1px; }
+ :root[data-theme] .workspace.section-egyptian-deposits .dashboard-search input { height:28px; }
+ :root[data-theme] .workspace.section-egyptian-deposits .exchange-rate-card { gap:1px; }
+ :root[data-theme] .workspace.section-egyptian-deposits .rate-card-head small { font-size:7px; }
+}
+/* Egyptian search is one centered input without a duplicate visible heading. */
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search > span { display:none; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search { display:flex;align-items:center;justify-content:center; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search .search { width:100%;min-width:0; }
+:root[data-theme] .workspace.section-egyptian-deposits .dashboard-search input { height:34px; }

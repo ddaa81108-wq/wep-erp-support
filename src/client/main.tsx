@@ -26,6 +26,8 @@ import './styles/customer-ledger-gold.css';
 import './styles/purchases-compact-gold.css';
 import './styles/company-royal-blue.css';
 import './styles/designed-section-themes.css';
+import './styles/egypt-pink.css';
+import './styles/account-balance-colors.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {

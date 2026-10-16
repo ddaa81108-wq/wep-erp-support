@@ -85,7 +85,7 @@ try {
     for (const width of [390,1440,1920]) {
       await page.setViewportSize({width,height:950});
       await expect(panel).toHaveCSS('opacity','1');
-      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(8, 116, 67)');
+      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(166, 30, 42)');
       const statementWidth = await panel.getByLabel('ملاحظة المعاملة').evaluate(e => e.parentElement!.getBoundingClientRect().width);
       assert.equal(statementWidth, 100);
       await expect(kind.getByRole('button',{name:'إيداع أمانة',exact:true})).toHaveCSS('background-color','rgb(8, 116, 67)');
@@ -132,7 +132,7 @@ try {
       await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-records.png`,fullPage:true});
     }
   }
-  for (const [amount, balance, color] of [[120, 0, 'rgb(51, 65, 85)'], [20, -20, 'rgb(166, 30, 42)']] as const) {
+  for (const [amount, balance, color] of [[120, 0, 'rgb(51, 65, 85)'], [20, -20, 'rgb(8, 116, 67)']] as const) {
     await kind.getByRole('button',{name:'سحب أمانة',exact:true}).click();
     await panel.getByLabel('قيمة المعاملة',{exact:true}).fill(String(amount));
     await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
@@ -144,7 +144,7 @@ try {
     for (const width of [1440,390]) {
       await page.setViewportSize({width,height:950});
       await panel.locator('.ledger-total').scrollIntoViewIfNeeded();
-      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(166, 30, 42)');
+      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(8, 116, 67)');
       await page.screenshot({path:`artifacts/ledger-pills/libyan-negative-${theme}-${width}.png`,fullPage:true});
     }
   }

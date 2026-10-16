@@ -1,0 +1,162 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, mkdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import type { AddressInfo } from 'node:net';
+import { chromium, expect, type Browser, type APIRequestContext } from '@playwright/test';
+import { createApp, listen } from '../src/server/app.ts';
+import { openDatabase } from '../src/server/db/database.ts';
+import type { ServerConfig } from '../src/server/config.ts';
+
+const section = 'egyptian-deposits';
+const directory = mkdtempSync(join(tmpdir(), 'abdo-live-ui-'));
+const database = openDatabase(join(directory, 'live.sqlite'));
+const config: ServerConfig = {
+  host: '127.0.0.1',
+  port: 0,
+  databasePath: ':memory:',
+  sessionHours: 12,
+  secureCookie: false,
+  internetRequired: false,
+  internetProbeUrls: [],
+  internetProbeTimeoutMs: 100,
+  internetProbeCacheMs: 100,
+};
+const server = createApp(database, config);
+let browser: Browser | undefined;
+try {
+  await listen(server, config.host, 0);
+  const base = 'http://127.0.0.1:' + (server.address() as AddressInfo).port;
+  browser = await chromium.launch({ headless: true });
+  const originalNewContext = browser.newContext.bind(browser);
+  browser.newContext = async (...args) => {
+    const context = await originalNewContext(...args);
+    await context.route('**/*', async (route) => {
+      const url = new URL(route.request().url());
+      if (url.pathname.startsWith('/api/')) return route.continue();
+      const file = resolve(
+        process.env.ABDO_UI_WEB_ROOT ?? 'dist/web',
+        url.pathname.startsWith('/assets/') ? '.' + url.pathname : 'index.html',
+      );
+      return route.fulfill({ path: file });
+    });
+    return context;
+  };
+  const writer = await browser.newContext();
+  const setup = await writer.request.post(base + '/api/setup/admin', {
+    data: { username: 'admin', displayName: 'مدير الاختبار', password: 'Live Admin 123!' },
+  });
+  assert.ok(setup.ok(), await setup.text());
+  const login = await writer.request.post(base + '/api/auth/login', {
+    headers: { 'X-Client-Api-Version': '1' },
+    data: { username: 'admin', password: 'Live Admin 123!' },
+  });
+  const csrf = (await login.json()).data.csrfToken as string;
+  const mutate = async (path: string, data: Record<string, unknown>, method = 'POST') => {
+    const result = await writer.request.fetch(base + path, {
+      method,
+      headers: { 'X-Client-Api-Version': '1', 'X-CSRF-Token': csrf },
+      data,
+    });
+    assert.ok(result.ok(), await result.text());
+    return (await result.json()).data;
+  };
+  const read = async (request: APIRequestContext, path: string) => {
+    const response = await request.get(base + path);
+    assert.ok(response.ok(), await response.text());
+    return (await response.json()).data;
+  };
+  const created = await mutate('/api/'+section,{requestId:'ledger-pills-customer',name:'عميل تنسيق السجل',openingBalance:100});
+  const page = await writer.newPage();
+  await page.goto(base+'/erp');
+  await page.getByRole('button',{name:'أمانات مصرية',exact:true}).click();
+  await page.locator('.customer-card-main').filter({hasText:'عميل تنسيق السجل'}).click();
+  const panel = page.locator('.ledger-panel.section-'+section);
+  const kind = panel.getByRole('group',{name:'نوع المعاملة',exact:true});
+  const mode = panel.getByRole('group',{name:'طريقة الحساب',exact:true});
+  await expect(kind.getByRole('button',{name:'إيداع مصري',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(mode.getByRole('button',{name:'مباشر',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(panel.locator('select')).toHaveCount(0);
+  mkdirSync('artifacts/ledger-pills',{recursive:true});
+  for (const theme of ['light','dark']) {
+    await panel.locator('header .icon-button').click();
+    if (await page.evaluate(()=>document.documentElement.dataset.theme)!==theme) await page.getByRole('button',{name:theme==='dark'?'المظهر الليلي':'المظهر النهاري',exact:true}).click();
+    await page.locator('.customer-card-main').filter({hasText:'عميل تنسيق السجل'}).click();
+    for (const width of [390,1440,1920]) {
+      await page.setViewportSize({width,height:950});
+      await expect(panel).toHaveCSS('opacity','1');
+      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(8, 116, 67)');
+      const statementWidth = await panel.getByLabel('ملاحظة المعاملة').evaluate(e => e.parentElement!.getBoundingClientRect().width);
+      assert.equal(statementWidth, 100);
+      await expect(kind.getByRole('button',{name:'إيداع مصري',exact:true})).toHaveCSS('background-color','rgb(8, 116, 67)');
+      await expect(kind.getByRole('button',{name:'سحب مصري',exact:true})).toHaveCSS('background-color','rgb(166, 30, 42)');
+      for (const group of [kind,mode]) {
+        const boxes=await group.locator('button').evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {y:r.y,height:r.height,overflow:e.scrollWidth>e.clientWidth+1}}));
+        assert.equal(new Set(boxes.map(b=>b.y)).size,1);
+        assert.ok(boxes.every(b=>b.height>=32&&!b.overflow));
+      }
+      await kind.scrollIntoViewIfNeeded();
+      await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-choices.png`,fullPage:true});
+      await panel.locator('.ledger-total').scrollIntoViewIfNeeded();
+      await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-total.png`,fullPage:true});
+    }
+  }
+  await page.setViewportSize({width:1440,height:950});
+  await mode.getByRole('button',{name:'قسمة',exact:true}).click();
+  await panel.getByLabel('قيمة المعاملة',{exact:true}).fill('150');
+  await panel.getByLabel('السعر',{exact:true}).fill('5');
+  await panel.getByLabel('ملاحظة المعاملة').fill('قسمة اختبار');
+  await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
+  await expect(panel.locator('.ledger-record').filter({hasText:'قسمة اختبار'})).toBeVisible();
+  assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,130);
+  await expect(panel.locator('.ledger-total')).toContainText('لصالح المنظومة — دين على العميل');
+  await kind.getByRole('button',{name:'سحب مصري',exact:true}).click();
+  await panel.getByLabel('قيمة المعاملة',{exact:true}).fill('10');
+  await panel.getByLabel('ملاحظة المعاملة').fill('جزئي اختبار');
+  await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
+  await expect(panel.locator('.ledger-record').filter({hasText:'جزئي اختبار'})).toBeVisible();
+  await panel.locator('.ledger-record').filter({hasText:'قسمة اختبار'}).getByRole('button',{name:/تعديل المعاملة/}).click();
+  const editing=panel.locator('.ledger-draft-row').first();
+  await expect(editing.getByRole('button',{name:'قسمة',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(editing.getByLabel('السعر')).toHaveValue('5');
+  await editing.getByRole('button',{name:'إلغاء المسودة',exact:true}).click();
+  await expect(panel.locator('.ledger-record-pill.choice-divide')).toHaveText('÷');
+  await expect(panel.locator('.ledger-record-pill.choice-partial')).toHaveCount(1);
+  await expect(panel.locator('.ledger-record-pill.choice-full')).toHaveCount(0);
+  await expect(kind.getByRole('button')).toHaveCount(2);
+  assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,120);
+  for (const theme of ['light','dark']) {
+    await page.evaluate(t => document.documentElement.dataset.theme=t, theme);
+    for (const width of [1440,390]) {
+      await page.setViewportSize({width,height:950});
+      await panel.locator('.ledger-record').first().scrollIntoViewIfNeeded();
+      await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-records.png`,fullPage:true});
+    }
+  }
+  for (const [amount, balance, color] of [[120, 0, 'rgb(51, 65, 85)'], [20, -20, 'rgb(166, 30, 42)']] as const) {
+    await kind.getByRole('button',{name:'سحب مصري',exact:true}).click();
+    await panel.getByLabel('قيمة المعاملة',{exact:true}).fill(String(amount));
+    await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
+    await expect(panel.locator('.ledger-total')).toHaveCSS('background-color', color);
+    assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,balance);
+  }
+  for (const theme of ['light','dark']) {
+    await page.evaluate(t => document.documentElement.dataset.theme=t, theme);
+    for (const width of [1440,390]) {
+      await page.setViewportSize({width,height:950});
+      await panel.locator('.ledger-total').scrollIntoViewIfNeeded();
+      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(166, 30, 42)');
+      await page.screenshot({path:`artifacts/ledger-pills/egyptian-negative-${theme}-${width}.png`,fullPage:true});
+    }
+  }
+  await panel.locator('header .icon-button').click();
+  await expect(page.locator('.customer-card.overdue-debt')).toContainText('دين علينا للعميل');
+  await page.screenshot({path:'artifacts/ledger-pills/egyptian-exterior.png',fullPage:true});
+  console.log('PASS Egyptian deposits: deposit/withdrawal labels and colors, both themes/sizes, positive/zero/negative balances, calculations unchanged.');
+} finally {
+  await browser?.close();
+  server.closeRealtimeConnections();
+  await new Promise<void>(done=>server.close(()=>done()));
+  database.close();
+  rmSync(directory,{recursive:true,force:true});
+}

@@ -38,9 +38,9 @@ export const debtSectionText = {
     ledgerTitle: 'سجل الأمانة المصرية',
     trustLabel: 'دين علينا للعميل',
     currency: 'ج.م',
-    increase: 'دخول',
-    decrease: 'خروج',
-    positiveLabel: 'رصيد لصالحنا',
+    increase: 'إيداع مصري',
+    decrease: 'سحب مصري',
+    positiveLabel: 'لصالح المنظومة — دين على العميل',
     negativeLabel: 'دين علينا للعميل',
   },
 } as const;
