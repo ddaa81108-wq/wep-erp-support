@@ -81,6 +81,8 @@ try {
       if(width===390) await page.getByRole('button',{name:'إغلاق القائمة الرئيسية',exact:true}).click();
     }
   }
+  await page.setViewportSize({width:1440,height:900});
+  await sidebar.getByRole('button',{name:'أمانات ليبية',exact:true}).click();
   for (const palette of ['gold','blue','red','orange','green','black']) {
     await sidebar.evaluate((node, value)=>{node.setAttribute('data-palette',value);},palette);
     for (const theme of ['light','dark']) {
@@ -102,6 +104,11 @@ try {
   await page.setViewportSize({width:1440,height:900});
   await sidebar.getByRole('button',{name:'أمانات ليبية',exact:true}).click();
   await expect(sidebar.getByRole('button',{name:'أمانات ليبية',exact:true})).toHaveClass('active');
+  await sidebar.getByRole('button',{name:'قسم ديون العملاء',exact:true}).click();
+  await expect(sidebar).toHaveAttribute('data-palette','gold');
+  await expect(sidebar).toHaveAttribute('data-appearance','customer-gold-two');
+  await sidebar.getByRole('button',{name:'أمانات ليبية',exact:true}).click();
+  await expect(sidebar).toHaveAttribute('data-palette','blue');
   await page.getByRole('button',{name:'إخفاء الشريط الجانبي',exact:true}).click();
   await expect(sidebar).not.toBeInViewport();
   await page.getByRole('button',{name:'إظهار الشريط الجانبي',exact:true}).click();
@@ -132,3 +139,4 @@ try {
   database.close();
   rmSync(directory,{recursive:true,force:true});
 }
+
