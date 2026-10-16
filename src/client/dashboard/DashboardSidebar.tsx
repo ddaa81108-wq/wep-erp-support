@@ -58,7 +58,7 @@ export function DashboardSidebar({
   };
 
   return <>
-    <aside data-palette={activeSection === 'customers' ? 'gold' : palette} data-appearance={activeSection === 'customers' ? 'customer-gold-two' : undefined} className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
+    <aside data-palette={activeSection === 'customers' || activeSection === 'purchases' ? 'gold' : palette} data-appearance={activeSection === 'customers' ? 'customer-gold-two' : activeSection === 'purchases' ? 'purchases-compact' : undefined} className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
       <div className="sidebar-identity">
         <span className="brand-mark" aria-hidden="true">
           VIB
@@ -80,6 +80,7 @@ export function DashboardSidebar({
     {menuOpen && <button className="drawer-shade" onClick={onCloseMenu} aria-label="إغلاق القائمة" />}
   </>;
 }
+
 
 
 

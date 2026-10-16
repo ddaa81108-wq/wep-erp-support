@@ -88,7 +88,8 @@ try {
   await expect.poll(() => register.evaluate(e => e.scrollHeight - e.clientHeight - e.scrollTop)).toBeLessThan(2);
   await expect(page.getByRole('button',{name:'اعتماد الصف',exact:true})).toBeInViewport();
   await expect(page.locator('.purchase-register-grand-total')).toBeInViewport();
-  await expect(page.locator('.purchase-vodafone-total')).toBeInViewport();
+  await expect(page.locator('.purchase-vodafone-total')).toBeHidden();
+  await expect(page.locator('.purchase-metrics .vodafone')).toBeInViewport();
   mkdirSync('artifacts/purchase-six',{recursive:true});
   await page.screenshot({path:'artifacts/purchase-six/initial-bottom.png',fullPage:true});
   for(const theme of ['light','dark']) {
@@ -101,8 +102,8 @@ try {
       await expect(page.locator('.dashboard-utility-bar')).toBeInViewport();
       for(let tone=0;tone<5;tone++) {
         const cell=page.locator(`.purchase-day-tone-${tone} .purchase-row > span`).first();
-        await expect(cell).toHaveCSS('border-radius','999px');
-        await expect(cell).toHaveCSS('background-color',['rgb(18, 100, 241)','rgb(255, 144, 25)','rgb(0, 166, 90)','rgb(240, 42, 59)','rgb(255, 219, 45)'][tone]);
+        await expect(cell).toHaveCSS('border-radius','0px');
+        await expect(cell).toHaveCSS('color','rgb(255, 255, 255)');
       }
       await page.screenshot({path:`artifacts/purchase-six/${theme}-${width}.png`,fullPage:true});
       await register.evaluate(e=>e.scrollTop=e.scrollHeight);
@@ -142,3 +143,5 @@ try {
   await browser?.close();server.closeRealtimeConnections();
   await new Promise<void>(done=>server.close(()=>done()));database.close();rmSync(directory,{recursive:true,force:true});
 }
+
+

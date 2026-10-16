@@ -1,0 +1,57 @@
+/* Purchases concept C: existing controls, compact visual arrangement. */
+.purchase-workbar { display: contents; }
+:root[data-theme] .workspace.active-section-purchases { background: #090b0c; --purchase-accent: #252116; --purchase-separator: #29251a; }
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar { background: linear-gradient(#29271f,#080909 65%); border-color:#c5a354; border-radius:12px; }
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar .dashboard-section-title { background:linear-gradient(#fff0ae,#ddb442 65%,#f6da7c); color:#201a08; }
+:root[data-theme] .workspace.active-section-purchases .dashboard-section-heading { color:#201a08; }
+:root[data-theme] .workspace.active-section-purchases :is(.sync-status,.notification-center > .utility-icon-button) { background:#121413; border:1px solid #a88c45; color:#fff0b8; }
+:root[data-theme] .purchases-page .purchase-register { background:linear-gradient(135deg,#191c1d,#070909); border:2px solid #d9b75e; border-radius:12px; }
+:root[data-theme] .purchases-page .purchase-register .purchase-grid-head { background:linear-gradient(#393323,#201c12); color:#fff0b9; border-bottom:1px solid #bd9c48; padding:3px 0; }
+:root[data-theme] .purchases-page .purchase-grid-head > span { border-radius:3px; border:0; border-inline-end:1px solid #6f623d; background:transparent; padding:5px 3px; }
+:root[data-theme] .purchases-page .purchase-register .purchase-grid { gap:0; }
+:root[data-theme] .purchases-page .purchase-register .purchase-row { margin:0; }
+:root[data-theme] .purchases-page .purchase-register .purchase-row > span { border-radius:0; background:linear-gradient(#171b1c,#101314); color:#fff; box-shadow:none; border:0; border-inline-end:1px solid #41413a; border-bottom:1px solid #41413a; min-height:32px; }
+:root[data-theme] .purchases-page .purchase-day-entry:nth-child(even) .purchase-row > span { background:linear-gradient(#222627,#151819); }
+:root[data-theme] .purchases-page .purchase-day-separator { background:linear-gradient(#393327,#171813); color:#ffe9a0; border:1px solid #a78a48; border-radius:6px; margin:6px 0 0; }
+:root[data-theme] .purchases-page .purchase-day-separator > * { background:#141713; color:#ffeaa2; border-color:#8f793e; }
+:root[data-theme] .purchases-page .purchase-day-separator button { background:linear-gradient(#ffe894,#c6a03b); color:#241b09; }
+:root[data-theme] .purchases-page .purchase-day-closing { background:#181b17; border-bottom:1px solid #9d8345; border-radius:0; margin:0 0 5px; }
+:root[data-theme] .purchases-page .purchase-day-closing-value { background:linear-gradient(#ffeaa1,#d1a840); color:#211a08; }
+:root[data-theme] .purchases-page .purchase-register .purchase-inline-editor { border-radius:4px; background:#202526; color:#fff; border-color:#a68b46; }
+:root[data-theme] .purchases-page .purchase-inline-editor input { background:#101516; color:#fff; border-color:#746744; border-radius:5px; }
+:root[data-theme] .purchases-page .purchase-register-total { background:#27251c; border-radius:4px; }
+:root[data-theme] .purchases-page .purchase-register .purchase-vodafone-total { display:none; }
+:root[data-theme] .purchases-page .purchase-metrics article { background:linear-gradient(#24241d,#080b0b); color:#ffe68a; border:1px solid #bb9a49; border-radius:8px; box-shadow:inset 0 1px 1px #fff0b050; }
+:root[data-theme] .purchases-page .purchase-metrics article.negative,
+:root[data-theme] .purchases-page .purchase-metrics article.vodafone.liability { background:linear-gradient(#a82131,#590b17); color:white; }
+:root[data-theme] .purchases-page .purchase-metrics article.vodafone.credit { color:#9af4bb; }
+:root[data-theme] .purchases-page .purchase-action-dock { background:#101313; border-color:#a88b45; }
+:root[data-theme] .purchases-page .purchase-dock-day { background:#24241c; color:#ffe8a1; }
+:root[data-theme] .purchases-page .purchase-head-actions .merchant-tabs { background:#171a18; border-color:#76633c; }
+:root[data-theme] .purchases-page .purchase-head-actions .merchant-tabs button { background:#22251f; color:#fff0bb; }
+:root[data-theme] .purchases-page .purchase-head-actions > button { background:linear-gradient(#ffe8a1,#c9a03a); color:#241b09; }
+:root[data-theme] .purchases-page .purchase-head-actions > .finalize { background:linear-gradient(#1cba65,#067237); color:white; }
+:root[data-theme] .sidebar[data-appearance='purchases-compact'] { background:linear-gradient(110deg,#202421,#030606); border:2px solid #c8a54d; border-radius:12px 0 0 12px; }
+:root[data-theme] .sidebar[data-appearance='purchases-compact'] nav button { border-radius:999px; border:1px solid #d8b75d; background:linear-gradient(165deg,#3a352b,#090909 35%,#020202 70%,#29200d); box-shadow:inset 0 1px 1px #fff0ae88,inset 0 -1px 1px #906b21; }
+:root[data-theme] .sidebar[data-appearance='purchases-compact'] nav button > svg:not(.section-lock) { border:1px solid #f0d17c; border-radius:50%; color:#ffe59a; background:linear-gradient(145deg,#584729,#070707 55%); box-shadow:inset 0 1px 1px #fff5c480; }
+:root[data-theme] .sidebar[data-appearance='purchases-compact'] nav button.active { background:linear-gradient(#fff0b0,#d8b24e 65%,#f4d77d); border-color:#ffe7a2; color:#24180e; box-shadow:inset 0 1px 2px #fff5ce; }
+@media(min-width:1100px) {
+  :root[data-theme] .workspace.active-section-purchases .purchases-page { min-height:0; padding-bottom:0; gap:5px; }
+  :root[data-theme] .purchases-page .purchase-register { height:calc(100dvh - 160px); max-height:calc(100dvh - 160px); }
+  .purchase-workbar { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:7px; align-items:center; direction:ltr; position:sticky; bottom:0; z-index:20; padding:6px; border:1px solid #b49449; border-radius:10px; background:#0b0e0d; }
+  .purchase-workbar > * { direction:rtl; }
+  .purchases-page .purchase-workbar .purchase-action-dock { position:static; inset:auto; transform:none; margin:0; padding:0; border:0; width:auto; max-width:none; box-shadow:none; }
+  .purchases-page .purchase-workbar .purchase-head-actions { gap:4px; flex-wrap:wrap; justify-content:center; max-width:380px; }
+  .purchases-page .purchase-workbar .purchase-head-actions button { min-width:0; padding:6px 8px; font-size:10px; }
+  .purchases-page .purchase-workbar .purchase-metrics { gap:5px; }
+  .purchases-page .purchase-workbar .purchase-metrics article { min-height:50px; padding:5px; }
+  .purchases-page .purchase-workbar .purchase-metrics b { font-size:13px; }
+}
+:root[data-theme] .sidebar[data-appearance='purchases-compact'] nav button.active > svg:not(.section-lock) { color:#24180e; }
+@media(min-width:1100px) {
+  .purchases-page .purchase-workbar .purchase-head-actions { flex-wrap:nowrap; max-width:none; }
+  .purchases-page .purchase-workbar .purchase-head-actions button { white-space:nowrap; width:auto; flex-shrink:0; font-size:9px; padding-inline:7px; }
+  .purchases-page .purchase-workbar .merchant-tabs { flex-shrink:0; }
+  .purchases-page .purchase-workbar .purchase-dock-day { padding-inline:6px; }
+}
+

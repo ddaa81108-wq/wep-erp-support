@@ -30,7 +30,7 @@ export function PurchasesSection({ user }: { user: User }) {
           setMessage={setMessage}
         />
       )}
-      <PurchaseMetrics day={page.day} />
+      <div className="purchase-workbar"><PurchaseMetrics day={page.day} />
       <PurchaseActionDock
         merchant={merchant}
         busy={busy}
@@ -40,6 +40,8 @@ export function PurchasesSection({ user }: { user: User }) {
         selectMerchant={setMerchant}
         finalize={finalize}
       />
+      </div>
     </section>
   );
 }
+
