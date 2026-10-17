@@ -1,0 +1,54 @@
+/* Unify chrome only. Keep row/day/status colors, sticky geometry and actions intact. */
+:root[data-theme] .active-section-purchases {
+  --purchases-chrome: linear-gradient(170deg,#42413b,#191914 22%,#060606 51%,#121008 85%,#30270d);
+  --purchases-gold: linear-gradient(175deg,#fffde0,#fff29a 13%,#ffdb35 36%,#eab600 57%,#ffdb29 82%,#fff0a0);
+}
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar {
+  background: var(--purchases-chrome); border-color: #f7d34a; border-radius: 999px;
+  box-shadow: inset 0 1px 2px #fff3af99,inset 0 -1px 1px #96721e,0 3px 10px #0003;
+}
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar .dashboard-section-title {
+  background: var(--purchases-gold); border-color: #fff0a1; border-radius: 999px; box-shadow: inset 0 1px 2px #fffbe0;
+}
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar :is(.sync-status,.utility-icon-button) {
+  background: var(--purchases-chrome); color: #fff1bb; border-color: #e9c45a; border-radius: 999px;
+  box-shadow: inset 0 1px 1px #fff3af99;
+}
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar .global-account-search {
+  background: var(--purchases-chrome); border-color: #e9c45a; border-radius: 999px;
+  box-shadow: inset 0 1px 1px #fff3af99;
+}
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar .global-account-search input {
+  background: transparent; color: #fff;
+}
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar .global-account-search input::placeholder { color: #fff1c6; opacity: 1; }
+:root[data-theme] .workspace.active-section-purchases > .dashboard-utility-bar .global-account-search > button { color: #ffe37a; }
+:root[data-theme] .purchases-page .purchase-register { border-color: #e9c45a; border-radius: 16px; box-shadow: inset 0 1px 1px #fff3af77; }
+:root[data-theme] .purchases-page .purchase-register .purchase-grid-head {
+  background: #121009; color: #fff1bb; border-color: #c8a64b;
+}
+:root[data-theme] .purchases-page .purchase-grid-head > span {
+  background: var(--purchases-chrome); color: #fff1bb; border: 1px solid #c8a64b; border-radius: 999px;
+  box-shadow: inset 0 1px 1px #fff3af77;
+}
+:root[data-theme] .purchases-page .purchase-register-total {
+  background: var(--purchases-chrome); color: #fff1bb; border-radius: 999px;
+  box-shadow: inset 0 1px 1px #fff3af77;
+}
+:root[data-theme] .purchases-page .purchase-workbar {
+  background: var(--purchases-chrome); border-color: #e9c45a; border-radius: 16px;
+  box-shadow: inset 0 1px 1px #fff3af77;
+}
+:root[data-theme] .purchases-page .purchase-metrics article { border-radius: 999px; }
+:root[data-theme] .purchases-page .purchase-metrics article:not(.liability):not(.credit) {
+  background: var(--purchases-chrome); color: #fff1bb; border-color: #e9c45a;
+  box-shadow: inset 0 1px 1px #fff3af99;
+}
+:root[data-theme] .purchases-page .purchase-action-dock { background: var(--purchases-chrome); border-color: #e9c45a; }
+:root[data-theme] .purchases-page .purchase-dock-day {
+  background: var(--purchases-chrome); color: #fff1bb; border-radius: 999px; box-shadow: inset 0 1px 1px #fff3af77;
+}
+:root[data-theme] .purchases-page .purchase-head-actions > button:not(.finalize) {
+  background: var(--purchases-gold); color: #261c00; border-color: #fff0a1; border-radius: 999px;
+  box-shadow: inset 0 1px 1px #fffbe0;
+}
