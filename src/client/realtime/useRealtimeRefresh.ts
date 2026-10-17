@@ -7,6 +7,7 @@ type Options = {
   onChange: (changes: readonly LiveChange[], fullResync: boolean) => void | Promise<void>;
   enabled?: boolean;
   fallbackIntervalMs?: number;
+  initialSnapshotProvided?: boolean;
 };
 
 export function useRealtimeRefresh({
@@ -15,6 +16,7 @@ export function useRealtimeRefresh({
   onChange,
   enabled = true,
   fallbackIntervalMs = 10_000,
+  initialSnapshotProvided = false,
 }: Options) {
   const callback = useRef(onChange);
   const topicKey = topics.join('|');
@@ -93,7 +95,13 @@ export function useRealtimeRefresh({
     };
     for (const topic of subscribedTopics) source.addEventListener(topic, receive);
     source.addEventListener('full_resync_required', fullResync);
-    source.addEventListener('open', fullResync);
+    let opened = false;
+    source.addEventListener('open', () => {
+      // Initial data is fetched by the section. Replayed events still refresh
+      // changes during that fetch; reconnects always force a full resync.
+      if (opened || !initialSnapshotProvided) fullResync();
+      opened = true;
+    });
 
     const recover = async () => {
       if (stopped || polling || document.visibilityState !== 'visible') return;
@@ -132,5 +140,5 @@ export function useRealtimeRefresh({
       window.removeEventListener('focus', resume);
       document.removeEventListener('visibilitychange', resume);
     };
-  }, [cursorKey, enabled, fallbackIntervalMs, topicKey]);
+  }, [cursorKey, enabled, fallbackIntervalMs, topicKey, initialSnapshotProvided]);
 }

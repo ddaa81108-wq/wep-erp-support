@@ -65,8 +65,16 @@ try {
     data: { username: 'admin', password: 'Live Admin 123!' },
   });
   const page = await observer.newPage();
+  let initialCustomerLists = 0;
+  page.on('request', request => {
+    const url = new URL(request.url());
+    if (request.method() === 'GET' && url.pathname === '/api/customers') initialCustomerLists += 1;
+  });
   await page.goto(base + '/erp');
   await page.locator('.debt-total-card').waitFor();
+  // Allow the first SSE open and its coalescing timer to complete.
+  await page.waitForTimeout(1200);
+  assert.equal(initialCustomerLists, 1, 'Opening the section must not fetch the initial list twice');
   await page.evaluate(() => {
     (window as unknown as { liveMarker: string }).liveMarker = 'no-reload';
   });

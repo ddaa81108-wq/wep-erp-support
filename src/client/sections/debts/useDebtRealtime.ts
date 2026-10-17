@@ -30,6 +30,7 @@ export function useDebtRealtime({
     cursorKey: 'abdo:debt-events:' + debtSection,
     enabled: canRead && activeSection === debtSection,
     fallbackIntervalMs: 2500,
+    initialSnapshotProvided: true,
     onChange: async (changes, fullResync) => {
       // The list response owns the section-wide totals and active-card definition.
       await loadCustomers();
