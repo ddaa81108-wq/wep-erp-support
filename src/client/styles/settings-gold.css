@@ -1,0 +1,98 @@
+/* Settings presentation only. No saved values, access rules or handlers changed. */
+@media (min-width: 901px) {
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar {
+    min-height: 62px; max-height: 62px; padding: 8px 12px; gap: 14px; border: 3px double #ffdc60; border-radius: 999px;
+    background: linear-gradient(170deg, #535047, #191815 22%, #030303 52%, #242017);
+    box-shadow: inset 0 1px 2px #fff3aa, inset 0 -2px 2px #ad7d14, 0 2px 5px #0005;
+  }
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar :is(.dashboard-section-title, .global-account-search, .sync-status, .utility-icon-button) {
+    height: 40px; min-height: 40px; border-radius: 999px; border: 1px solid #f8d260;
+    background: linear-gradient(170deg, #3d3b32, #080808 48%, #17130a);
+    color: #fff; box-shadow: inset 0 1px 1px #fff0ad88, inset 0 -1px 1px #a77c1a;
+  }
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar .dashboard-section-title {
+    background: linear-gradient(175deg, #fffde0, #fff29a 13%, #ffdb35 36%, #eab600 57%, #ffdb29 82%, #fff0a0);
+    border: 3px double #fff1a1; padding-inline: 18px;
+  }
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar .dashboard-section-heading { color: #231900; font-size: 16px; }
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar .global-account-search input { color: #fff; }
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar .global-account-search input::placeholder { color: #f3eee3; opacity: 1; }
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar .global-account-search > button { color: #ffe58b; }
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar .utility-icon-button { width: 44px; color: #ffdf58; }
+  :root[data-theme] .workspace.active-section-settings > .dashboard-utility-bar .dashboard-utility-actions { gap: 14px; }
+}
+:root[data-theme] :is(.active-section-settings,.modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager)) {
+  --settings-chrome: linear-gradient(170deg,#42413b,#191914 22%,#060606 51%,#121008 85%,#30270d);
+  --settings-gold: linear-gradient(175deg,#fffde0,#fff29a 13%,#ffdb35 36%,#eab600 57%,#ffdb29 82%,#fff0a0);
+  --settings-paper: #fffdf7; --settings-ink: #302818; --settings-muted: #6b5c37;
+}
+:root[data-theme='dark'] :is(.active-section-settings,.modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager)) {
+  --settings-paper: #11100d; --settings-ink: #fff3d2; --settings-muted: #c9b98b;
+}
+:root[data-theme] .active-section-settings .settings-topbar {
+  padding: 10px 14px; background: var(--settings-paper); color: var(--settings-ink);
+  border: 1px solid #b49745; border-radius: 18px; box-shadow: inset 0 1px 1px #fff3af55,0 3px 12px #0002;
+}
+:root[data-theme] .active-section-settings .settings-topbar h1 {
+  display: inline-block; padding: 6px 18px; border-radius: 999px;
+  color: #fff2c6; background: var(--settings-chrome); border: 1px solid #e9c45a;
+  box-shadow: inset 0 1px 1px #fff3af99;
+}
+:root[data-theme] .active-section-settings .settings-topbar p { color: var(--settings-muted); }
+:root[data-theme] .active-section-settings :is(.settings-authority,.settings-security-strip span) {
+  border: 1px solid #e9c45a; border-radius: 999px; background: var(--settings-chrome); color: #fff1bb;
+  box-shadow: inset 0 1px 1px #fff3af77;
+}
+:root[data-theme] .active-section-settings :is(.settings-authority span,.settings-security-strip b) { color: #ffe37a; }
+:root[data-theme] .active-section-settings .settings-tool-card {
+  background: var(--settings-chrome); color: #fff; border: 2px solid #d0ad4b; border-radius: 22px;
+  box-shadow: inset 0 1px 2px #fff3afaa,inset 0 -1px 1px #96721e,0 4px 12px #0003;
+}
+:root[data-theme] .active-section-settings .settings-tool-card span { color: #eadbb3; }
+:root[data-theme] .active-section-settings .settings-tool-card :is(.settings-tool-icon,em) {
+  background: var(--settings-gold); color: #261c00; border: 1px solid #fff0a1; border-radius: 999px;
+  box-shadow: inset 0 1px 1px #fffbe0;
+}
+:root[data-theme] .active-section-settings .settings-tool-card svg { color: #261c00; }
+:root[data-theme] .active-section-settings .settings-tool-card:hover { border-color: #fff0a1; box-shadow: inset 0 1px 2px #fff3af,0 4px 15px #b88c2344; }
+:root[data-theme] .active-section-settings :is(.backup-panel,.backup-status-grid article,.operations-health-grid article,.operations-guide,.managed-users article,.account-requests,.user-form,.permission-templates) {
+  background: var(--settings-paper); color: var(--settings-ink); border-color: #b49745; border-radius: 16px;
+}
+:root[data-theme] .active-section-settings :is(.secondary,.primary,.icon-button,.operations-tabs button,.permission-templates button) {
+  border-radius: 999px; border: 1px solid #d0ad4b; background: var(--settings-chrome); color: #fff1bb;
+  box-shadow: inset 0 1px 1px #fff3af77;
+}
+:root[data-theme] .active-section-settings :is(.primary,.operations-tabs button.active) { background: var(--settings-gold); color: #261c00; }
+:root[data-theme] .active-section-settings .settings-section :is(input:not([type='checkbox']):not([type='radio']),select,textarea) {
+  background: var(--settings-paper); color: var(--settings-ink); border-color: #b49745; border-radius: 14px;
+}
+:root[data-theme] .active-section-settings :is(input[type='checkbox'],input[type='radio']) { accent-color: #9b7300; }
+:root[data-theme] .active-section-settings button:disabled { opacity: .5; }
+:root[data-theme] .active-section-settings :is(button,input,select,textarea):focus-visible { outline: 2px solid #bd8a00; outline-offset: 2px; }
+:root[data-theme] .modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager) {
+  background: var(--settings-paper); color: var(--settings-ink); border: 2px solid #d0ad4b; border-radius: 20px;
+}
+:root[data-theme] .modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager) > header {
+  background: var(--settings-chrome); color: #fff1bb; border: 1px solid #e9c45a; border-radius: 999px;
+}
+:root[data-theme] .modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager) :is(.primary,.secondary,.icon-button,.audit-refresh,.audit-filters button) {
+  background: var(--settings-chrome); color: #fff1bb; border: 1px solid #d0ad4b; border-radius: 999px;
+}
+:root[data-theme] .modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager) :is(.primary,.audit-filters button.active) { background: var(--settings-gold); color: #261c00; }
+:root[data-theme] .modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager) :is(input,select) {
+  background: var(--settings-paper); color: var(--settings-ink); border-color: #b49745; border-radius: 999px;
+}
+:root[data-theme] .modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager) :is(.audit-table-head,.financial-ledger-head) { background: var(--settings-chrome); color: #fff1bb; }
+:root[data-theme] .modal:has(.system-settings-form,.audit-manager,.financial-ledger-manager) button:disabled { opacity: .5; }
+
+:root[data-theme] .active-section-settings .settings-tool-card > em { padding: 5px 12px; flex: 0 0 auto; }
+@media (min-width: 901px) {
+  :root[data-theme] .active-section-settings .settings-tools-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+}
+:root[data-theme] .active-section-settings :is(.backup-policy-note,.backup-more,.backup-checklist li,.backup-workflow li,.settings-policy-note) {
+  background: var(--settings-paper); color: var(--settings-ink); border-color: #b4974566;
+}
+:root[data-theme] .modal:has(.system-settings-form) :is(.settings-policy-note,.settings-readonly-grid > div) {
+  background: var(--settings-paper); color: var(--settings-ink); border-color: #b4974566;
+}
+:root[data-theme] .modal:has(.system-settings-form) .settings-readonly-grid span { color: var(--settings-muted); }
