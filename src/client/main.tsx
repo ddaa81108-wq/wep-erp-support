@@ -29,6 +29,7 @@ import './styles/designed-section-themes.css';
 import './styles/egypt-pink.css';
 import './styles/company-gold.css';
 import './styles/libyan-gold.css';
+import './styles/collections-gold.css';
 import './styles/account-balance-colors.css';
 
 let root: Root | undefined;
