@@ -31,10 +31,6 @@
 :root[data-theme] .purchases-page .purchase-head-actions .merchant-tabs button { background:#22251f; color:#fff0bb; }
 :root[data-theme] .purchases-page .purchase-head-actions > button { background:linear-gradient(#ffe8a1,#c9a03a); color:#241b09; }
 :root[data-theme] .purchases-page .purchase-head-actions > .finalize { background:linear-gradient(#1cba65,#067237); color:white; }
-:root[data-theme] .sidebar[data-appearance='purchases-compact'] { background:linear-gradient(110deg,#202421,#030606); border:2px solid #c8a54d; border-radius:12px 0 0 12px; }
-:root[data-theme] .sidebar[data-appearance='purchases-compact'] nav button { border-radius:999px; border:1px solid #d8b75d; background:linear-gradient(165deg,#3a352b,#090909 35%,#020202 70%,#29200d); box-shadow:inset 0 1px 1px #fff0ae88,inset 0 -1px 1px #906b21; }
-:root[data-theme] .sidebar[data-appearance='purchases-compact'] nav button > svg:not(.section-lock) { border:1px solid #f0d17c; border-radius:50%; color:#ffe59a; background:linear-gradient(145deg,#584729,#070707 55%); box-shadow:inset 0 1px 1px #fff5c480; }
-:root[data-theme] .sidebar[data-appearance='purchases-compact'] nav button.active { background:linear-gradient(#fff0b0,#d8b24e 65%,#f4d77d); border-color:#ffe7a2; color:#24180e; box-shadow:inset 0 1px 2px #fff5ce; }
 @media(min-width:1100px) {
   :root[data-theme] .workspace.active-section-purchases .purchases-page { min-height:0; padding-bottom:0; gap:5px; }
   :root[data-theme] .purchases-page .purchase-register { height:calc(100dvh - 160px); max-height:calc(100dvh - 160px); }
@@ -47,7 +43,6 @@
   .purchases-page .purchase-workbar .purchase-metrics article { min-height:50px; padding:5px; }
   .purchases-page .purchase-workbar .purchase-metrics b { font-size:13px; }
 }
-:root[data-theme] .sidebar[data-appearance='purchases-compact'] nav button.active > svg:not(.section-lock) { color:#24180e; }
 @media(min-width:1100px) {
   .purchases-page .purchase-workbar .purchase-head-actions { flex-wrap:nowrap; max-width:none; }
   .purchases-page .purchase-workbar .purchase-head-actions button { white-space:nowrap; width:auto; flex-shrink:0; font-size:9px; padding-inline:7px; }

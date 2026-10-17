@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { ServerConfig } from '../config.ts';
 import { createEmergencyBackup, stageRestore, requireBackupOwner } from '../domain/emergencyBackup.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { createEmployee, listUsers, updateEmployee } from '../domain/users.ts';
@@ -12,6 +13,7 @@ import { listOrganizationSessions, listTechnicalEvents, operationsSnapshot, revo
 import { getNotificationPreferences, listNotifications, markAllNotificationsRead, markNotificationRead, updateNotificationPreferences } from '../domain/notifications.ts';
 
 type UserManagementRouteContext = {
+  config: ServerConfig;
   database: AppDatabase;
   request: IncomingMessage;
   response: ServerResponse;
@@ -67,7 +69,7 @@ export async function routeUserManagement(context: UserManagementRouteContext) {
 
   if (method === 'GET' && url.pathname === '/api/operations/health') {
     requireAdmin(user);
-    sendJson(response, 200, { ok: true, data: operationsSnapshot(database, user) });
+    sendJson(response, 200, { ok: true, data: operationsSnapshot(database, user, context.config.internetRequired) });
     return true;
   }
   if (method === 'GET' && url.pathname === '/api/operations/sessions') {

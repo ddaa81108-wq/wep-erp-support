@@ -76,6 +76,7 @@ try {
         },
       };
       const registration = {
+        update: async () => {},
         pushManager: {
           getSubscription: async () => (localStorage.getItem('test-push-subscribed') ? fake : null),
           subscribe: async () => {

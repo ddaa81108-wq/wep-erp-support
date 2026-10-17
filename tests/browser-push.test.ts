@@ -194,3 +194,30 @@ test('logout and revoked notification permissions stop delivery; test requests a
     db.close();
   }
 });
+
+for (const reason of ['expired', 'disabled', 'permission', 'password-reset'] as const) {
+  test('queued push is discarded when recipient is ' + reason, async () => {
+    const { db, actor, subscription, notice } = fixture();
+    let sent = 0;
+    const dispatcher = createPushDispatcher(db, config, async () => {
+      sent++;
+    });
+    try {
+      registerPush(db, actor, subscription);
+      notice();
+      if (reason === 'expired')
+        db.prepare('UPDATE sessions SET expires_at=?').run('2000-01-01T00:00:00.000Z');
+      if (reason === 'disabled') db.prepare('UPDATE users SET is_active=0 WHERE id=?').run(actor.id);
+      if (reason === 'permission') db.prepare("UPDATE users SET role='employee' WHERE id=?").run(actor.id);
+      if (reason === 'password-reset')
+        db.prepare('UPDATE users SET must_change_password=1 WHERE id=?').run(actor.id);
+      await dispatcher.drain();
+      assert.equal(sent, 0);
+      assert.equal(db.prepare('SELECT COUNT(*) n FROM browser_push_subscriptions').get()!.n, 0);
+      assert.equal(db.prepare('SELECT COUNT(*) n FROM browser_push_outbox').get()!.n, 0);
+    } finally {
+      dispatcher.stop();
+      db.close();
+    }
+  });
+}

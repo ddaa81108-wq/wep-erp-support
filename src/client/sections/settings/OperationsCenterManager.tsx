@@ -46,7 +46,7 @@ export function OperationsCenterManager({ onClose, embedded = false }: { onClose
         <article><span>الجلسات النشطة</span><strong>{health.activeSessions}</strong></article>
         <article><span>أخطاء الخادم</span><strong>{health.technicalErrors}</strong></article>
         <article><span>تطابق الأرصدة والسجلات</span><strong className={health.financialMismatches === 0 ? 'ok' : 'bad'}>{health.financialMismatches === 0 ? 'متطابقة' : `${health.financialMismatches} اختلاف`}</strong></article>
-        <article><span>وضع التشغيل</span><strong>اتصال إنترنت إلزامي</strong></article>
+        <article><span>وضع التشغيل</span><strong>{health.onlineOnly ? 'اتصال إنترنت إلزامي' : 'التشغيل داخل الشبكة متاح دون إنترنت'}</strong></article>
       </div>}
       {tab === 'sessions' && <div className="operations-sessions-section">
         <div className="operations-section-heading"><strong>الجلسات والأجهزة</strong><span>معرفة الجهاز وعنوان الاتصال وآخر نشاط، وإنهاء أي جلسة أخرى فورًا.</span></div>

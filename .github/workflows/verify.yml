@@ -48,3 +48,21 @@ jobs:
           name: ui-failure-${{ strategy.job-index }}
           path: artifacts/
           retention-days: 7
+
+  ledger-presentation:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        section: [customers, companies, libyan, egyptian]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install chromium
+      - run: npm run build
+      - run: node scripts/test-ledger-ui.mjs ${{ matrix.section }}

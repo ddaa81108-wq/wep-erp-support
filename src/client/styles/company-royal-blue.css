@@ -61,22 +61,6 @@
 :root[data-theme] .workspace.section-companies .customer-card.overdue-debt { background: linear-gradient(145deg, #c73948, #891424 60%, #600b1a); border-color: #ff9dab; }
 :root[data-theme] .workspace.section-companies .pin-customer { background: linear-gradient(#166ed0, #063375); border-color: #8dc9ff; color: #ffe0a1; border-radius: 999px; }
 :root[data-theme] .workspace.section-companies .pin-customer[aria-pressed='true'] { background: var(--royal-orange); color: #291400; }
-:root[data-theme] .sidebar[data-appearance='company-royal'] {
-  background: linear-gradient(165deg, #1279ea, #0646a8 30%, #032a70 80%, #084fa8); border-color: #6db8ff;
-  --sb-edge: #78bcff; --sb-light: #d7edff; --sb-line: #579ce2; --sb-glow: #2495ff44;
-  box-shadow: inset 0 1px 2px #d8efff, inset 0 0 0 3px #1464b733, -3px 0 12px #00295c44;
-}
-:root[data-theme] .sidebar[data-appearance='company-royal'] nav button {
-  background: var(--royal-pill); color: #fff; border: 1px solid #71b5ff; border-radius: 999px;
-  box-shadow: inset 0 1px 2px #c8e8ff99, inset 0 -1px 2px #002957; min-height: 44px;
-}
-:root[data-theme] .sidebar[data-appearance='company-royal'] nav button.active {
-  background: var(--royal-orange); color: #291400; border-color: #ffe2a9;
-  box-shadow: inset 0 2px 2px #fff2c6, inset 0 -2px 2px #b84e00, 0 2px 8px #00225177;
-}
-:root[data-theme] .sidebar[data-appearance='company-royal'] nav button svg { color: inherit; background: transparent; border-color: #9acaff; }
-:root[data-theme] .sidebar[data-appearance='company-royal'] :is(.sidebar-identity,.identity-user,.sidebar-controls button) { background: linear-gradient(145deg, #0b59b8, #04357f); border-color: #64adf5; color: #fff; }
-:root[data-theme] .sidebar[data-appearance='company-royal'] .brand-mark { color: #ffb83e; text-shadow: 0 1px 0 #ffe9bc, 0 3px 3px #4b2701; }
 :root[data-theme] .ledger-panel.section-companies {
   background: var(--royal-surface); color: #fff; border: 2px solid #72b8ff; border-radius: 20px;
   box-shadow: inset 0 1px 2px #d6ecff, 0 8px 28px #00152c88;

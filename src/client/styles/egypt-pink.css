@@ -32,12 +32,6 @@
 :root[data-theme] .workspace.section-egyptian-deposits .customer-card.zero-balance { background:linear-gradient(#3e3b45,#14131b); border-color:#aaa4b4; }
 :root[data-theme] .workspace.section-egyptian-deposits .customer-card.zero-balance .customer-card-main > b { color:#fff; }
 :root[data-theme] .workspace.section-egyptian-deposits .pin-customer { background:#30230c; color:#fff1ad; border-color:#e9c45a; border-radius:999px; }
-:root[data-theme] .sidebar[data-appearance='egypt-pink'] { background:linear-gradient(160deg,#a91c65,#4b0b34 48%,#20091e); border:2px solid #e9c45a; --sb-edge:#ef72b0; --sb-line:#a43b73; --sb-light:#ffe0ef; --sb-glow:#fc3c9655; }
-:root[data-theme] .sidebar[data-appearance='egypt-pink'] nav button { background:var(--eg-pink); color:#fff; border:1px solid #ffabd0; border-radius:999px; box-shadow:inset 0 1px 2px #ffe4f2aa,inset 0 -2px 2px #4d052b; }
-:root[data-theme] .sidebar[data-appearance='egypt-pink'] nav button.active { background:var(--eg-green); color:#fff; border-color:#adffcf; }
-:root[data-theme] .sidebar[data-appearance='egypt-pink'] nav button svg { color:inherit; background:transparent; border-color:#ffbadc; }
-:root[data-theme] .sidebar[data-appearance='egypt-pink'] :is(.sidebar-identity,.identity-user,.sidebar-controls button) { background:linear-gradient(#67234c,#270b23); color:#fff; border-color:#e77eb3; }
-:root[data-theme] .sidebar[data-appearance='egypt-pink'] .brand-mark { color:#e9c45a; text-shadow:0 1px 1px #fff,0 3px 4px #76043d; }
 :root[data-theme] .ledger-panel.section-egyptian-deposits { background:var(--eg-paper); color:var(--eg-ink); border:2px solid #e9c45a; border-radius:20px; box-shadow:inset 0 1px 2px #fff1ad,0 8px 24px #26051f66; }
 :root[data-theme] .ledger-panel.section-egyptian-deposits > header { background:var(--eg-pink); color:#fff; border:1px solid #e9c45a; border-radius:999px; }
 :root[data-theme] .ledger-panel.section-egyptian-deposits > header :is(.ledger-customer-title,.ledger-edit-details,.icon-button) { background:linear-gradient(#38332a,#050505); color:#fff; border:1px solid #e9c45a; border-radius:999px; box-shadow:inset 0 1px 1px #fff1ad88; }

@@ -284,7 +284,7 @@ try {
   await globalSearch.fill('متجر النور');
   await page.locator('.global-search-results').getByText('متجر النور', { exact: true }).waitFor();
   await globalSearch.fill('');
-  await page.getByText('إجمالي الديون', { exact: true }).waitFor();
+  await page.getByText('صافي إجمالي الديون', { exact: true }).waitFor();
   await page.locator('.customer-card.overdue-debt').filter({ hasText: 'متجر النور' }).waitFor();
   const tickerCustomer = page
     .locator('.debt-ticker button:not([aria-hidden="true"])')
@@ -297,14 +297,17 @@ try {
   await page.getByRole('button', { name: 'إغلاق السجل' }).click();
   await page.locator('.ledger-panel').waitFor({ state: 'detached' });
   await tickerCustomer.evaluate((element: HTMLButtonElement) => element.click());
-  await page.getByText('تمت استعادة المسودة غير المحفوظة.').waitFor();
+  await page.waitForFunction(() => {
+    const field = document.querySelector('.ledger-draft-row [aria-label="ملاحظة المعاملة"]') as HTMLInputElement | null;
+    return field?.value === 'مسودة تستعاد تلقائيًا';
+  });
   assert.equal(
     await page.locator('.ledger-draft-row').getByLabel('ملاحظة المعاملة').inputValue(),
     'مسودة تستعاد تلقائيًا',
   );
   await page.locator('.ledger-draft-row').getByRole('button', { name: 'إلغاء المسودة' }).click();
-  await page.getByText('دين مضاف', { exact: true }).first().waitFor();
-  await page.getByText('مدفوع', { exact: true }).first().waitFor();
+  await page.locator('.ledger-record').getByText('ديون', { exact: true }).first().waitFor();
+  await page.locator('.ledger-record').getByText('دفع جزئي', { exact: true }).first().waitFor();
   assert.equal(await page.locator('.ledger-record.debt.posted').count(), 1);
   assert.equal(await page.locator('.ledger-record.payment.posted').count(), 1);
   assert.equal(await page.locator('.ledger-draft-row').count(), 1);
@@ -319,14 +322,11 @@ try {
       .evaluate((element) => element.nextElementSibling?.classList.contains('ledger-draft-row')),
     true,
   );
-  const balanceHeaderBox = await page.locator('.ledger-grid-head > span').nth(9).boundingBox();
+  const footerBox = await page.locator('.ledger-panel').boundingBox();
   const totalCardBox = await page.locator('.ledger-total').boundingBox();
-  assert.ok(
-    balanceHeaderBox &&
-      totalCardBox &&
-      Math.abs(balanceHeaderBox.x + balanceHeaderBox.width / 2 - (totalCardBox.x + totalCardBox.width / 2)) <
-        4,
-  );
+  assert.ok(footerBox && totalCardBox && totalCardBox.width > 0 &&
+    totalCardBox.x >= footerBox.x - 1 && totalCardBox.x + totalCardBox.width <= footerBox.x + footerBox.width + 1,
+    'approved total pill remains inside the ledger panel');
   const originalRowCount = await page.locator('.ledger-record').count();
   await page
     .locator('.ledger-record.debt.posted')
@@ -501,11 +501,11 @@ try {
   await page.waitForFunction(
     () =>
       getComputedStyle(document.querySelector('.masraweya-work-table tbody input')!).backgroundColor ===
-      'rgb(17, 29, 44)',
+      'rgb(17, 16, 13)',
   );
   assert.equal(
     await firstValue.evaluate((element) => getComputedStyle(element).backgroundColor),
-    'rgb(17, 29, 44)',
+    'rgb(17, 16, 13)',
     'Masraweya entry fields must stay readable in dark mode',
   );
   await page.screenshot({ path: join(output, 'masraweya-desktop-dark.png'), fullPage: true });

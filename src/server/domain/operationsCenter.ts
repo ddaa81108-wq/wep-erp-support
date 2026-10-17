@@ -15,7 +15,7 @@ const deviceLabel = (agent: unknown) => {
   return value ? 'متصفح آخر' : 'جهاز غير معروف';
 };
 
-export function operationsSnapshot(database: AppDatabase, actor: AuthenticatedUser) {
+export function operationsSnapshot(database: AppDatabase, actor: AuthenticatedUser, onlineOnly = false) {
   const health = databaseHealth(database);
   const scalar = (sql: string) => Number((database.prepare(sql).get(actor.organizationId) as { count: number }).count);
   const activeSessions = Number((database.prepare(`SELECT COUNT(*) AS count FROM sessions s
@@ -50,7 +50,7 @@ export function operationsSnapshot(database: AppDatabase, actor: AuthenticatedUs
     backupSchedule: backupStatus(),
     restoreStatus: actor.isOwner ? restoreStatus() : null,
     restoreDrillStatus: 'unverified',
-    onlineOnly: true,
+    onlineOnly,
     checkedAt: nowIso(),
   };
 }

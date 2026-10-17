@@ -1,4 +1,5 @@
 import { startDatabaseActivity, databaseActivity, validActivityDay, activityToday } from './db/databaseActivity.ts';
+import { BUILD_INFO } from '../shared/buildInfo.ts';
 import { withoutDatabaseMeasurement } from './db/databaseInstrumentation.ts';
 import { databaseMonitor } from './domain/databaseMonitor.ts';
 import { requireBackupOwner } from './domain/emergencyBackup.ts';
@@ -94,6 +95,7 @@ async function route(
         apiVersion: API_VERSION,
         schemaVersion: SCHEMA_VERSION,
         uiVersion: UI_VERSION,
+        build: BUILD_INFO,
         time: nowIso(),
       },
     });
@@ -253,6 +255,7 @@ async function route(
 
   if (
     await routeUserManagement({
+      config,
       database,
       request,
       response,
