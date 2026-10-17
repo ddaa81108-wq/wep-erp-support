@@ -21,3 +21,8 @@
 :root[data-theme] .ledger-panel:is(.section-customers,.section-companies) .ledger-footer-grid > .ledger-total[data-balance-sign] {
  background:linear-gradient(175deg,#fff8cc,#ffe57b 17%,#e7ae12 58%,#ffdf60 85%,#fff0a1);color:#211600;border:2px solid #ffedab;
 }
+/* Libyan-specific approved presentation: customer trust green, customer debt red. */
+:root[data-theme] .workspace.section-libyan-deposits .customer-card[data-balance-owner='customer'] { background:linear-gradient(160deg,#219e6d,#075534 55%,#092b20);border-color:#65dba3; }
+:root[data-theme] .workspace.section-libyan-deposits .customer-card[data-balance-owner='system'] { background:linear-gradient(160deg,#bd3b47,#781425 55%,#350d16);border-color:#f08895; }
+:root[data-theme] .workspace.section-libyan-deposits .customer-card[data-balance-owner='zero'] { background:linear-gradient(#343434,#080808);border-color:#928b79; }
+:root[data-theme] .ledger-panel.section-libyan-deposits .ledger-footer-grid > .ledger-total[data-balance-owner][data-balance-sign] { background:linear-gradient(175deg,#fff8cc,#ffe57b 17%,#e7ae12 58%,#ffdf60 85%,#fff0a1);color:#211600;border:2px solid #ffedab; }

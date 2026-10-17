@@ -38,12 +38,12 @@ export function LedgerWorkspace({
     onNotice({ kind: 'success', text: message });
   };
   const cancel = async (item: LedgerItem) => {
-    if (!window.confirm(`إلغاء المعاملة رقم ${item.sequence}؟ ستبقى ظاهرة في السجل كحركة ملغاة.`)) return;
+    if (!window.confirm(`إلغاء المعاملة رقم ${item.sequence}؟ ستختفي من السجل المعروض مع الاحتفاظ بها للمراجعة.`)) return;
     setBusyId(item.id);
     try {
       const body = { requestId: crypto.randomUUID(), expectedVersion: ledger.customer.version };
       await cancelSectionTransaction(section, ledger.customer.id, item.id, body);
-      await finish('تم إلغاء المعاملة مع بقائها موثقة في السجل.');
+      await finish('تم إلغاء المعاملة وإخفاؤها من العرض مع حفظ أثرها للمراجعة.');
     } catch (caught) {
       onNotice({ kind: 'error', text: ledgerErrorText(caught) });
     } finally {

@@ -61,7 +61,7 @@ export function LedgerEntriesTable({
     return () => window.cancelAnimationFrame(frame);
   }, [ledger.customer.id]);
   useEffect(() => {
-    if (!canWrite || (section !== 'customers' && section !== 'companies')) return;
+    if (!canWrite || (section !== 'customers' && section !== 'companies' && section !== 'libyan-deposits')) return;
     const frame = window.requestAnimationFrame(() => {
       const input = tableRef.current?.querySelector<HTMLInputElement>(
         '[data-new-ledger-draft] input[aria-label="قيمة المعاملة"]:not(:disabled)',
@@ -83,7 +83,7 @@ export function LedgerEntriesTable({
           {loadingOlder ? 'جارٍ تحميل المعاملات الأقدم…' : 'تحميل المعاملات الأقدم'}
         </button>
       )}
-      {ledger.items.map((item) => editing?.id === item.id ? (
+      {ledger.items.filter((item) => item.status !== 'reversed').map((item) => editing?.id === item.id ? (
         <LedgerDraftRow key={`edit-${item.id}`} section={section} ledger={ledger} editing={item}
           onClose={() => onEditingChange(null)} onSaved={onSaved} onConflict={onConflict} />
       ) : (

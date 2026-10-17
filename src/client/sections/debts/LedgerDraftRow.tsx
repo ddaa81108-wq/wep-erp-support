@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Check, X } from 'lucide-react';
 import { ApiError, type Ledger, type LedgerItem } from '../../api.ts';
 import { addSectionTransaction, editSectionTransaction } from './debtSectionApi.ts';
@@ -32,13 +32,14 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
   const draftKey = `abdo-ledger-draft:${section}:${ledger.customer.id}`;
   const restored = editing ? null : savedDraft(draftKey);
   const [wasRestored] = useState(Boolean(restored));
-  const [kind, setKind] = useState<LedgerDraftKind>(editing ? ledgerItemKind(editing) : restored?.kind ?? 'debt');
+  const [kind, setKind] = useState<LedgerDraftKind>(editing ? ledgerItemKind(editing) : restored?.kind ?? (section === 'libyan-deposits' ? 'partial' : 'debt'));
   const [mode, setMode] = useState<LedgerCalculationMode>(editing?.calculationMode ?? restored?.mode ?? 'direct');
   const [value, setValue] = useState(editing ? String(editing.inputValue) : restored?.value ?? '');
   const [factor, setFactor] = useState(editing?.factorMicros ? String(editing.factorMicros / 1_000_000) : restored?.factor ?? '');
   const [date, setDate] = useState((editing?.transactionDate ?? restored?.date ?? new Date().toISOString()).slice(0, 10));
   const [note, setNote] = useState(editing?.note ?? restored?.note ?? '');
   const [busy, setBusy] = useState(false);
+  const submitting = useRef(false);
   const [error, setError] = useState('');
   const balanceBefore = ledgerBalanceBeforeDraft(ledger, editing);
   const result = useMemo(
@@ -55,6 +56,8 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting.current || result <= 0) return;
+    submitting.current = true;
     setBusy(true);
     setError('');
     const body = {
@@ -78,6 +81,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       if (caught instanceof ApiError && caught.code === 'VERSION_CONFLICT') await onConflict();
       setError(ledgerErrorText(caught));
     } finally {
+      submitting.current = false;
       setBusy(false);
     }
   }
@@ -85,10 +89,14 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
   function navigateFields(event: KeyboardEvent<HTMLFormElement>) {
     if (!['ArrowDown', 'ArrowUp', 'Enter'].includes(event.key)) return;
     const target = event.target as HTMLElement;
+    if (event.nativeEvent.isComposing || target instanceof HTMLTextAreaElement) return;
     if (target instanceof HTMLButtonElement) return;
     if (event.key === 'Enter') {
       event.preventDefault();
-      if (!busy && result > 0) event.currentTarget.requestSubmit();
+      if (!busy && !submitting.current) {
+        if (result > 0) event.currentTarget.requestSubmit();
+        else { event.currentTarget.reportValidity(); setError('أكمل القيمة والسعر بشكل صحيح قبل اعتماد المعاملة.'); }
+      }
       return;
     }
     const controls = [

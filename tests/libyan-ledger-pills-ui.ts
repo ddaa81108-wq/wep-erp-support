@@ -74,7 +74,8 @@ try {
   const panel = page.locator('.ledger-panel.section-'+section);
   const kind = panel.getByRole('group',{name:'نوع المعاملة',exact:true});
   const mode = panel.getByRole('group',{name:'طريقة الحساب',exact:true});
-  await expect(kind.getByRole('button',{name:'إيداع أمانة',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(kind.getByRole('button',{name:'سحب أمانة',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(panel.getByLabel('قيمة المعاملة',{exact:true})).toBeFocused();
   await expect(mode.getByRole('button',{name:'مباشر',exact:true})).toHaveAttribute('aria-pressed','true');
   await expect(panel.locator('select')).toHaveCount(0);
   mkdirSync('artifacts/ledger-pills',{recursive:true});
@@ -85,7 +86,7 @@ try {
     for (const width of [390,1440,1920]) {
       await page.setViewportSize({width,height:950});
       await expect(panel).toHaveCSS('opacity','1');
-      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(166, 30, 42)');
+      await expect(panel.locator('.ledger-total')).toHaveCSS('color','rgb(33, 22, 0)');
       const statementWidth = await panel.getByLabel('ملاحظة المعاملة').evaluate(e => e.parentElement!.getBoundingClientRect().width);
       assert.equal(statementWidth, 100);
       await expect(kind.getByRole('button',{name:'إيداع أمانة',exact:true})).toHaveCSS('background-color','rgb(8, 116, 67)');
@@ -102,17 +103,18 @@ try {
     }
   }
   await page.setViewportSize({width:1440,height:950});
+  await kind.getByRole('button',{name:'إيداع أمانة',exact:true}).click();
   await mode.getByRole('button',{name:'قسمة',exact:true}).click();
   await panel.getByLabel('قيمة المعاملة',{exact:true}).fill('150');
   await panel.getByLabel('السعر',{exact:true}).fill('5');
   await panel.getByLabel('ملاحظة المعاملة').fill('قسمة اختبار');
-  await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
+  await panel.getByLabel('ملاحظة المعاملة').press('Enter');
   await expect(panel.locator('.ledger-record').filter({hasText:'قسمة اختبار'})).toBeVisible();
   assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,130);
   await kind.getByRole('button',{name:'سحب أمانة',exact:true}).click();
   await panel.getByLabel('قيمة المعاملة',{exact:true}).fill('10');
   await panel.getByLabel('ملاحظة المعاملة').fill('جزئي اختبار');
-  await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
+  await panel.getByLabel('ملاحظة المعاملة').press('Enter');
   await expect(panel.locator('.ledger-record').filter({hasText:'جزئي اختبار'})).toBeVisible();
   await panel.locator('.ledger-record').filter({hasText:'قسمة اختبار'}).getByRole('button',{name:/تعديل المعاملة/}).click();
   const editing=panel.locator('.ledger-draft-row').first();
@@ -132,11 +134,11 @@ try {
       await page.screenshot({path:`artifacts/ledger-pills/${section}-${theme}-${width}-records.png`,fullPage:true});
     }
   }
-  for (const [amount, balance, color] of [[120, 0, 'rgb(51, 65, 85)'], [20, -20, 'rgb(8, 116, 67)']] as const) {
+  for (const [amount, balance] of [[120, 0, 'rgb(51, 65, 85)'], [20, -20, 'rgb(8, 116, 67)']] as const) {
     await kind.getByRole('button',{name:'سحب أمانة',exact:true}).click();
     await panel.getByLabel('قيمة المعاملة',{exact:true}).fill(String(amount));
-    await panel.getByRole('button',{name:'اعتماد المعاملة',exact:true}).click();
-    await expect(panel.locator('.ledger-total')).toHaveCSS('background-color', color);
+    await panel.getByLabel('ملاحظة المعاملة').press('Enter');
+    await expect(panel.locator('.ledger-total')).toHaveCSS('color','rgb(33, 22, 0)');
     assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,balance);
   }
   for (const theme of ['light','dark']) {
@@ -144,10 +146,25 @@ try {
     for (const width of [1440,390]) {
       await page.setViewportSize({width,height:950});
       await panel.locator('.ledger-total').scrollIntoViewIfNeeded();
-      await expect(panel.locator('.ledger-total')).toHaveCSS('background-color','rgb(8, 116, 67)');
+      await expect(panel.locator('.ledger-total')).toHaveCSS('color','rgb(33, 22, 0)');
       await page.screenshot({path:`artifacts/ledger-pills/libyan-negative-${theme}-${width}.png`,fullPage:true});
     }
   }
+  await page.setViewportSize({width:1440,height:950});
+  await mode.getByRole('button',{name:'ضرب',exact:true}).click();
+  await panel.getByLabel('قيمة المعاملة',{exact:true}).fill('2');
+  await panel.getByLabel('السعر',{exact:true}).fill('3');
+  await panel.getByLabel('ملاحظة المعاملة').fill('سحب ضرب ثم إلغاء');
+  await panel.getByLabel('السعر',{exact:true}).press('Enter');
+  const extra=panel.locator('.ledger-record').filter({hasText:'سحب ضرب ثم إلغاء'});
+  await expect(extra).toBeVisible();
+  assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,-26);
+  await expect(kind.getByRole('button',{name:'سحب أمانة',exact:true})).toHaveAttribute('aria-pressed','true');
+  await expect(panel.getByLabel('قيمة المعاملة',{exact:true})).toBeFocused();
+  page.once('dialog',dialog=>dialog.accept());
+  await extra.getByRole('button',{name:/إلغاء المعاملة/}).click();
+  await expect(extra).toHaveCount(0);
+  assert.equal((await read(writer.request,'/api/'+section+'/'+created.customer.id)).balanceUnits,-20);
   await panel.locator('header .icon-button').click();
   await expect(page.locator('.customer-card.overdue-debt')).toHaveCSS('--card-bg','#a61e2a');
   console.log('PASS Libyan deposits: deposit/withdrawal labels and colors, both themes/sizes, positive/zero/negative balances, calculations unchanged.');
