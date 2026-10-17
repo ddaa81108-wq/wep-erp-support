@@ -1,3 +1,4 @@
+import { browserPushMessage } from './browserPushMessage.ts';
 import { createECDH, randomUUID } from 'node:crypto';
 import webPush from 'web-push';
 import type { AppDatabase } from '../db/database.ts';
@@ -160,16 +161,22 @@ export function createPushDispatcher(
       );
       const rows = db
         .prepare(
-          `SELECT q.*,p.endpoint,p.p256dh,p.auth FROM browser_push_outbox q
-        JOIN browser_push_subscriptions p ON p.id=q.subscription_id WHERE q.next_attempt_at<=? ORDER BY q.id LIMIT 10`,
+          `SELECT q.*,p.endpoint,p.p256dh,p.auth,n.action,n.details_json,u.display_name actor_name,c.mode payment_mode FROM browser_push_outbox q
+        JOIN browser_push_subscriptions p ON p.id=q.subscription_id
+        LEFT JOIN notifications n ON n.id=q.notification_id AND n.recipient_user_id=p.user_id AND n.organization_id=p.organization_id
+        LEFT JOIN users u ON u.id=n.actor_user_id AND u.organization_id=p.organization_id
+        LEFT JOIN collection_submissions c ON n.action='collection.submit' AND c.id=n.entity_id
+        WHERE (q.notification_id IS NULL OR n.id IS NOT NULL) AND q.next_attempt_at<=? ORDER BY q.id LIMIT 10`,
         )
         .all(Date.now());
       await Promise.all(
         rows.map(async (row) => {
+          let details: Record<string, unknown> = {};
+          try { details = JSON.parse(String(row.details_json ?? '{}')) ?? {}; } catch { /* Use action label. */ }
           const payload = JSON.stringify({
             title: 'VIB Abdo Company',
             body: row.notification_id
-              ? 'لديك إشعار جديد في المنظومة. افتحها للمراجعة.'
+              ? browserPushMessage(String(row.action), String(row.actor_name ?? 'النظام'), String(row.payment_mode ?? details.paymentMode ?? details.mode ?? ''))
               : 'وصل إشعار التجربة بنجاح.',
             tag: 'abdo-' + row.id,
             url: '/erp',

@@ -2,15 +2,16 @@
 self.addEventListener('push', (event) => {
   let payload = {};
   try {
-    payload = event.data ? event.data.json() : {};
+    const received = event.data ? event.data.json() : {};
+    payload = received && typeof received === 'object' ? received : {};
   } catch {
     /* Generic notification remains visible. */
   }
   event.waitUntil(
     self.registration.showNotification('VIB Abdo Company', {
       body:
-        payload.body === 'وصل إشعار التجربة بنجاح.'
-          ? payload.body
+        typeof payload.body === 'string' && payload.body.trim()
+          ? payload.body.slice(0, 240)
           : 'لديك إشعار جديد في المنظومة. افتحها للمراجعة.',
       icon: '/push-icon.svg',
       badge: '/push-icon.svg',

@@ -76,10 +76,11 @@ function fixture() {
   const notice = () =>
     db
       .prepare(
-        "INSERT INTO notifications(organization_id,recipient_user_id,action,entity_type,details_json,created_at) VALUES(?,?,'customer.debt','customer',?,?)",
+        "INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,'customer.debt','customer',?,?)",
       )
       .run(
         actor.organizationId,
+        actor.id,
         actor.id,
         JSON.stringify({ subjectName: 'اسم خاص', amountUnits: 5000 }),
         now,
@@ -107,7 +108,7 @@ test('push validates trusted providers and rejects invalid encryption keys and c
     db.close();
   }
 });
-test('push is transactional, excludes old/read notifications and encrypts a generic payload', async () => {
+test('push is transactional, excludes old/read notifications and encrypts actor and action without financial details', async () => {
   const { db, actor, subscription, notice } = fixture();
   const delivered: string[] = [];
   const dispatcher = createPushDispatcher(db, config, async (sub, payload, options) => {
@@ -130,6 +131,8 @@ test('push is transactional, excludes old/read notifications and encrypts a gene
     notice();
     await dispatcher.drain();
     assert.equal(delivered.length, 1);
+    assert.equal(JSON.parse(delivered[0]).title, 'VIB Abdo Company');
+    assert.equal(JSON.parse(delivered[0]).body, 'مدير — إضافة دين عميل');
     assert.ok(!delivered[0].includes('5000'));
     assert.ok(!delivered[0].includes('اسم خاص'));
     const read = notice();

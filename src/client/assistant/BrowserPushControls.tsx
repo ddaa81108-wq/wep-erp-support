@@ -24,6 +24,7 @@ export function BrowserPushControls() {
       try {
         const next = await request<Config>('/api/browser-push/config');
         const registration = await navigator.serviceWorker.getRegistration('/');
+        if (registration) void registration.update().catch(() => {});
         const subscription = await registration?.pushManager.getSubscription();
         if (active) {
           setConfig(next);
