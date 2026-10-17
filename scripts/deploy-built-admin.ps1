@@ -36,37 +36,7 @@ function Assert-SameTree([string]$ExpectedRoot, [string]$ActualRoot) {
   return $actual
 }
 
-function Start-AppServices {
-  Start-Service -Name 'AbdoErpLocal'
-  Start-Service -Name 'AbdoErpLocalProxy'
-}
-
-function Stop-AppServices {
-  # Stop the HTTPS dependent first; Windows will refuse to stop the API while its dependent is running.
-  foreach ($serviceName in @('AbdoErpLocalProxy', 'AbdoErpLocal')) {
-    $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-    if (-not $service -or $service.Status -eq 'Stopped') { continue }
-
-    & sc.exe stop $serviceName | Out-Null
-    $deadline = (Get-Date).AddSeconds($(if ($serviceName -eq 'AbdoErpLocalProxy') { 8 } else { 20 }))
-    do {
-      Start-Sleep -Milliseconds 250
-      $service.Refresh()
-    } while ($service.Status -ne 'Stopped' -and (Get-Date) -lt $deadline)
-
-    if ($service.Status -ne 'Stopped' -and $serviceName -eq 'AbdoErpLocalProxy') {
-      $serviceInfo = Get-CimInstance Win32_Service -Filter "Name='$serviceName'"
-      if ($serviceInfo.ProcessId -gt 0) {
-        Stop-Process -Id $serviceInfo.ProcessId -Force -ErrorAction Stop
-      }
-      $service.WaitForStatus('Stopped', [TimeSpan]::FromSeconds(8))
-    }
-
-    if ($service.Status -ne 'Stopped') {
-      throw "Service $serviceName did not stop safely before deployment."
-    }
-  }
-}
+. (Join-Path $PSScriptRoot 'deployment-services.ps1')
 
 function Wait-AppHealth([int]$TimeoutSeconds = 30) {
   $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
@@ -92,6 +62,12 @@ $installedDist = Join-Path $InstallRoot 'dist'
 if (-not (Test-Path -LiteralPath (Join-Path $sourceDist 'server\main.mjs'))) { throw 'Built server is missing.' }
 if (-not (Test-Path -LiteralPath (Join-Path $sourceDist 'web\index.html'))) { throw 'Built web client is missing.' }
 if (-not (Test-Path -LiteralPath $InstallRoot)) { throw 'Installed application directory is missing.' }
+if (-not (Test-Path -LiteralPath (Join-Path $installedDist 'server\main.mjs') -PathType Leaf)) {
+  throw 'The previous installed server is missing. This script updates an existing installation only.'
+}
+if ($sourceDist.TrimEnd('\').Equals($installedDist.TrimEnd('\'), [StringComparison]::OrdinalIgnoreCase)) {
+  throw 'Build source and installed program must be different directories.'
+}
 
 $operationId = [Guid]::NewGuid().ToString('N')
 $stagingDist = Join-Path $InstallRoot ".deploy-staging-$operationId"
@@ -103,7 +79,11 @@ foreach ($path in @($installedDist, $stagingDist, $rollbackDist)) {
     throw "Deployment path is outside the installation directory: $resolved"
   }
 }
-$swapped = $false
+# Preflight runs before any service is stopped or installed file is moved.
+$servicePlan = Get-DeploymentServicePlan
+$servicesTouched = $false
+$oldMoved = $false
+$newInstalled = $false
 $health = $null
 
 try {
@@ -123,44 +103,62 @@ try {
   }
   $manifest = Assert-SameTree $sourceDist $stagingDist
 
-  Stop-AppServices
+  $servicesTouched = $true
+  Stop-DeploymentServices $servicePlan
   if (Test-Path -LiteralPath $installedDist) {
     Move-Item -LiteralPath $installedDist -Destination $rollbackDist
+    $oldMoved = $true
   }
   Move-Item -LiteralPath $stagingDist -Destination $installedDist
-  $swapped = $true
+  $newInstalled = $true
 
-  Start-AppServices
+  Start-DeploymentServices $servicePlan
   $health = Wait-AppHealth
   Assert-SameTree $sourceDist $installedDist | Out-Null
-  if (Test-Path -LiteralPath $rollbackDist) {
-    Remove-Item -LiteralPath $rollbackDist -Recurse -Force
-  }
+  # Keep the preceding program release for recovery; this contains program files only.
 } catch {
   $failure = $_
-  Stop-AppServices
-  if ($swapped -and (Test-Path -LiteralPath $rollbackDist)) {
-    if (Test-Path -LiteralPath $installedDist) {
-      Remove-Item -LiteralPath $installedDist -Recurse -Force
+  if ($oldMoved -or $newInstalled) {
+    try {
+      # Never replace a release while any of its services may still be using it.
+      Stop-DeploymentServices $servicePlan
+      if ($oldMoved -and -not (Test-Path -LiteralPath $rollbackDist -PathType Container)) {
+        throw "Previous program release is missing: $rollbackDist"
+      }
+      if ($newInstalled -and (Test-Path -LiteralPath $installedDist)) {
+        Remove-Item -LiteralPath $installedDist -Recurse -Force
+      }
+      if ($oldMoved) {
+        Move-Item -LiteralPath $rollbackDist -Destination $installedDist
+      }
+      Start-DeploymentServices $servicePlan -RestoreOriginal
+      if ($servicePlan.InitialRunning -contains 'AbdoErpLocal') {
+        Wait-AppHealth 30 | Out-Null
+      }
+      Write-Warning 'Deployment failed; the previous program release and original running services were restored.'
+    } catch {
+      Write-Warning "Automatic recovery could not complete: $($_.Exception.Message). Preserve $rollbackDist."
     }
-    Move-Item -LiteralPath $rollbackDist -Destination $installedDist
-  }
-  if (Test-Path -LiteralPath $installedDist) {
-    Start-AppServices
-    try { Wait-AppHealth 20 | Out-Null } catch {}
+  } elseif ($servicesTouched) {
+    # A failed stop must not trigger another stop attempt or a file replacement.
+    try { Start-DeploymentServices $servicePlan -RestoreOriginal }
+    catch { Write-Warning "Could not restore all original running services: $($_.Exception.Message)" }
   }
   throw $failure
 } finally {
   if (Test-Path -LiteralPath $stagingDist) {
-    Remove-Item -LiteralPath $stagingDist -Recurse -Force
+    try { Remove-Item -LiteralPath $stagingDist -Recurse -Force }
+    catch { Write-Warning "Could not remove staging files: $stagingDist" }
   }
 }
 
 $serverHash = (Get-FileHash -LiteralPath (Join-Path $installedDist 'server\main.mjs') -Algorithm SHA256).Hash
 $webIndexHash = (Get-FileHash -LiteralPath (Join-Path $installedDist 'web\index.html') -Algorithm SHA256).Hash
-[pscustomobject]@{
+$deploymentResult = [pscustomobject]@{
   status = 'ok'
-  deploymentMode = 'atomic-with-rollback'
+  deploymentMode = 'staged-with-rollback'
+  previousProgramRelease = $(if ($oldMoved) { $rollbackDist } else { $null })
+  services = @($servicePlan.StartOrder | ForEach-Object { Get-Service -Name $_ | Select-Object Name, Status })
   deployedAt = (Get-Date).ToUniversalTime().ToString('o')
   verifiedFiles = $manifest.Count
   serverSha256 = $serverHash
@@ -168,4 +166,10 @@ $webIndexHash = (Get-FileHash -LiteralPath (Join-Path $installedDist 'web\index.
   apiVersion = $health.data.apiVersion
   schemaVersion = $health.data.schemaVersion
   uiVersion = $health.data.uiVersion
-} | ConvertTo-Json | Set-Content -LiteralPath 'C:\ProgramData\AbdoErpLocal\logs\last-deployment.json' -Encoding utf8
+}
+try {
+  $deploymentResult | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath 'C:\ProgramData\AbdoErpLocal\logs\last-deployment.json' -Encoding utf8
+} catch {
+  Write-Warning "Program deployment succeeded, but its report could not be saved: $($_.Exception.Message)"
+}
+$deploymentResult
