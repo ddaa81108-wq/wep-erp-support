@@ -79,22 +79,39 @@
 
 .employee-totals-panel {
   border-inline-start: 3px solid var(--accent, #d6a84f);
+  padding: 8px 12px;
+}
+.employee-totals-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+}
+.employee-totals-row h2,
+.employee-totals-row p {
+  margin: 0;
 }
 .employee-totals-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+  vertical-align: middle;
 }
 .employee-total-card {
-  display: grid;
-  gap: 5px;
-  padding: 12px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 5px 12px;
   border: 1px solid color-mix(in srgb, var(--accent, #d6a84f) 45%, transparent);
-  border-radius: 16px;
+  border-radius: 999px;
   background: color-mix(in srgb, var(--surface, #fff) 88%, var(--accent, #d6a84f));
+  white-space: nowrap;
 }
-.employee-total-card b { font-size: 1.15rem; }
-.employee-total-card span { font-size: .82rem; opacity: .78; }
+.employee-total-card b { font-size: .95rem; }
+.employee-total-card span { font-size: .72rem; opacity: .78; }
 .collection-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));

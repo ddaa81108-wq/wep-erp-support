@@ -161,14 +161,16 @@ export function AdminCollectionsSection() {
       </div>} />
       {data.employeeTotals && data.employeeTotals.length > 0 && (
         <section className="collection-panel employee-totals-panel" aria-label="تفصيل إجماليات الموظفين">
-          <h2>إجماليات الموظفين</h2>
-          <p className="muted">تفصيل إداري للمتابعة، مع بقاء الإجمالي العام أعلاه كما هو.</p>
+          <div className="employee-totals-row">
+            <h2>إجماليات الموظفين</h2>
+            <p className="muted">تفصيل إداري</p>
+          </div>
           <div className="employee-totals-grid">
             {data.employeeTotals.map((employee) => (
               <article className="employee-total-card" key={employee.employeeId}>
                 <strong>{employee.employeeName}</strong>
                 <b>{collectionMoney.format(employee.collectedUnits)} د.ل</b>
-                <span>معتمد: {collectionMoney.format(employee.approvedCount)} · ينتظر: {collectionMoney.format(employee.pendingCount)}</span>
+                <span>معتمد {collectionMoney.format(employee.approvedCount)} · ينتظر {collectionMoney.format(employee.pendingCount)}</span>
               </article>
             ))}
           </div>
