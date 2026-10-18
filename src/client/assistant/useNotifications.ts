@@ -9,6 +9,19 @@ import {
 
 let noticeAudioContext: AudioContext | null = null;
 
+async function syncAppBadge(count: number) {
+  const badgeNavigator = navigator as Navigator & {
+    setAppBadge?: (value?: number) => Promise<void>;
+    clearAppBadge?: () => Promise<void>;
+  };
+  try {
+    if (count > 0 && badgeNavigator.setAppBadge) await badgeNavigator.setAppBadge(count);
+    else if (count === 0 && badgeNavigator.clearAppBadge) await badgeNavigator.clearAppBadge();
+  } catch {
+    // Badges are optional browser UI; the in-app counter remains authoritative.
+  }
+}
+
 function resolveNoticeAudioContext() {
   const AudioContextClass = window.AudioContext ??
     (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -72,6 +85,7 @@ export function useNotifications(enabled: boolean) {
       const hasNew = initialized.current && latestId > newestId.current;
       setItems(result.items);
       setUnreadCount(result.unreadCount);
+      void syncAppBadge(result.unreadCount);
       setError('');
       if (hasNew && result.items[0]) {
         setAnnouncement(result.items[0]);
@@ -146,13 +160,18 @@ export function useNotifications(enabled: boolean) {
   const markRead = useCallback(async (id: number) => {
     await api.markNotificationRead(id);
     setItems((current) => current.filter((item) => item.id !== id));
-    setUnreadCount((current) => Math.max(0, current - 1));
+    setUnreadCount((current) => {
+      const next = Math.max(0, current - 1);
+      void syncAppBadge(next);
+      return next;
+    });
   }, []);
 
   const markAllRead = useCallback(async () => {
     await api.markAllNotificationsRead();
     setItems([]);
     setUnreadCount(0);
+    void syncAppBadge(0);
   }, []);
 
   const updatePreferences = useCallback(async (next: NotificationPreferences) => {

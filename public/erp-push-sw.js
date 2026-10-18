@@ -8,7 +8,13 @@ self.addEventListener('push', (event) => {
     /* Generic notification remains visible. */
   }
   event.waitUntil(
-    self.registration.showNotification('VIB Abdo Company', {
+    Promise.all([
+      typeof payload.badgeCount === 'number' && payload.badgeCount > 0 && 'setAppBadge' in self.registration
+        ? self.registration.setAppBadge(payload.badgeCount).catch(() => undefined)
+        : payload.badgeCount === 0 && 'clearAppBadge' in self.registration
+          ? self.registration.clearAppBadge().catch(() => undefined)
+          : Promise.resolve(),
+      self.registration.showNotification('VIB Abdo Company', {
       body:
         typeof payload.body === 'string' && payload.body.trim()
           ? payload.body.slice(0, 240)
@@ -19,7 +25,8 @@ self.addEventListener('push', (event) => {
       data: { url: '/erp' },
       dir: 'rtl',
       lang: 'ar',
-    }),
+      }),
+    ]),
   );
 });
 self.addEventListener('notificationclick', (event) => {

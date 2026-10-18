@@ -161,7 +161,9 @@ export function createPushDispatcher(
       );
       const rows = db
         .prepare(
-          `SELECT q.*,p.endpoint,p.p256dh,p.auth,n.action,n.details_json,u.display_name actor_name,c.mode payment_mode FROM browser_push_outbox q
+          `SELECT q.*,p.endpoint,p.p256dh,p.auth,n.action,n.details_json,u.display_name actor_name,c.mode payment_mode,
+          (SELECT COUNT(*) FROM notifications unread WHERE unread.organization_id=p.organization_id AND unread.recipient_user_id=p.user_id AND unread.read_at IS NULL) unread_count
+          FROM browser_push_outbox q
         JOIN browser_push_subscriptions p ON p.id=q.subscription_id
         LEFT JOIN notifications n ON n.id=q.notification_id AND n.recipient_user_id=p.user_id AND n.organization_id=p.organization_id
         LEFT JOIN users u ON u.id=n.actor_user_id AND u.organization_id=p.organization_id
@@ -180,6 +182,7 @@ export function createPushDispatcher(
               : 'وصل إشعار التجربة بنجاح.',
             tag: 'abdo-' + row.id,
             url: '/erp',
+            badgeCount: Math.max(0, Number(row.unread_count ?? 0)),
           });
           try {
             await send(
