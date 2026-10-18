@@ -115,6 +115,31 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     cashOutstandingUnits: Number(baseMetrics.cashOutstandingUnits) + Number(unlinkedMetrics.cashOutstandingUnits),
     unlinkedPendingCount: Number(unlinkedMetrics.unlinkedPendingCount),
   };
+  const employeeTotals = actor.role === 'admin'
+    ? (() => {
+      const rows = db.prepare(`SELECT u.id AS employeeId, u.display_name AS employeeName,
+        COALESCE(SUM(CASE WHEN s.status='approved' THEN s.amount_units ELSE 0 END),0) AS collectedUnits,
+        COALESCE(SUM(CASE WHEN s.status='approved' THEN 1 ELSE 0 END),0) AS approvedCount,
+        COALESCE(SUM(CASE WHEN s.status='pending' THEN 1 ELSE 0 END),0) AS pendingCount
+        FROM users u LEFT JOIN collection_submissions s ON s.collector_user_id=u.id
+        WHERE u.organization_id=? AND u.is_active=1 AND u.role <> 'admin' GROUP BY u.id,u.display_name
+        ORDER BY u.display_name COLLATE NOCASE`).all(actor.organizationId) as Array<Record<string, unknown>>;
+      const unlinkedRows = db.prepare(`SELECT collector_user_id AS employeeId,
+        COALESCE(SUM(CASE WHEN status='approved' THEN amount_units ELSE 0 END),0) AS collectedUnits,
+        COALESCE(SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END),0) AS approvedCount,
+        COALESCE(SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END),0) AS pendingCount
+        FROM collection_unlinked_receipts WHERE organization_id=? GROUP BY collector_user_id`).all(actor.organizationId) as Array<Record<string, unknown>>;
+      const byId = new Map(rows.map((row) => [String(row.employeeId), row]));
+      for (const row of unlinkedRows) {
+        const target = byId.get(String(row.employeeId));
+        if (!target) continue;
+        target.collectedUnits = Number(target.collectedUnits) + Number(row.collectedUnits);
+        target.approvedCount = Number(target.approvedCount) + Number(row.approvedCount);
+        target.pendingCount = Number(target.pendingCount) + Number(row.pendingCount);
+      }
+      return rows.map((row) => ({ employeeId: String(row.employeeId), employeeName: String(row.employeeName), collectedUnits: Number(row.collectedUnits), approvedCount: Number(row.approvedCount), pendingCount: Number(row.pendingCount) }));
+    })()
+    : undefined;
   const openBatches=db.prepare("SELECT id,business_date AS businessDate,organization_batch_number AS batchNumber,opened_at AS openedAt FROM collection_batches WHERE organization_id=? AND status='open' ORDER BY opened_at DESC").all(actor.organizationId);
   // Keep earlier approved cash reachable even after its assignment is cancelled.
   const outstandingCancelledSubmissions = db.prepare(`SELECT s.id, s.amount_units AS amountUnits,
@@ -124,7 +149,7 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     WHERE c.organization_id=? AND a.status='cancelled' AND s.status='approved'
       AND s.cash_received_at IS NULL ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'}
     ORDER BY s.submitted_at DESC, s.id`).all(...params);
-  return { assignments, submissions, unlinkedReceipts, outstandingCancelledSubmissions, metrics, assignedCount: assignments.length, openBatches };
+  return { assignments, submissions, unlinkedReceipts, outstandingCancelledSubmissions, metrics, employeeTotals, assignedCount: assignments.length, openBatches };
 }
 
 export function createUnlinkedCollectionReceipt(

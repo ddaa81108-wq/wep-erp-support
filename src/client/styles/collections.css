@@ -76,6 +76,25 @@
   font-size: 13px;
   margin: 0 0 8px;
 }
+
+.employee-totals-panel {
+  border-inline-start: 3px solid var(--accent, #d6a84f);
+}
+.employee-totals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+.employee-total-card {
+  display: grid;
+  gap: 5px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent, #d6a84f) 45%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface, #fff) 88%, var(--accent, #d6a84f));
+}
+.employee-total-card b { font-size: 1.15rem; }
+.employee-total-card span { font-size: .82rem; opacity: .78; }
 .collection-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));

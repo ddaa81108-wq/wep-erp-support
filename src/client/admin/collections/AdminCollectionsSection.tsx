@@ -159,6 +159,21 @@ export function AdminCollectionsSection() {
         <button className={`compact-action batch-close-button ${selectedBatch && batchHasCards(selectedBatch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && setClosingBatchId(selectedBatch.id)}><X size={16} aria-hidden="true" />إغلاق ومسح الدفعة</button>
         <button className="compact-action" disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && void exportPdf(selectedBatch.id, selectedBatch.businessDate)}>كشف PDF</button>
       </div>} />
+      {data.employeeTotals && data.employeeTotals.length > 0 && (
+        <section className="collection-panel employee-totals-panel" aria-label="تفصيل إجماليات الموظفين">
+          <h2>إجماليات الموظفين</h2>
+          <p className="muted">تفصيل إداري للمتابعة، مع بقاء الإجمالي العام أعلاه كما هو.</p>
+          <div className="employee-totals-grid">
+            {data.employeeTotals.map((employee) => (
+              <article className="employee-total-card" key={employee.employeeId}>
+                <strong>{employee.employeeName}</strong>
+                <b>{collectionMoney.format(employee.collectedUnits)} د.ل</b>
+                <span>معتمد: {collectionMoney.format(employee.approvedCount)} · ينتظر: {collectionMoney.format(employee.pendingCount)}</span>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
       <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} onReceive={(id) => void cash(id)} />
       {error && <div className="alert error">{error}</div>}
       <UnlinkedReceiptsPanel

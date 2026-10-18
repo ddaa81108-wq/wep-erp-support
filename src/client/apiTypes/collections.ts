@@ -72,6 +72,7 @@ export type CollectionsDashboard = {
     cashOutstandingUnits: number;
     unlinkedPendingCount: number;
   };
+  employeeTotals?: Array<{ employeeId: string; employeeName: string; collectedUnits: number; approvedCount: number; pendingCount: number }>;
   outstandingCancelledSubmissions?: Array<{ id: string; customerName: string; collectorName: string; amountUnits: number }>;
   assignedCount: number;
   openBatches: Array<{ id: string; businessDate: string; batchNumber: number; openedAt: string }>;
