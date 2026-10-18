@@ -29,11 +29,15 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
         ? 'سداد كامل'
         : 'سداد جزئي';
   const status = item.status === 'corrected' ? ' — مصححة' : item.status === 'reversed' ? ' — ملغاة' : '';
+  const updatedAt = Date.parse(item.updatedAt ?? item.createdAt);
+  const createdAt = Date.parse(item.createdAt);
+  const recentlyEdited = Number.isFinite(updatedAt) && Number.isFinite(createdAt) && updatedAt > createdAt && Date.now() - updatedAt <= 24 * 60 * 60 * 1000;
 
   return (
     <div data-ledger-row tabIndex={0} className={`ledger-grid ledger-record ${item.type} ${item.status}`}>
       <b className="ledger-cell" data-label="التسلسل">
         #{item.sequence}
+        {recentlyEdited && <span className="ledger-recent-edit" title="تم تعديل المعاملة خلال آخر 24 ساعة">معدّل</span>}
       </b>
       <div className="ledger-cell" data-label="اليوم والتاريخ والوقت">
         {debtLedger ? <strong className="ledger-date-parts">

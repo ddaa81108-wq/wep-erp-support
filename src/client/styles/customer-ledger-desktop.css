@@ -153,6 +153,22 @@
   line-height: 1.2; white-space: nowrap;
 }
 .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .ledger-record-pill:is(.choice-divide,.choice-multiply) { font-size: 22px; }
+.ledger-recent-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: 4px;
+  padding: 1px 5px;
+  border: 1px solid #e9c45a;
+  border-radius: 999px;
+  background: #30230c;
+  color: #ffe58b;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+  vertical-align: middle;
+}
 .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .ledger-record > .ledger-cell:nth-child(2) {
   display: grid; grid-template-columns: 205px minmax(0, 1fr); align-items: center; gap: 6px;
 }
