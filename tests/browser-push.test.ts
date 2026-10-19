@@ -173,7 +173,7 @@ test('push retries transient failures without duplication and retires expired en
     db.close();
   }
 });
-test('logout and revoked notification permissions stop delivery; test requests are throttled', async () => {
+test('logout keeps the device subscription; test requests are throttled', async () => {
   const { db, actor, subscription, notice } = fixture();
   let sent = 0;
   const dispatcher = createPushDispatcher(db, config, async () => {
@@ -187,15 +187,15 @@ test('logout and revoked notification permissions stop delivery; test requests a
     db.prepare('UPDATE sessions SET revoked_at=?').run(new Date().toISOString());
     notice();
     await dispatcher.drain();
-    assert.equal(sent, 0);
-    assert.equal(db.prepare('SELECT COUNT(*) n FROM browser_push_subscriptions').get()!.n, 0);
+    assert.equal(sent, 2);
+    assert.equal(db.prepare('SELECT COUNT(*) n FROM browser_push_subscriptions').get()!.n, 1);
   } finally {
     dispatcher.stop();
     db.close();
   }
 });
 
-for (const reason of ['expired', 'disabled', 'permission', 'password-reset'] as const) {
+for (const reason of ['disabled', 'permission', 'password-reset'] as const) {
   test('queued push is discarded when recipient is ' + reason, async () => {
     const { db, actor, subscription, notice } = fixture();
     let sent = 0;

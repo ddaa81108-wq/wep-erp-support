@@ -29,8 +29,8 @@ export async function routeBrowserPush(
         ready: Boolean(settings),
         publicKey: settings?.publicKey ?? null,
         endpoints: db
-          .prepare('SELECT endpoint FROM browser_push_subscriptions WHERE user_id=? AND session_token_hash=?')
-          .all(user.id, user.sessionTokenHash)
+          .prepare('SELECT endpoint FROM browser_push_subscriptions WHERE user_id=? AND organization_id=?')
+          .all(user.id, user.organizationId)
           .map((row) => String(row.endpoint)),
       },
     });

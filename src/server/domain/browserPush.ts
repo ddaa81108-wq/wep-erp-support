@@ -114,9 +114,9 @@ export function queuePushTest(db: AppDatabase, user: AuthenticatedUser, endpoint
   return inImmediateTransaction(db, () => {
     const row = db
       .prepare(
-        'SELECT id,last_test_at FROM browser_push_subscriptions WHERE endpoint=? AND user_id=? AND organization_id=? AND session_token_hash=?',
+        'SELECT id,last_test_at FROM browser_push_subscriptions WHERE endpoint=? AND user_id=? AND organization_id=?',
       )
-      .get(String(endpoint ?? ''), user.id, user.organizationId, user.sessionTokenHash);
+      .get(String(endpoint ?? ''), user.id, user.organizationId);
     if (!row) throw badRequest('PUSH_NOT_SUBSCRIBED', 'فعّل إشعارات المتصفح أولًا.');
     if (Date.now() - Number(row.last_test_at) < 60000)
       throw conflict('PUSH_TEST_LIMIT', 'انتظر دقيقة قبل إعادة التجربة.');
@@ -146,16 +146,17 @@ export function createPushDispatcher(
     if (!settings || running || stopped) return;
     running = true;
     try {
-      // Revoke delivery immediately after logout, expiry, disabled accounts or lost permission.
+      // Keep a device subscription across browser sessions. Delivery is revoked
+      // only when the user disables it, the account loses access, or the endpoint expires.
       db.prepare(
         `DELETE FROM browser_push_subscriptions WHERE id NOT IN (
-        SELECT p.id FROM browser_push_subscriptions p JOIN sessions s ON s.token_hash=p.session_token_hash AND s.user_id=p.user_id
+        SELECT p.id FROM browser_push_subscriptions p
         JOIN users u ON u.id=p.user_id AND u.organization_id=p.organization_id
         JOIN organizations o ON o.id=u.organization_id JOIN branches b ON b.id=u.home_branch_id AND b.organization_id=o.id
-        WHERE s.revoked_at IS NULL AND s.expires_at>? AND u.is_active=1 AND u.must_change_password=0 AND o.status='active' AND b.is_active=1
+        WHERE u.is_active=1 AND u.must_change_password=0 AND o.status='active' AND b.is_active=1
           AND (u.role='admin' OR EXISTS(SELECT 1 FROM user_permissions x WHERE x.user_id=u.id AND x.permission='collections.read' AND x.allowed=1))
       )`,
-      ).run(nowIso());
+      ).run();
       db.prepare('DELETE FROM browser_push_outbox WHERE created_at<? OR attempts>=6').run(
         Date.now() - 86400000,
       );
