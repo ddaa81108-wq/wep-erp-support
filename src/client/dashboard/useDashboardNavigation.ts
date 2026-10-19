@@ -26,7 +26,7 @@ export function useDashboardNavigation(user: User) {
   }
   async function setActiveSection(section: MainSection) {
     if (section !== activeSection && (await flushBeforeNavigation())) {
-      window.history.pushState({ erpSection: section }, '', '/erp');
+      window.history.pushState({ erpGuard: true, erpSection: section }, '', '/erp');
       commitSection(section);
     }
   }

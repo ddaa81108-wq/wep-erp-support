@@ -45,23 +45,36 @@ export function Dashboard({
   const labels = debtSectionText[debtSection];
   const debtAccounts = useDebtAccounts({ activeSection, debtSection, canRead, onNotice: setNotice });
   useEffect(() => {
-    if (!window.history.state?.erpRoot && !window.history.state?.erpSection) {
-      window.history.replaceState({ erpRoot: true }, '', '/erp');
+    if (!window.history.state?.erpGuard) {
+      window.history.replaceState({ erpGuard: true, erpRoot: true, erpSection: activeSection }, '', '/erp');
+      window.history.pushState({ erpGuard: true, erpRoot: true, erpSection: activeSection }, '', '/erp');
     }
     const onBack = (event: PopStateEvent) => {
       if (dialog) {
         setDialog(null);
-        window.history.pushState({ erpSection: activeSection }, '', '/erp');
+        window.history.pushState({ erpGuard: true, erpSection: activeSection }, '', '/erp');
       } else if (debtAccounts.ledger) {
         debtAccounts.closeLedger();
-        window.history.pushState({ erpSection: activeSection }, '', '/erp');
+        window.history.pushState({ erpGuard: true, erpSection: activeSection }, '', '/erp');
       } else if (menu) {
         setMenu(false);
-        window.history.pushState({ erpSection: activeSection }, '', '/erp');
-      } else if (event.state?.erpSection) {
+        window.history.pushState({ erpGuard: true, erpSection: activeSection }, '', '/erp');
+      } else if (event.state?.erpGuard && event.state?.erpRoot) {
+        const leave = window.confirm('هل تريد تسجيل الخروج من المنظومة؟\nاضغط "إلغاء" للبقاء داخل الموقع.');
+        if (leave) {
+          void logout();
+        } else {
+          window.history.pushState({ erpGuard: true, erpRoot: true, erpSection: activeSection }, '', '/erp');
+        }
+      } else if (event.state?.erpGuard && event.state?.erpSection) {
         restoreSection(event.state.erpSection);
       } else {
-        window.history.pushState({ erpSection: activeSection }, '', '/erp');
+        const leave = window.confirm('هل تريد تسجيل الخروج من المنظومة؟\nاضغط "إلغاء" للبقاء داخل الموقع.');
+        if (leave) {
+          void logout();
+        } else {
+          window.history.pushState({ erpGuard: true, erpRoot: true, erpSection: activeSection }, '', '/erp');
+        }
       }
     };
     window.addEventListener('popstate', onBack);
