@@ -1,0 +1,96 @@
+/* Mobile-only spacing refinement for the page header and debt totals. */
+@media (max-width: 900px) {
+  .dashboard-utility-bar {
+    min-height: calc(44px + env(safe-area-inset-top));
+    gap: 5px;
+    padding-inline: 6px;
+    border-radius: 0 0 14px 14px;
+  }
+  .dashboard-utility-bar .global-account-search {
+    height: 32px;
+    border-radius: 999px;
+    padding-inline: 8px;
+  }
+  .dashboard-utility-bar .global-account-search input {
+    font-size: .68rem;
+    text-align: center;
+  }
+  .dashboard-utility-bar :is(.mobile-app-menu, .utility-icon-button, .sync-status) {
+    border-radius: 999px;
+  }
+}
+
+@media (max-width: 560px) {
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(84px, 105px);
+    gap: 5px;
+    margin-top: 6px;
+    padding: 5px;
+    border-radius: 16px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar > :is(.debt-total-card, .add-customer-card, .routing-card, .active-cards-card, .dashboard-search) {
+    min-height: 50px;
+    height: 50px;
+    padding: 5px 7px;
+    border-radius: 999px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .debt-total-card {
+    grid-template-columns: 25px minmax(0, 1fr);
+    column-gap: 5px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .debt-total-card .summary-icon {
+    width: 25px;
+    height: 25px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .debt-total-card > span {
+    font-size: .61rem;
+    line-height: 1.15;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .debt-total-card > strong {
+    font-size: 13px;
+    line-height: 1.1;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .active-cards-card {
+    min-height: 58px;
+    height: auto;
+    grid-column: 1 / -1;
+    padding: 5px 7px;
+    gap: 5px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .active-cards-count {
+    min-height: 22px;
+    justify-content: center;
+    gap: 7px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .active-cards-count span {
+    font-size: .63rem;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .active-cards-count strong {
+    font-size: 15px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .compact-filters {
+    gap: 3px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .compact-filters button {
+    min-height: 27px;
+    height: 27px;
+    padding-inline: 2px;
+    border-radius: 999px;
+    font-size: 8px;
+  }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar .compact-filters .pending-review-filter {
+    grid-column: 1 / -1;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .dashboard-search {
+    grid-column: 1 / -1;
+    min-height: 44px;
+    height: 44px;
+    padding: 4px 7px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar .dashboard-search input {
+    height: 32px;
+    border-radius: 999px;
+    text-align: center;
+    font-size: .68rem;
+  }
+}
