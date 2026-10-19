@@ -33,6 +33,7 @@ export function Dashboard({
     setMenuOpen: setMenu,
     sidebarHidden,
     setSidebarVisibility,
+    restoreSection,
   } = useDashboardNavigation(user);
   const [dialog, setDialog] = useState<DashboardDialog>(null);
   const [notice, setNotice] = useState<DashboardNotice>(null);
@@ -43,6 +44,29 @@ export function Dashboard({
   const canWrite = user.role === 'admin' || user.permissions?.includes(`${permissionPrefix}.write`) === true;
   const labels = debtSectionText[debtSection];
   const debtAccounts = useDebtAccounts({ activeSection, debtSection, canRead, onNotice: setNotice });
+  useEffect(() => {
+    if (!window.history.state?.erpRoot && !window.history.state?.erpSection) {
+      window.history.replaceState({ erpRoot: true }, '', '/erp');
+    }
+    const onBack = (event: PopStateEvent) => {
+      if (dialog) {
+        setDialog(null);
+        window.history.pushState({ erpSection: activeSection }, '', '/erp');
+      } else if (debtAccounts.ledger) {
+        debtAccounts.closeLedger();
+        window.history.pushState({ erpSection: activeSection }, '', '/erp');
+      } else if (menu) {
+        setMenu(false);
+        window.history.pushState({ erpSection: activeSection }, '', '/erp');
+      } else if (event.state?.erpSection) {
+        restoreSection(event.state.erpSection);
+      } else {
+        window.history.pushState({ erpSection: activeSection }, '', '/erp');
+      }
+    };
+    window.addEventListener('popstate', onBack);
+    return () => window.removeEventListener('popstate', onBack);
+  }, [activeSection, debtAccounts.closeLedger, debtAccounts.ledger, dialog, menu, restoreSection]);
   const {
     routing,
     selectedCustomers,

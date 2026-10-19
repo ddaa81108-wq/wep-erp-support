@@ -25,7 +25,10 @@ export function useDashboardNavigation(user: User) {
     window.localStorage.setItem(SIDEBAR_HIDDEN_KEY, String(hidden));
   }
   async function setActiveSection(section: MainSection) {
-    if (section !== activeSection && (await flushBeforeNavigation())) commitSection(section);
+    if (section !== activeSection && (await flushBeforeNavigation())) {
+      window.history.pushState({ erpSection: section }, '', '/erp');
+      commitSection(section);
+    }
   }
 
   return {
@@ -35,5 +38,6 @@ export function useDashboardNavigation(user: User) {
     setMenuOpen,
     sidebarHidden,
     setSidebarVisibility,
+    restoreSection: (section: MainSection) => commitSection(section),
   };
 }
