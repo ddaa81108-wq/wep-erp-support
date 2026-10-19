@@ -205,8 +205,6 @@ for (const reason of ['disabled', 'permission', 'password-reset'] as const) {
     try {
       registerPush(db, actor, subscription);
       notice();
-      if (reason === 'expired')
-        db.prepare('UPDATE sessions SET expires_at=?').run('2000-01-01T00:00:00.000Z');
       if (reason === 'disabled') db.prepare('UPDATE users SET is_active=0 WHERE id=?').run(actor.id);
       if (reason === 'permission') db.prepare("UPDATE users SET role='employee' WHERE id=?").run(actor.id);
       if (reason === 'password-reset')
