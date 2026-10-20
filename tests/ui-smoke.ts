@@ -634,16 +634,17 @@ try {
   await page.screenshot({ path: join(output, 'purchases-desktop.png'), fullPage: true });
   await page.getByLabel('القيمة ج.م').fill('999');
   internetAvailable = false;
-  await page.waitForFunction(() => document.documentElement.style.visibility === 'hidden', undefined, {
+  await page.waitForFunction(() => Boolean(document.querySelector('.connection-notice')), undefined, {
     timeout: 12_000,
   });
   assert.equal(
     await page.locator('#root h1').filter({ hasText: 'قسم المشتريات' }).count(),
     1,
-    'the mounted page must be preserved while hidden',
+    'the mounted page must remain visible during an outage',
   );
+  assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).visibility), 'hidden');
   internetAvailable = true;
-  await page.waitForFunction(() => document.documentElement.style.visibility !== 'hidden', undefined, {
+  await page.waitForFunction(() => !document.querySelector('.connection-notice'), undefined, {
     timeout: 7_000,
   });
   assert.equal(
@@ -1085,12 +1086,13 @@ try {
   await page.locator('.ledger-panel > header .icon-button').click();
   await page.locator('.ledger-panel').waitFor({ state: 'detached' });
   internetAvailable = false;
-  await page.waitForFunction(() => document.documentElement.style.visibility === 'hidden', undefined, {
+  await page.waitForFunction(() => Boolean(document.querySelector('.connection-notice')), undefined, {
     timeout: 12_000,
   });
   assert.equal(await page.locator('#root h1').filter({ hasText: 'قسم ديون العملاء' }).count(), 1);
+  assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).visibility), 'hidden');
   internetAvailable = true;
-  await page.waitForFunction(() => document.documentElement.style.visibility !== 'hidden', undefined, {
+  await page.waitForFunction(() => !document.querySelector('.connection-notice'), undefined, {
     timeout: 7_000,
   });
   await page.getByRole('heading', { name: 'قسم ديون العملاء' }).waitFor({ timeout: 7_000 });

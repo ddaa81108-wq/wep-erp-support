@@ -1105,6 +1105,22 @@ textarea:focus {
   background: #342d14;
   border-color: #63551f;
 }
+.connection-notice {
+  position: fixed;
+  inset: auto 12px 12px;
+  z-index: 1000;
+  max-width: 620px;
+  margin-inline: auto;
+  padding: 10px 16px;
+  border: 1px solid #b47a19;
+  border-radius: 10px;
+  background: #fff4d6;
+  color: #49310a;
+  font-size: 12px;
+  line-height: 1.8;
+  box-shadow: 0 3px 12px #0002;
+  pointer-events: none;
+}
 .alert button {
   border: 0;
   background: transparent;

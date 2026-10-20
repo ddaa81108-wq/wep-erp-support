@@ -1,6 +1,6 @@
 const CHECK_INTERVAL_MS = 2_500;
 const CHECK_TIMEOUT_MS = 2_000;
-const FAILURES_BEFORE_HIDE = 3;
+const FAILURES_BEFORE_NOTICE = 3;
 
 async function serverConfirmsInternet() {
   try {
@@ -18,9 +18,18 @@ async function serverConfirmsInternet() {
 
 export async function startInternetGuard(mount: () => void) {
   let mounted = false;
-  let blanked = false;
   let checking = false;
   let consecutiveFailures = 0;
+  let notice: HTMLElement | null = null;
+  const showNotice = () => {
+    if (notice) return;
+    notice = document.createElement('div');
+    notice.className = 'connection-notice';
+    notice.setAttribute('role', 'status');
+    notice.setAttribute('dir', 'rtl');
+    notice.textContent = 'الاتصال بالخادم غير مستقر. نعيد المحاولة تلقائيًا؛ لم يتم تأكيد حفظ أي عملية متعذرة.';
+    document.body.append(notice);
+  };
 
   const check = async () => {
     if (checking) return;
@@ -30,8 +39,8 @@ export async function startInternetGuard(mount: () => void) {
 
     if (available) {
       consecutiveFailures = 0;
-      if (blanked) document.documentElement.style.visibility = '';
-      blanked = false;
+      notice?.remove();
+      notice = null;
       if (!mounted) {
         mounted = true;
         mount();
@@ -40,14 +49,14 @@ export async function startInternetGuard(mount: () => void) {
     }
 
     consecutiveFailures += 1;
-    if (consecutiveFailures < FAILURES_BEFORE_HIDE) return;
-    // لا نفك React ولا نمسح DOM: تظل كل المسودات في الذاكرة وتعود كما هي.
-    blanked = true;
-    document.documentElement.style.visibility = 'hidden';
+    if (consecutiveFailures < FAILURES_BEFORE_NOTICE) return;
+    // A slow tunnel health check must not hide the entire financial workspace.
+    // Keep React and drafts mounted; the server still validates every operation.
+    showNotice();
   };
 
   window.addEventListener('abdo:internet-unavailable', () => {
-    // فشل طلب واحد قد يكون لحظيًا؛ نؤكده من مسار الصحة قبل إخفاء الصفحة.
+    // Confirm transient request failures before showing the connection notice.
     void check();
   });
   await check();
