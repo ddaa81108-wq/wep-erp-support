@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { api, type User } from './api.ts';
 import { LoginScreen, RequiredPasswordChangeScreen, SetupScreen } from './auth/AuthScreens.tsx';
 import { ThemeToggle, type Theme } from './components/ThemeToggle.tsx';
+import { Readability } from './components/Readability.tsx';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard.tsx').then((module) => ({ default: module.Dashboard })));
 
@@ -64,5 +65,5 @@ export default function App() {
   else if (isDatabaseMonitor) content = <Suspense fallback={<Loading />}><DatabaseMonitor user={user} theme={theme} onThemeToggle={toggleTheme} onLogout={() => { setUser(null); setScreen('login'); }} /></Suspense>;
   else content = <Suspense fallback={<Loading />}><Dashboard user={user} theme={theme} onThemeToggle={toggleTheme} onLogout={() => { setUser(null); setScreen('login'); }} /></Suspense>;
 
-  return <>{screen !== 'app' && <div className="auth-theme-position"><ThemeToggle theme={theme} onToggle={toggleTheme} /></div>}{content}</>;
+  return <><Readability />{screen !== 'app' && <div className="auth-theme-position"><ThemeToggle theme={theme} onToggle={toggleTheme} /></div>}{content}</>;
 }

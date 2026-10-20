@@ -1,0 +1,135 @@
+import { strict as assert } from 'node:assert';
+import { mkdtempSync, mkdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import type { AddressInfo } from 'node:net';
+import { chromium, type Locator } from '@playwright/test';
+import { createApp, listen } from '../src/server/app.ts';
+import { openDatabase } from '../src/server/db/database.ts';
+import type { ServerConfig } from '../src/server/config.ts';
+
+const temporary = mkdtempSync(join(tmpdir(), 'abdo-readability-'));
+const database = openDatabase(join(temporary, 'ui.sqlite'));
+const config: ServerConfig = { host: '127.0.0.1', port: 0, databasePath: ':memory:', sessionHours: 12, secureCookie: false, internetRequired: false, internetProbeUrls: [], internetProbeTimeoutMs: 100, internetProbeCacheMs: 100 };
+const server = createApp(database, config);
+const browser = await chromium.launch();
+try {
+  await listen(server, config.host, 0);
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
+  page.setDefaultTimeout(10000);
+  const hoverText = async (locator: Locator) => {
+    const point = await locator.evaluate(element => {
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = walker.nextNode())) {
+        if (!node.textContent?.trim()) continue;
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const rect = range.getClientRects()[0];
+        if (rect?.width) return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      }
+      throw new Error('No visible text');
+    });
+    await page.mouse.move(point.x, point.y);
+  };
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(base);
+  const heading = page.getByRole('heading', { name: 'تهيئة المدير الأول' });
+  await heading.waitFor();
+  const originalBounds = await heading.boundingBox();
+  await hoverText(heading);
+  const lens = page.locator('.readability-lens');
+  await lens.waitFor({ state: 'visible' });
+  assert.equal(await lens.textContent(), 'تهيئة المدير الأول');
+  assert.deepEqual(await heading.boundingBox(), originalBounds, 'Reading must not move the original text');
+  await page.keyboard.press('Escape');
+  await lens.waitFor({ state: 'hidden' });
+
+  const name = page.getByLabel('الاسم الظاهر');
+  await name.blur();
+  const normalSize = await name.evaluate(element => parseFloat(getComputedStyle(element).fontSize));
+  await name.fill('اختبار الكتابة الكبيرة');
+  assert.ok(await name.evaluate(element => parseFloat(getComputedStyle(element).fontSize)) >= 20);
+  await lens.waitFor({ state: 'hidden' });
+  await name.blur();
+  assert.equal(await name.inputValue(), 'اختبار الكتابة الكبيرة');
+  assert.equal(await name.evaluate(element => parseFloat(getComputedStyle(element).fontSize)), normalSize);
+  await page.getByLabel('اسم المستخدم').fill('admin');
+  await page.getByLabel('كلمة المرور', { exact: true }).fill('Local Admin 123!');
+  await page.getByLabel('تأكيد كلمة المرور').fill('Local Admin 123!');
+  await page.getByRole('button', { name: 'إنشاء حساب المدير' }).click();
+  await page.getByRole('heading', { name: 'تسجيل الدخول' }).waitFor();
+  await page.getByLabel('كلمة المرور').fill('Local Admin 123!');
+  await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
+  const dashboard = page.getByRole('heading', { name: 'قسم ديون العملاء' });
+  await dashboard.waitFor();
+  await hoverText(dashboard);
+  await lens.waitFor({ state: 'visible' });
+  assert.equal(await lens.textContent(), 'قسم ديون العملاء');
+  mkdirSync(resolve('artifacts/readability'), { recursive: true });
+  await page.screenshot({ path: resolve('artifacts/readability/desktop.png') });
+  console.log('Text magnification and editing passed.');
+
+  // Nested formatted numbers at the viewport edge, exclusions, click-through.
+  await page.evaluate(() => {
+    const fixture = document.createElement('div');
+    fixture.id = 'readability-test-fixture';
+    fixture.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:2000;background:white;color:black;padding:8px;';
+    fixture.innerHTML = '<button id="readability-number" data-preview="1,234,567.89 د.ل"><span>1,234,567.89</span></button><input id="readability-secret" type="password" value="never-preview-this"><span data-no-magnify id="readability-excluded">محتوى مستثنى</span>';
+    document.body.append(fixture);
+  });
+  const number = page.locator('#readability-number');
+  await hoverText(number);
+  await lens.waitFor({ state: 'visible' });
+  assert.equal(await lens.textContent(), '1,234,567.89 د.ل');
+  const bounds = (await lens.boundingBox())!;
+  assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= 1440 && bounds.y + bounds.height <= 950);
+  await number.click();
+  await lens.waitFor({ state: 'hidden' });
+  await page.keyboard.press('Tab');
+  await page.keyboard.press('Shift+Tab');
+  await lens.waitFor({ state: 'visible' });
+  assert.equal(await lens.textContent(), '1,234,567.89 د.ل');
+  await page.locator('#readability-secret').hover();
+  await page.waitForTimeout(550);
+  assert.equal(await lens.isVisible(), false);
+  await page.locator('#readability-excluded').hover();
+  await page.waitForTimeout(550);
+  assert.equal(await lens.isVisible(), false);
+  await page.locator('#readability-test-fixture').evaluate(element => element.remove());
+  await page.getByRole('button', { name: 'تكبير القراءة: متوسط', exact: true }).click();
+  console.log('Numeric preview, click-through and exclusions passed.');
+  await hoverText(dashboard);
+  await lens.waitFor({ state: 'visible' });
+  assert.ok(await lens.evaluate(element => parseFloat(getComputedStyle(element).fontSize)) >= 26);
+  await page.getByRole('button', { name: 'تكبير القراءة: كبير', exact: true }).click();
+  assert.equal(await page.locator('.readability-lens').count(), 0);
+  await page.reload();
+  console.log('Size selection and disable passed.');
+  await page.getByRole('button', { name: 'تكبير القراءة: متوقف', exact: true }).click();
+  assert.equal(await page.locator('.readability-lens').count(), 1, 'StrictMode must not duplicate the lens');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await dashboard.waitFor();
+  await hoverText(dashboard);
+  await lens.waitFor({ state: 'visible' });
+  const mobileBounds = (await lens.boundingBox())!;
+  assert.ok(mobileBounds.x >= 0 && mobileBounds.x + mobileBounds.width <= 390);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2));
+  await page.screenshot({ path: resolve('artifacts/readability/mobile.png') });
+  const touch = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const phone = await touch.newPage();
+  await phone.goto(base);
+  await phone.getByLabel('البريد الإلكتروني', { exact: true }).fill('admin');
+  assert.ok(await phone.getByLabel('البريد الإلكتروني', { exact: true }).evaluate(element => parseFloat(getComputedStyle(element).fontSize)) >= 20);
+  assert.equal(await phone.locator('.readability-lens').isVisible(), false);
+  await touch.close();
+  assert.deepEqual(errors, []);
+  console.log('Readability UI passed: text, numbers, editing, unchanged data/layout, keyboard, exclusions, persistence, mobile and touch.');
+} finally {
+  await browser.close();
+  await new Promise<void>(resolve => server.close(() => resolve()));
+  database.close();
+  rmSync(temporary, { recursive: true, force: true });
+}

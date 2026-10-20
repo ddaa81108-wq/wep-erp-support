@@ -16,6 +16,7 @@
     "test": "node --test tests/*.test.ts",
     "test:coverage": "node --experimental-test-coverage --test-coverage-exclude=src/client/apiClients/** --test-coverage-exclude=src/client/apiPaths.ts --test-coverage-exclude=src/client/apiTransport.ts --test-coverage-exclude=src/client/**/use*.ts --test-coverage-lines=85 --test-coverage-branches=65 --test-coverage-functions=85 --test tests/*.test.ts",
     "test:ui": "node tests/ui-smoke.ts",
+    "test:readability": "node tests/readability-ui.ts",
     "test:restore": "node scripts/restore-drill.mjs",
     "lint": "eslint src tests scripts/load-test.mts scripts/backup-database.mjs scripts/verify-database.mjs scripts/verify-https.mjs scripts/restore-drill.mjs scripts/verify-web-bundle.mjs public/erp-push-sw.js scripts/generate-push-config.mjs",
     "format": "prettier --write src tests scripts package.json tsconfig.json vite.config.ts",

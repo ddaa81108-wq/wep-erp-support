@@ -1,0 +1,55 @@
+.readability-control {
+  position: fixed;
+  inset-inline-end: 12px;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid var(--line, #ccb878);
+  border-radius: 999px;
+  background: var(--paper, #fff);
+  color: var(--ink, #171717);
+  box-shadow: 0 3px 12px #0002;
+  font: 700 14px 'Cairo', sans-serif;
+  cursor: pointer;
+}
+.readability-control span { font-size: 11px; }
+.readability-lens {
+  position: fixed;
+  z-index: 2147483647;
+  max-width: min(560px, calc(100vw - 16px));
+  max-height: min(320px, calc(100dvh - 16px));
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: 10px 16px;
+  border: 2px solid #d8b44b;
+  border-radius: 16px;
+  background: #fffdf5;
+  color: #111;
+  box-shadow: 0 8px 30px #0004;
+  font-family: 'Cairo', sans-serif;
+  font-weight: 800;
+  line-height: 1.65;
+  text-align: start;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  user-select: none;
+}
+.readability-lens[hidden] { display: none; }
+:root[data-theme='dark'] .readability-lens { background: #181a20; color: #fff8de; }
+/* Preserve field geometry and native editing, selection and submission behavior. */
+:root[data-readability='medium'] { --readability-input-size: 20px; }
+:root[data-readability='large'] { --readability-input-size: 24px; }
+:root:is([data-readability='medium'], [data-readability='large']) :is(input:not([type]), input[type='text'], input[type='number'], input[type='search'], input[type='tel'], input[type='email'], input[type='url'], input[type='password'], textarea, [contenteditable='true']):focus:not([data-no-magnify]) {
+  font-size: max(1em, var(--readability-input-size)) !important;
+}
+/* The shared lens replaces the older customer-only bubble. */
+:root[data-readability] .ledger-readable-value:is(:hover, :focus-visible)::after { display: none !important; }
+:root[data-readability] .ledger-readable-value:is(:hover, :focus-visible) { transform: none; }
+@media print {
+  .readability-control, .readability-lens { display: none !important; }
+}

@@ -37,6 +37,7 @@ import './styles/settings-gold.css';
 import './styles/purchases-unified-gold.css';
 import './styles/account-balance-colors.css';
 import './styles/mobile-toolbar-refinement.css';
+import './styles/readability.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {
