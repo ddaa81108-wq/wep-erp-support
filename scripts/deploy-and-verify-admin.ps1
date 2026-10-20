@@ -11,4 +11,4 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 }
 
 & (Join-Path $PSScriptRoot 'deploy-built-admin.ps1') -SourceRoot $SourceRoot
-& (Join-Path $PSScriptRoot 'verify-lan-install.ps1') -ReportCopyPath $ReportCopyPath
+& (Join-Path $PSScriptRoot 'verify-installed-app.ps1') -ReportCopyPath $ReportCopyPath
