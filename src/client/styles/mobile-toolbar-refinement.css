@@ -94,3 +94,70 @@
     font-size: .68rem;
   }
 }
+
+/* Readability helpers are scoped to customer ledgers and do not alter values. */
+.workspace.section-customers .ledger-readable-value {
+  position: relative;
+  display: inline-block;
+  color: inherit;
+  font-size: 1.16em;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  cursor: zoom-in;
+  outline: none;
+}
+.workspace.section-customers .ledger-readable-value:hover,
+.workspace.section-customers .ledger-readable-value:focus-visible {
+  z-index: 12;
+  transform: scale(1.04);
+}
+.workspace.section-customers .ledger-readable-value:hover::after,
+.workspace.section-customers .ledger-readable-value:focus-visible::after {
+  content: attr(data-preview);
+  position: absolute;
+  z-index: 100;
+  inset-inline-start: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  min-width: max-content;
+  max-width: min(78vw, 280px);
+  padding: 10px 15px;
+  border: 2px solid #e9c45a;
+  border-radius: 14px;
+  background: #11100d;
+  color: #fff3b0;
+  box-shadow: 0 10px 28px #0008, inset 0 1px 0 #fff5b055;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.workspace.section-customers .ledger-draft-field:focus-within {
+  z-index: 20;
+  border-color: #ffd75c;
+  box-shadow: 0 0 0 3px #ffd75c55, 0 0 22px #ffd75c55;
+}
+.workspace.section-customers .ledger-draft-field input[aria-label="قيمة المعاملة"] {
+  font-size: 1.18rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .workspace.section-customers .ledger-readable-value:hover::after { display: none; }
+  .workspace.section-customers .ledger-readable-value:focus-visible::after {
+    position: fixed;
+    inset-inline: 12vw;
+    bottom: 18vh;
+    transform: none;
+    max-width: none;
+    white-space: normal;
+    font-size: 22px;
+  }
+  .workspace.section-customers .ledger-draft-field input[aria-label="قيمة المعاملة"] {
+    min-height: 42px;
+    font-size: 1.35rem;
+  }
+}

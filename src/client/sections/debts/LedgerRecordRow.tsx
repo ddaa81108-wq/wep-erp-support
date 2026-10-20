@@ -57,7 +57,9 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
         {((section === 'customers' || section === 'companies') ? item.displayNote ?? item.note : item.note) || '—'}
       </span>
       <span className="ledger-cell" data-label="القيمة">
-        {ledgerMoney.format(item.inputValue)}
+        <span className="ledger-readable-value" tabIndex={0} data-preview={`${ledgerMoney.format(item.inputValue)} ${currencyLabel(section)}`}>
+          {ledgerMoney.format(item.inputValue)}
+        </span>
       </span>
       <span className="ledger-cell" data-label="العملية">
         {debtLedger ? <span className={`ledger-record-pill choice-${item.calculationMode}`} title={item.calculationMode === 'direct' ? 'مباشر' : item.calculationMode === 'multiply' ? 'ضرب' : 'قسمة'}>
@@ -68,13 +70,19 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
         {item.factorMicros ? ledgerFactor.format(item.factorMicros / 1_000_000) : '—'}
       </span>
       <strong className="ledger-cell" data-label={section === 'egyptian-deposits' ? 'إيداع مصري' : section === 'libyan-deposits' ? 'إيداع أمانة' : 'دين مضاف'}>
-        {item.type === 'debt' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}
+        <span className="ledger-readable-value" tabIndex={0} data-preview={item.type === 'debt' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}>
+          {item.type === 'debt' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}
+        </span>
       </strong>
       <strong className="ledger-cell" data-label={section === 'egyptian-deposits' ? 'سحب مصري' : section === 'libyan-deposits' ? 'سحب أمانة' : 'مدفوع'}>
-        {item.type === 'payment' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}
+        <span className="ledger-readable-value" tabIndex={0} data-preview={item.type === 'payment' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}>
+          {item.type === 'payment' ? `${ledgerMoney.format(item.amountUnits)} ${currencyLabel(section)}` : '—'}
+        </span>
       </strong>
       <strong className="ledger-cell ledger-row-balance" data-label="الرصيد">
-        {ledgerMoney.format(balanceAfter)} {currencyLabel(section)}
+        <span className="ledger-readable-value" tabIndex={0} data-preview={`${ledgerMoney.format(balanceAfter)} ${currencyLabel(section)}`}>
+          {ledgerMoney.format(balanceAfter)} {currencyLabel(section)}
+        </span>
       </strong>
       {editable ? (
         <button className="row-action edit" aria-label={`تعديل المعاملة ${item.sequence}`} onClick={onEdit}>
