@@ -1,4 +1,5 @@
 import { ledgerDisplayDates } from './ledgerDisplayDates.ts';
+import { useMinuteClock } from '../../useMinuteClock.ts';
 import { Pencil, X } from 'lucide-react';
 import type { LedgerItem } from '../../api.ts';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, onEdit, onCancel }: Props) {
+  const now = useMinuteClock();
   const editable = canWrite && item.status === 'posted';
   const debtLedger = section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits';
   const dates = ledgerDisplayDates(item.transactionDate, item.createdAt);
@@ -31,7 +33,7 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
   const status = item.status === 'corrected' ? ' — مصححة' : item.status === 'reversed' ? ' — ملغاة' : '';
   const updatedAt = Date.parse(item.updatedAt ?? item.createdAt);
   const createdAt = Date.parse(item.createdAt);
-  const recentlyEdited = Number.isFinite(updatedAt) && Number.isFinite(createdAt) && updatedAt > createdAt && Date.now() - updatedAt <= 24 * 60 * 60 * 1000;
+  const recentlyEdited = Number.isFinite(updatedAt) && Number.isFinite(createdAt) && updatedAt > createdAt && now >= updatedAt && now - updatedAt <= 24 * 60 * 60 * 1000;
 
   return (
     <div data-ledger-row tabIndex={0} className={`ledger-grid ledger-record ${item.type} ${item.status}`}>

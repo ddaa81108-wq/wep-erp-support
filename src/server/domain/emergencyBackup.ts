@@ -32,7 +32,7 @@ export function validateBackupFile(path: string, organizationId: string) {
     if (Object.values(copy.prepare('PRAGMA quick_check').get()!)[0] !== 'ok' || copy.prepare('PRAGMA foreign_key_check').all().length)
       throw new Error('integrity');
     const version = copy.prepare('SELECT MAX(version) AS version FROM schema_migrations').get()!.version;
-    if (Number(version) !== Number(SCHEMA_VERSION)) throw new Error('version');
+    if (!Number.isSafeInteger(Number(version)) || Number(version) < 14 || Number(version) > Number(SCHEMA_VERSION)) throw new Error('version');
     const organizations = copy.prepare('SELECT id FROM organizations').all();
     if (organizations.length !== 1 || organizations[0].id !== organizationId) throw new Error('organization');
   } finally { copy.close(); }
@@ -65,6 +65,8 @@ export function stageRestore(db: AppDatabase, user: AuthenticatedUser, body: Rec
     throw badRequest('INVALID_BACKUP', 'فشل فحص حجم النسخة أو بصمتها أو المؤسسة التابعة لها.');
   const root = process.env.ABDO_RESTORE_ROOT;
   mkdirSync(root, { recursive: true });
+  if (existsSync(join(root, 'recovery-required.json')))
+    throw conflict('RESTORE_RECOVERY_REQUIRED', 'توقفت استعادة سابقة أثناء الاستبدال. يلزم مراجعة نسخة الإنقاذ وسجل الاستعادة على الخادم قبل إعادة المحاولة.');
   if (existsSync(join(root, 'pending.json')) || existsSync(join(root, 'processing.json')))
     throw conflict('RESTORE_PENDING', 'توجد استعادة قيد التنفيذ بالفعل.');
   const directory = mkdtempSync(join(root, 'restore-'));
@@ -79,6 +81,7 @@ export function stageRestore(db: AppDatabase, user: AuthenticatedUser, body: Rec
     renameSync(join(root, 'pending.tmp'), join(root, 'pending.json'));
     return { queued: true, message: 'تم فحص النسخة. ستبدأ الاستعادة خلال دقيقة، مع إنشاء نسخة إنقاذ وإعادة تشغيل الخادم. سجّل الدخول مجددًا بعد اكتمالها.' };
   } catch {
+    rmSync(join(root, 'pending.tmp'), { force: true });
     rmSync(directory, { recursive: true, force: true });
     throw badRequest('RESTORE_VALIDATION_FAILED', 'النسخة تالفة أو لا تطابق إصدار التطبيق أو المؤسسة الحالية. لم تتغير البيانات الحية.');
   }

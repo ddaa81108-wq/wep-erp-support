@@ -46,22 +46,18 @@ export function customerAccount(
 }
 
 export function customerBalance(database: AppDatabase, cycleId: string) {
-  const row = database.prepare(`
-    SELECT c.initial_balance_units + COALESCE(SUM(
-      CASE t.entry_type
-        WHEN 'debt' THEN (t.amount_units * t.conversion_rate_micros) / 1000000
-        WHEN 'payment' THEN -((t.amount_units * t.conversion_rate_micros) / 1000000)
-      END
-    ), 0) AS balance_units
-    FROM customer_cycles c
-    LEFT JOIN debt_transactions t ON t.cycle_id = c.id
-      AND t.deleted_at IS NULL AND t.transaction_status = 'posted'
-    WHERE c.id = ? GROUP BY c.id
-  `).get(cycleId) as { balance_units: number } | undefined;
-  if (!row) return 0;
-  const balance = Number(row.balance_units);
-  if (!Number.isSafeInteger(balance)) {
+  const initial = database.prepare('SELECT initial_balance_units FROM customer_cycles WHERE id=?').get(cycleId);
+  if (!initial) return 0;
+  let balance = BigInt(initial.initial_balance_units as number);
+  const entries = database.prepare(`SELECT entry_type,amount_units,conversion_rate_micros FROM debt_transactions
+    WHERE cycle_id=? AND deleted_at IS NULL AND transaction_status='posted'`);
+  entries.setReadBigInts(true);
+  for (const row of entries.iterate(cycleId)) {
+    const amount = (row.amount_units as bigint) * (row.conversion_rate_micros as bigint) / 1_000_000n;
+    balance += row.entry_type === 'debt' ? amount : -amount;
+  }
+  if (balance > BigInt(Number.MAX_SAFE_INTEGER) || balance < BigInt(Number.MIN_SAFE_INTEGER)) {
     throw badRequest('BALANCE_OUT_OF_RANGE', 'إجمالي الرصيد تجاوز نطاق الحساب المالي الآمن.');
   }
-  return balance;
+  return Number(balance);
 }

@@ -1,9 +1,10 @@
 import { resolve } from 'node:path';
 import { BUILD_INFO } from '../shared/buildInfo.ts';
+import { migrations } from './db/migrations.ts';
 import { DEFAULT_ORGANIZATION_ID } from './domain/tenancy.ts';
 
 export const API_VERSION = '1';
-export const SCHEMA_VERSION = '47';
+export const SCHEMA_VERSION = String(migrations.at(-1)!.version);
 export const UI_VERSION = BUILD_INFO.version;
 
 const intFromEnv = (name: string, fallback: number) => {
@@ -31,6 +32,7 @@ export type ServerConfig = {
   internetProbeTimeoutMs: number;
   internetProbeCacheMs: number;
   backupDirectory?: string;
+  publicOrigin?: string;
   pushPublicKey?: string;
   pushPrivateKey?: string;
   pushSubject?: string;
@@ -54,6 +56,7 @@ export function loadConfig(overrides: Partial<ServerConfig> = {}): ServerConfig 
       overrides.internetProbeTimeoutMs ?? intFromEnv('ABDO_INTERNET_PROBE_TIMEOUT_MS', 5_000),
     internetProbeCacheMs: overrides.internetProbeCacheMs ?? intFromEnv('ABDO_INTERNET_PROBE_CACHE_MS', 2_000),
     backupDirectory: overrides.backupDirectory ?? process.env.ABDO_BACKUP_DIRECTORY,
+    publicOrigin: overrides.publicOrigin ?? process.env.ABDO_PUBLIC_ORIGIN,
     pushPublicKey: overrides.pushPublicKey ?? process.env.ABDO_PUSH_PUBLIC_KEY,
     pushPrivateKey: overrides.pushPrivateKey ?? process.env.ABDO_PUSH_PRIVATE_KEY,
     pushSubject: overrides.pushSubject ?? process.env.ABDO_PUSH_SUBJECT,

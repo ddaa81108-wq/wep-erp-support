@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { flushBeforeNavigation } from './navigationGuards.ts';
 import { api, type User } from '../api.ts';
 import { debtSectionText, type DebtSection } from '../sections/debts/sectionConfig.ts';
@@ -44,6 +44,10 @@ export function Dashboard({
   const canWrite = user.role === 'admin' || user.permissions?.includes(`${permissionPrefix}.write`) === true;
   const labels = debtSectionText[debtSection];
   const debtAccounts = useDebtAccounts({ activeSection, debtSection, canRead, onNotice: setNotice });
+  const logout = useCallback(async () => {
+    if (!(await flushBeforeNavigation())) return;
+    try { await api.logout(); } finally { onLogout(); }
+  }, [onLogout]);
   useEffect(() => {
     if (!window.history.state?.erpGuard) {
       window.history.replaceState({ erpGuard: true, erpRoot: true, erpSection: activeSection }, '', '/erp');
@@ -79,7 +83,7 @@ export function Dashboard({
     };
     window.addEventListener('popstate', onBack);
     return () => window.removeEventListener('popstate', onBack);
-  }, [activeSection, debtAccounts.closeLedger, debtAccounts.ledger, dialog, menu, restoreSection]);
+  }, [activeSection, debtAccounts, dialog, menu, restoreSection, logout, setMenu]);
   const {
     routing,
     selectedCustomers,
@@ -105,14 +109,6 @@ export function Dashboard({
       .then(() => setPendingAccount(null))
       .catch((error) => { setPendingAccount(null); setNotice({ kind: 'error', text: dashboardErrorText(error) }); });
   }, [activeSection, canRead, debtAccounts, debtSection, pendingAccount]);
-  async function logout() {
-    if (!(await flushBeforeNavigation())) return;
-    try {
-      await api.logout();
-    } finally {
-      onLogout();
-    }
-  }
   const debtPageProps: DebtPageProps = {
     isAdmin: user.role === 'admin',
     customers: debtAccounts.customers,

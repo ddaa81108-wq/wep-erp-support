@@ -143,7 +143,7 @@ try {
   await mutate('/api/customers',{name:'عميل إعادة المحاولة',openingBalance:5,requestId:'live-retry-account'});
   await expect(total).toContainText('190',{timeout:7000});
   assert.ok(failedRefreshes >= 2);
-  await page.unroute('**/api/customers?**');
+  await page.unrouteAll({ behavior: 'wait' });
   const feed = await read(reportsContext.request, '/api/event-changes?after=0');
   assert.ok(feed.events.some((event: { topic: string }) => event.topic === 'financial.summary.changed'));
   for (const event of feed.events) {
@@ -186,7 +186,7 @@ try {
   await expect(page.locator('.alert.success')).toContainText('تم توجيه الكروت');
   await expect(page.locator('.customer-assignee-badge')).toHaveCount(2);
   await expect(page.locator('.alert.error')).toHaveCount(0);
-  await page.unroute('**/api/customers?**');
+  await page.unrouteAll({ behavior: 'wait' });
   await page.getByRole('button', { name: 'أمانات ليبية', exact: true }).click();
   await mutate('/api/libyan-deposits', {
     name: 'وديعة أولى',

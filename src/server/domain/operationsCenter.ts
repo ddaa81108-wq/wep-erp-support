@@ -1,5 +1,6 @@
 import type { IncomingMessage } from 'node:http';
-import { backupStatus } from './backupStatus.ts';
+import { backupStatus, installedDatabase } from './backupStatus.ts';
+import { customerBalance } from './customerAccountRepository.ts';
 import { restoreStatus } from './emergencyBackup.ts';
 import { SCHEMA_VERSION, UI_VERSION } from '../config.ts';
 import type { AppDatabase } from '../db/database.ts';
@@ -21,21 +22,10 @@ export function operationsSnapshot(database: AppDatabase, actor: AuthenticatedUs
   const activeSessions = Number((database.prepare(`SELECT COUNT(*) AS count FROM sessions s
     JOIN users u ON u.id=s.user_id WHERE u.organization_id=? AND s.revoked_at IS NULL AND s.expires_at > ?`)
     .get(actor.organizationId, nowIso()) as { count: number }).count);
-  const financialMismatches = Number((database.prepare(`
-    SELECT COUNT(*) AS count FROM (
-      SELECT c.id,c.current_balance_units,
-        cy.initial_balance_units + COALESCE(SUM(CASE t.entry_type
-          WHEN 'debt' THEN (t.amount_units*t.conversion_rate_micros)/1000000
-          WHEN 'payment' THEN -((t.amount_units*t.conversion_rate_micros)/1000000)
-        END),0) AS calculated_balance
-      FROM customers c
-      JOIN customer_cycles cy ON cy.customer_id=c.id AND cy.status='active'
-      LEFT JOIN debt_transactions t ON t.cycle_id=cy.id AND t.deleted_at IS NULL AND t.transaction_status='posted'
-      WHERE c.organization_id=? AND c.deleted_at IS NULL AND c.system_link_key IS NULL
-      GROUP BY c.id
-      HAVING c.current_balance_units <> calculated_balance
-    ) mismatches
-  `).get(actor.organizationId) as { count: number }).count);
+  const accounts = database.prepare(`SELECT c.current_balance_units, cy.id AS cycle_id
+    FROM customers c JOIN customer_cycles cy ON cy.customer_id=c.id AND cy.status='active'
+    WHERE c.organization_id=? AND c.deleted_at IS NULL AND c.system_link_key IS NULL`).all(actor.organizationId);
+  const financialMismatches = accounts.filter(row => customerBalance(database, String(row.cycle_id)) !== Number(row.current_balance_units)).length;
   return {
     integrity: health.integrity,
     schemaVersion: String(health.schemaVersion),
@@ -47,8 +37,8 @@ export function operationsSnapshot(database: AppDatabase, actor: AuthenticatedUs
       WHERE organization_id=? AND severity='error'`),
     financialMismatches,
     backupPolicy: 'unverified',
-    backupSchedule: backupStatus(),
-    restoreStatus: actor.isOwner ? restoreStatus() : null,
+    backupSchedule: installedDatabase(database) ? backupStatus() : null,
+    restoreStatus: actor.isOwner && installedDatabase(database) ? restoreStatus() : null,
     restoreDrillStatus: 'unverified',
     onlineOnly,
     checkedAt: nowIso(),

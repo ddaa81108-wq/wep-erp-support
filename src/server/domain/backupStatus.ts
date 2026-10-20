@@ -1,5 +1,12 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import type { AppDatabase } from '../db/database.ts';
+
+export function installedDatabase(database: AppDatabase) {
+  const path = database.prepare('PRAGMA database_list').all().find(row => row.name === 'main')?.file;
+  return process.platform === 'win32' && typeof path === 'string' && path.length > 0 &&
+    resolve(path).toLowerCase() === resolve(process.env.ProgramData ?? 'C:\\ProgramData', 'AbdoErpLocal/data/abdo-erp.sqlite').toLowerCase();
+}
 
 export function backupStatus() {
   if (process.platform !== 'win32') return null;

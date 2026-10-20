@@ -418,7 +418,7 @@ try {
   await page.getByText('نسخة الخادم تحتاج تحديثًا', { exact: true }).waitFor();
   assert.equal(await page.getByText('للقراءة فقط', { exact: true }).count(), 0);
   assert.equal(await page.getByLabel('مشتريات اليوم').isDisabled(), true);
-  await page.unroute(legacyDayRoute);
+  await page.unrouteAll({ behavior: 'wait' });
   await page.getByRole('button', { name: 'اليوم الحالي', exact: true }).click();
   await page.getByText('يوم العمل الحالي', { exact: true }).waitFor();
   assert.equal(await page.getByRole('button', { name: /اعتماد اليوم|حفظ اليوم|ترحيل|إعادة فتح/ }).count(), 0);
@@ -1062,7 +1062,14 @@ try {
       `${sectionName} filters must stay inside the activity card`,
     );
     assert.equal(
-      (await activeCard.boundingBox())!.height >= 84,
+      await activeCard.evaluate(card => {
+        const bounds = card.getBoundingClientRect();
+        // The compact phone toolbar intentionally replaced the old 84px card.
+        return bounds.height >= 58 && [...card.querySelectorAll('button')].every(button => {
+          const rect = button.getBoundingClientRect();
+          return rect.height >= 27 && button.scrollWidth <= button.clientWidth + 1 && button.scrollHeight <= button.clientHeight + 1;
+        });
+      }),
       true,
       `${sectionName} activity card must remain readable`,
     );

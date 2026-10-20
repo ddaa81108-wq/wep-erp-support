@@ -16,6 +16,7 @@ import { EventHub } from './events.ts';
 import { HttpError, badRequest, forbidden, unauthorized } from './http/errors.ts';
 import { sendJson } from './http/io.ts';
 import { applyBrowserSecurityHeaders, serveWebAsset } from './http/web.ts';
+import { enforcePublicHttps } from './http/https.ts';
 import { eventCursor } from './http/fields.ts';
 import { requireMutationSafety, requireUser } from './http/guards.ts';
 import { InternetGate } from './internetGate.ts';
@@ -303,6 +304,7 @@ export function createApp(
         return;
       }
       applyBrowserSecurityHeaders(response);
+      if (enforcePublicHttps(request, response, config.publicOrigin)) return;
       response.setHeader('X-Correlation-Id', correlationId);
       const monitoring = (request.url ?? '').split('?')[0];
       if (monitoring === '/api/operations/database-monitor' || monitoring.startsWith('/api/operations/database-activity/')) {

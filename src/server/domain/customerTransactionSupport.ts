@@ -180,9 +180,7 @@ export function customerDebtStartedAt(database: AppDatabase, customerId: string,
   let balance = Number(cycle.initial_balance_units);
   let startedAt: string | null = balance > 0 ? String(cycle.start_date) : null;
   for (const row of rows) {
-    const amount = Math.trunc(
-      (Number(row.amount_units) * Number(row.conversion_rate_micros)) / 1_000_000,
-    );
+    const amount = safeBalance(BigInt(row.amount_units as number) * BigInt(row.conversion_rate_micros as number) / 1_000_000n);
     const next = safeBalance(
       BigInt(balance) + BigInt(String(row.entry_type) === 'debt' ? amount : -amount),
     );
