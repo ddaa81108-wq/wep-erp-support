@@ -96,7 +96,7 @@
 }
 
 /* Readability helpers are scoped to customer ledgers and do not alter values. */
-.workspace.section-customers .ledger-readable-value {
+.ledger-panel.section-customers .ledger-readable-value {
   position: relative;
   display: inline-block;
   color: inherit;
@@ -106,13 +106,13 @@
   cursor: zoom-in;
   outline: none;
 }
-.workspace.section-customers .ledger-readable-value:hover,
-.workspace.section-customers .ledger-readable-value:focus-visible {
+.ledger-panel.section-customers .ledger-readable-value:hover,
+.ledger-panel.section-customers .ledger-readable-value:focus-visible {
   z-index: 12;
   transform: scale(1.04);
 }
-.workspace.section-customers .ledger-readable-value:hover::after,
-.workspace.section-customers .ledger-readable-value:focus-visible::after {
+.ledger-panel.section-customers .ledger-readable-value:hover::after,
+.ledger-panel.section-customers .ledger-readable-value:focus-visible::after {
   content: attr(data-preview);
   position: absolute;
   z-index: 100;
@@ -134,20 +134,20 @@
   white-space: nowrap;
   pointer-events: none;
 }
-.workspace.section-customers .ledger-draft-field:focus-within {
+.ledger-panel.section-customers .ledger-draft-field:focus-within {
   z-index: 20;
   border-color: #ffd75c;
   box-shadow: 0 0 0 3px #ffd75c55, 0 0 22px #ffd75c55;
 }
-.workspace.section-customers .ledger-draft-field input[aria-label="قيمة المعاملة"] {
+.ledger-panel.section-customers .ledger-draft-field input[aria-label="قيمة المعاملة"] {
   font-size: 1.18rem;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
 @media (max-width: 900px) {
-  .workspace.section-customers .ledger-readable-value:hover::after { display: none; }
-  .workspace.section-customers .ledger-readable-value:focus-visible::after {
+  .ledger-panel.section-customers .ledger-readable-value:hover::after { display: none; }
+  .ledger-panel.section-customers .ledger-readable-value:focus-visible::after {
     position: fixed;
     inset-inline: 12vw;
     bottom: 18vh;
@@ -156,7 +156,7 @@
     white-space: normal;
     font-size: 22px;
   }
-  .workspace.section-customers .ledger-draft-field input[aria-label="قيمة المعاملة"] {
+  .ledger-panel.section-customers .ledger-draft-field input[aria-label="قيمة المعاملة"] {
     min-height: 42px;
     font-size: 1.35rem;
   }
