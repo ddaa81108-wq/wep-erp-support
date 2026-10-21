@@ -29,10 +29,6 @@
 .auth-l01 .local-note { display: none; }
 .auth-l01 .alert { font-size: 12px; }
 body:has(.auth-l01) .auth-theme-position { display: none; }
-body:has(.auth-l01) > #root > .readability-control { background: #202020; color: #d0b88f; border-color: #766344; }
-@media(min-width:1100px) and (min-height:800px) {
-  .auth-l01-panel { padding-top: 13.5vh; }
-}
 @media(max-width:1099px) and (min-width:701px) {
   .auth-l01 { grid-template-columns: 55% 45%; }
   .auth-l01-scene { background-size: auto 100%; }
@@ -48,4 +44,39 @@ body:has(.auth-l01) > #root > .readability-control { background: #202020; color:
   .auth-l01-welcome h1 { font-size: 36px; }
   .auth-l01-welcome p { font-size: 11px; white-space: normal; }
   .auth-l01 .stack { gap: 14px; }
+}
+
+/* Compact the content rather than clipping fields or disabling page scrolling. */
+.auth-l01-panel { padding-top: clamp(16px,3vh,36px); padding-bottom: 16px; }
+.auth-l01-brand strong { font-size: clamp(72px,6.4vw,108px); }
+.auth-l01-brand span { margin-top: 6px; font-size: clamp(12px,1vw,17px); }
+.auth-l01-tagline { margin-top: 8px; }
+.auth-l01-welcome { margin: 18px 0 14px; }
+.auth-l01-welcome h1 { font-size: clamp(30px,2.6vw,44px); line-height: 1.4; }
+.auth-l01-welcome p { margin-top: 6px; }
+.auth-l01-welcome::after { margin-top: 12px; }
+.auth-l01-card h2 { margin-bottom: 8px; font-size: 17px; }
+.auth-l01 .stack { gap: 10px; }
+.auth-l01 label { gap: 4px; }
+.auth-l01 .auth-l01-field input { height: 44px; min-height: 44px; }
+.auth-l01 .primary { margin-top: 2px; min-height: 46px; font-size: 21px; }
+.auth-l01 .create-account-button { margin-top: 0; }
+@media(max-width:700px) {
+  .auth-l01 { padding: 10px 12px; }
+  .auth-l01-panel { padding: 16px 22px; }
+  .auth-l01-brand strong { font-size: 76px; }
+  .auth-l01-brand span { font-size: 13px; }
+  .auth-l01-welcome p { margin-inline: 0; }
+}
+@media(max-height:620px) {
+  .auth-l01-panel { padding-top: 12px; padding-bottom: 12px; }
+  .auth-l01-brand strong { font-size: 52px; }
+  .auth-l01-brand span { font-size: 11px; margin-top: 3px; }
+  .auth-l01-tagline { display: none; }
+  .auth-l01-welcome { margin: 10px 0; }
+  .auth-l01-welcome h1 { font-size: 27px; }
+  .auth-l01-welcome p { margin-top: 2px; font-size: 10px; }
+  .auth-l01-welcome::after { margin-top: 6px; }
+  .auth-l01 .stack { gap: 8px; }
+  .auth-l01-card h2 { font-size: 15px; margin-bottom: 4px; }
 }

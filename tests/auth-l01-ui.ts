@@ -31,8 +31,10 @@ try {
  await page.getByLabel('كلمة المرور',{exact:true}).fill('');
  await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('');
  await page.getByRole('heading',{name:'مرحبًا بك',exact:true}).click();
- for(const width of [1672,1100,900,700,390,320]) {
-  await page.setViewportSize({width,height:width>700?941:844});
+ for(const [width,height] of [[1672,941],[1366,768],[1100,700],[900,700],[700,700],[390,844],[375,667],[360,640],[320,568]]) {
+  await page.setViewportSize({width,height});
+  assert.equal(await page.getByRole('button',{name:/تكبير القراءة/}).count(),0,'No magnification button on login');
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1),'vertical overflow '+width+'x'+height);
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`overflow ${width}`);
   assert.ok(await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).isVisible());
   await page.screenshot({path:join(output,`login-${width}.png`),fullPage:true});
@@ -48,5 +50,5 @@ try {
  await page.getByLabel('كلمة المرور',{exact:true}).fill('Auth Preview 123!');
  await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();
  await page.locator('.app-shell').waitFor();assert.deepEqual(errors,[]);
- console.log('PASS L01: six viewport sizes, password visibility, registration navigation, rejected credentials, successful login, no browser errors.');
+ console.log('PASS L01: nine viewport sizes without scrolling or login magnification button, password visibility, registration navigation, rejected credentials, successful login, no browser errors.');
 }finally{await browser.close();await new Promise<void>(r=>server.close(()=>r()));database.close();rmSync(folder,{recursive:true,force:true});}

@@ -38,24 +38,9 @@ try {
   await page.goto(base);
   const heading = page.getByRole('heading', { name: 'تهيئة المدير الأول' });
   await heading.waitFor();
-  const originalBounds = await heading.boundingBox();
-  await hoverText(heading);
+  assert.equal(await page.getByRole('button',{name:/تكبير القراءة/}).count(),0);
   const lens = page.locator('.readability-lens');
-  await lens.waitFor({ state: 'visible' });
-  assert.equal(await lens.textContent(), 'تهيئة المدير الأول');
-  assert.deepEqual(await heading.boundingBox(), originalBounds, 'Reading must not move the original text');
-  await page.keyboard.press('Escape');
-  await lens.waitFor({ state: 'hidden' });
-
-  const name = page.getByLabel('الاسم الظاهر');
-  await name.blur();
-  const normalSize = await name.evaluate(element => parseFloat(getComputedStyle(element).fontSize));
-  await name.fill('اختبار الكتابة الكبيرة');
-  assert.ok(await name.evaluate(element => parseFloat(getComputedStyle(element).fontSize)) >= 20);
-  await lens.waitFor({ state: 'hidden' });
-  await name.blur();
-  assert.equal(await name.inputValue(), 'اختبار الكتابة الكبيرة');
-  assert.equal(await name.evaluate(element => parseFloat(getComputedStyle(element).fontSize)), normalSize);
+  await page.getByLabel('الاسم الظاهر').fill('اختبار الكتابة الكبيرة');
   await page.getByLabel('اسم المستخدم').fill('admin');
   await page.getByLabel('كلمة المرور', { exact: true }).fill('Local Admin 123!');
   await page.getByLabel('تأكيد كلمة المرور').fill('Local Admin 123!');
@@ -68,6 +53,16 @@ try {
   await hoverText(dashboard);
   await lens.waitFor({ state: 'visible' });
   assert.equal(await lens.textContent(), 'قسم ديون العملاء');
+  const name = page.getByLabel('البحث الموحد',{exact:true});
+  await name.blur();
+  const normalSize=await name.evaluate(element=>parseFloat(getComputedStyle(element).fontSize));
+  await name.fill('اختبار الكتابة الكبيرة');
+  assert.ok(await name.evaluate(element=>parseFloat(getComputedStyle(element).fontSize))>=20);
+  await name.blur();
+  assert.equal(await name.inputValue(),'اختبار الكتابة الكبيرة');
+  assert.equal(await name.evaluate(element=>parseFloat(getComputedStyle(element).fontSize)),normalSize);
+  await name.fill('');await name.blur();
+
   mkdirSync(resolve('artifacts/readability'), { recursive: true });
   await page.screenshot({ path: resolve('artifacts/readability/desktop.png') });
   console.log('Text magnification and editing passed.');
@@ -122,7 +117,12 @@ try {
   const phone = await touch.newPage();
   await phone.goto(base);
   await phone.getByLabel('البريد الإلكتروني', { exact: true }).fill('admin');
-  assert.ok(await phone.getByLabel('البريد الإلكتروني', { exact: true }).evaluate(element => parseFloat(getComputedStyle(element).fontSize)) >= 20);
+  assert.equal(await phone.getByRole('button', { name: /تكبير القراءة/ }).count(), 0);
+  await phone.getByLabel('كلمة المرور', { exact: true }).fill('Local Admin 123!');
+  await phone.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
+  await phone.locator('.app-shell').waitFor();
+  await phone.getByLabel('البحث الموحد', { exact: true }).fill('اختبار');
+  assert.ok(await phone.getByLabel('البحث الموحد', { exact: true }).evaluate(element => parseFloat(getComputedStyle(element).fontSize)) >= 20);
   assert.equal(await phone.locator('.readability-lens').isVisible(), false);
   await touch.close();
   assert.deepEqual(errors, []);
