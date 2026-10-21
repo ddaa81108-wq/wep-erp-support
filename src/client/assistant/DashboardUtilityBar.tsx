@@ -35,15 +35,15 @@ export function DashboardUtilityBar({
       >
         <Menu size={19} />
       </button>
-      <GlobalAccountSearch onSelect={onOpenAccount} desktopLabel={(activeSection === 'companies' || activeSection === 'treasury') ? 'البحث الموحد' : undefined} />
+      <div className="utility-search-group">
+        <GlobalAccountSearch onSelect={onOpenAccount} desktopLabel={(activeSection === 'companies' || activeSection === 'treasury') ? 'البحث الموحد' : undefined} />
+        <Readability toolbar />
+      </div>
       <div className="dashboard-section-title" aria-label={`القسم الحالي: ${SECTION_CONTRACTS[activeSection].title}`}>
         <div className="dashboard-section-heading" role={isUtilityHeading ? 'heading' : undefined} aria-level={isUtilityHeading ? 1 : undefined}>{SECTION_CONTRACTS[activeSection].title}</div>
       </div>
       <div className="dashboard-utility-actions">
-        <div className="utility-reading-group">
-          <SyncStatus detailed={activeSection === 'customers'} />
-          <Readability toolbar />
-        </div>
+        <SyncStatus detailed={activeSection === 'customers'} />
         <NotificationCenter user={user} onOpenSection={onOpenSection} />
       </div>
     </div>

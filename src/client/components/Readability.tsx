@@ -6,6 +6,7 @@ const labels: Record<Level, string> = { medium: 'متوسط', large: 'كبير',
 const excluded = '[data-readability-controls], [data-no-magnify], input, textarea, select, [contenteditable]:not([contenteditable="false"]), [aria-hidden="true"], script, style, svg';
 
 export function Readability({ toolbar = false }: { toolbar?: boolean }) {
+  const [feedback, setFeedback] = useState(false);
   const [level, setLevel] = useState<Level>(() => {
     try {
       const stored = localStorage.getItem(key);
@@ -94,5 +95,14 @@ export function Readability({ toolbar = false }: { toolbar?: boolean }) {
     };
   }, [level]);
 
-  return <button type="button" className={`readability-control${toolbar ? ' utility-icon-button' : ''}`} data-readability-controls="" aria-label={`تكبير القراءة: ${labels[level]}`} title="تغيير التكبير: متوسط، كبير، متوقف" onClick={() => setLevel(level === 'medium' ? 'large' : level === 'large' ? 'off' : 'medium')}>ع+ <span>{labels[level]}</span></button>;
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = window.setTimeout(() => setFeedback(false), 3000);
+    return () => window.clearTimeout(timer);
+  }, [feedback, level]);
+
+  return <button type="button" className={`readability-control${toolbar ? ' utility-icon-button' : ''}`} data-level={level} data-readability-controls="" aria-label={`تكبير القراءة: ${labels[level]}`} title={`تكبير القراءة: ${labels[level]} — اضغط لتغيير المستوى`} onClick={() => {
+    setLevel(level === 'medium' ? 'large' : level === 'large' ? 'off' : 'medium');
+    setFeedback(true);
+  }}>{level === 'off' ? 'ع×' : level === 'large' ? 'ع++' : 'ع+'} <span>{labels[level]}</span>{feedback && <span className="readability-feedback" role="status">{level === 'off' ? 'تكبير القراءة متوقف' : `التكبير ${labels[level]} — مرّر على النص أو ابدأ الكتابة`}</span>}</button>;
 }
