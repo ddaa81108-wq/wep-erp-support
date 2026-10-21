@@ -1,4 +1,10 @@
 .reports-page { display:grid; gap:7px; padding:7px; min-width:0; }
+.reports-table .report-closing { min-width:190px; white-space:normal; font-family:'Cairo',sans-serif; }
+.report-closing strong,.report-closing small { display:block; }
+.report-closing small,.reports-closing-method { color:var(--muted); font-size:11px; }
+.reports-closing-method { margin:0; line-height:1.8; }
+@media(min-width:901px){.reports-table{min-width:1410px}.reports-table th:nth-child(12){width:190px}}
+@media(max-width:900px){.report-row .report-closing{grid-column:1/-1;min-width:0}}
 .reports-head { min-height:42px; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 9px; border:1px solid var(--line); border-radius:10px; background:var(--paper); }
 .reports-head h1 { display:flex; align-items:center; gap:6px; margin:0; font-size:.88rem; }
 .reports-head p { margin:1px 0 0; color:var(--muted); font-size:.61rem; }

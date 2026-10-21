@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, FileText, RefreshCw, ShieldCheck } from 'lucide-react';
 import { api, ApiError, type ReportsDashboard } from '../../api.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
-import { money, netChange, statusText } from './reportViewModel.ts';
+import { closingText, money, netChange, statusText } from './reportViewModel.ts';
 
 const errorText = (error: unknown) => error instanceof ApiError ? error.message : 'تعذر تحميل التقارير.';
 
@@ -27,12 +27,21 @@ export function ReportsSection() {
     }
   }, []);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const deadlines = data?.items.filter(item => item.fiveAmClosing?.state === 'pending')
+      .map(item => Date.parse(item.fiveAmClosing.scheduledAt) + 60_000) ?? [];
+    if (!deadlines.length) return;
+    // Refresh time-based pending/missed labels even when there are no financial events.
+    const timer = window.setTimeout(() => { void load(true).catch(() => undefined); },
+      Math.max(60_000, Math.min(...deadlines) - Date.now()));
+    return () => window.clearTimeout(timer);
+  }, [data, load]);
   useRealtimeRefresh({
     topics: [
       'financial.summary.changed', 'customer.changed', 'company.changed', 'libyan-deposit.changed', 'egyptian-deposit.changed', 'collection.changed',
       'treasury.changed', 'customer.ledger.changed', 'company.ledger.changed',
       'libyan-deposit.ledger.changed', 'egyptian-deposit.ledger.changed',
-      'purchases.changed', 'masraweya.changed',
+      'purchases.changed', 'masraweya.changed', 'treasury.report.closed',
     ],
     cursorKey: 'abdo:reports-last-event',
     onChange: () => load(true),
@@ -58,7 +67,7 @@ export function ReportsSection() {
       )}
       <section className="reports-table-wrap" aria-label="السجل اليومي للتقارير">
         <table className="reports-table">
-          <thead><tr><th>التسلسل</th><th>التاريخ</th><th>ديون لنا</th><th>الأموال النشطة</th><th>المصري</th><th>المصري بالليبي</th><th>ديون علينا</th><th>صافي الخزينة</th><th>الفرق عن اليوم السابق</th><th>الحالة</th><th>ملاحظة النظام</th></tr></thead>
+          <thead><tr><th>التسلسل</th><th>التاريخ</th><th>ديون لنا</th><th>الأموال النشطة</th><th>المصري</th><th>المصري بالليبي</th><th>ديون علينا</th><th>صافي الخزينة</th><th>الفرق عن اليوم السابق</th><th>الحالة</th><th>ملاحظة النظام</th><th>صافي الإقفال — 5 صباحًا</th></tr></thead>
           <tbody>{data.items.map((item, index) => {
             const change = netChange(data.items, index);
             return <tr className={`report-row ${item.status}`} key={item.businessDate}>
@@ -73,11 +82,16 @@ export function ReportsSection() {
               <td data-label="الفرق اليومي" className={change !== null && change < 0 ? 'negative' : 'positive'} dir="ltr">{change === null ? '—' : `${change > 0 ? '+' : ''}${money(change)}`}</td>
               <td data-label="الحالة"><span className={`report-status ${item.status}`}>{statusText[item.status]}</span></td>
               <td data-label="ملاحظة النظام" className="report-note"><span>{item.summary}</span>{item.reasons.length > 0 && <small>{item.reasons.slice(0, 2).map((reason) => reason.label).join(' • ')}</small>}</td>
+              <td data-label="صافي الإقفال — 5 صباحًا" className={`report-closing ${item.fiveAmClosing?.netUnits !== null && (item.fiveAmClosing?.netUnits ?? 0) < 0 ? 'negative' : ''}`}>
+                <strong>{closingText(item.fiveAmClosing)}</strong>
+                {item.fiveAmClosing?.capturedAt && <small>سُجّل {new Intl.DateTimeFormat('ar-LY', { timeZone: 'Africa/Tripoli', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(item.fiveAmClosing.capturedAt))}</small>}
+              </td>
             </tr>;
           })}</tbody>
         </table>
       </section>
       <footer className="reports-method"><strong>المعادلة:</strong> {data.methodology.formula}<span>{data.methodology.note}</span></footer>
+      <p className="reports-closing-method">صافي الإقفال لقطة ثابتة قرابة 5:00 صباحًا بتوقيت ليبيا، تُنسب إلى يوم العمل السابق. الأيام التي لم يُسجّل إقفالها لا يُنشأ لها رقم بأثر رجعي.</p>
     </section>
   );
 }

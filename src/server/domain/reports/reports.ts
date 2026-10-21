@@ -4,6 +4,7 @@ import { treasuryDashboard } from '../treasuryQueries.ts';
 import { analyzePosition, type PositionSnapshot, type ReportReason } from './reportModel.ts';
 
 import { businessDayRange, organizationBusinessDate, organizationTimezone } from './businessDates.ts';
+import { readFiveAmClosing } from './fiveAmClosing.ts';
 export { currentBusinessDate } from './businessDates.ts';
 
 function movement(database: AppDatabase, organizationId: string, businessDate: string) {
@@ -189,7 +190,9 @@ export function reportsDashboard(database: AppDatabase, organizationId: string, 
     SELECT * FROM daily_financial_reports WHERE organization_id=?
     ORDER BY business_date DESC LIMIT ?
   `).all(organizationId, limit) as StoredRow[];
-  const items = rows.map((row, index) => ({ sequence: total - index, ...mapRow(row) }));
+  const items = rows.map((row, index) => ({ sequence: total - index, ...mapRow(row),
+    fiveAmClosing: readFiveAmClosing(database, organizationId, String(row.business_date)),
+  }));
   return { current: items[0] ?? null, items, methodology: {
     formula: 'الديون لنا + الأموال النشطة + المصري المحول - الديون علينا',
     note: 'التغير المعروض هو تغير المركز المالي وليس ربحًا محاسبيًا معتمدًا.',

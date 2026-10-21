@@ -20,3 +20,13 @@ export function netChange(items: readonly DailyFinancialReport[], index: number)
 export function money(value: number | null, currency = 'د.ل') {
   return value === null ? '—' : `${reportNumber.format(value)} ${currency}`;
 }
+
+export function closingText(closing: DailyFinancialReport['fiveAmClosing'] | undefined) {
+  if (!closing) return 'يتطلب تحديث الخادم';
+  if (closing.state === 'pending') return 'بانتظار الإقفال';
+  if (closing.state === 'missed') return 'لم يُسجّل الإقفال';
+  if (closing.state === 'missing_rate') return 'غير مكتمل — سعر التحويل مفقود';
+  if (closing.netUnits === null) return 'غير مكتمل';
+  const direction = closing.netUnits > 0 ? 'لنا' : closing.netUnits < 0 ? 'علينا' : 'متوازن';
+  return `${money(Math.abs(closing.netUnits))} — ${direction}`;
+}

@@ -25,6 +25,12 @@ export type DailyFinancialReport = {
   updatedAt: string;
   isFinalized: boolean;
   finalizedAt: string | null;
+  fiveAmClosing: {
+    state: 'pending' | 'missed' | 'missing_rate' | 'recorded';
+    scheduledAt: string;
+    capturedAt: string | null;
+    netUnits: number | null;
+  };
 };
 
 export type ReportsDashboard = {
