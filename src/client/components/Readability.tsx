@@ -5,7 +5,7 @@ type Level = 'medium' | 'large' | 'off';
 const labels: Record<Level, string> = { medium: 'متوسط', large: 'كبير', off: 'متوقف' };
 const excluded = '[data-readability-controls], [data-no-magnify], input, textarea, select, [contenteditable]:not([contenteditable="false"]), [aria-hidden="true"], script, style, svg';
 
-export function Readability() {
+export function Readability({ toolbar = false }: { toolbar?: boolean }) {
   const [level, setLevel] = useState<Level>(() => {
     try {
       const stored = localStorage.getItem(key);
@@ -94,5 +94,5 @@ export function Readability() {
     };
   }, [level]);
 
-  return <button type="button" className="readability-control" data-readability-controls="" aria-label={`تكبير القراءة: ${labels[level]}`} title="تغيير التكبير: متوسط، كبير، متوقف" onClick={() => setLevel(level === 'medium' ? 'large' : level === 'large' ? 'off' : 'medium')}>ع+ <span>{labels[level]}</span></button>;
+  return <button type="button" className={`readability-control${toolbar ? ' utility-icon-button' : ''}`} data-readability-controls="" aria-label={`تكبير القراءة: ${labels[level]}`} title="تغيير التكبير: متوسط، كبير، متوقف" onClick={() => setLevel(level === 'medium' ? 'large' : level === 'large' ? 'off' : 'medium')}>ع+ <span>{labels[level]}</span></button>;
 }

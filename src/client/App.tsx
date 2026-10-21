@@ -65,5 +65,5 @@ export default function App() {
   else if (isDatabaseMonitor) content = <Suspense fallback={<Loading />}><DatabaseMonitor user={user} theme={theme} onThemeToggle={toggleTheme} onLogout={() => { setUser(null); setScreen('login'); }} /></Suspense>;
   else content = <Suspense fallback={<Loading />}><Dashboard user={user} theme={theme} onThemeToggle={toggleTheme} onLogout={() => { setUser(null); setScreen('login'); }} /></Suspense>;
 
-  return <><Readability />{screen !== 'app' && <div className="auth-theme-position"><ThemeToggle theme={theme} onToggle={toggleTheme} /></div>}{content}</>;
+  return <>{(screen !== 'app' || isDatabaseMonitor) && <Readability />}{screen !== 'app' && <div className="auth-theme-position"><ThemeToggle theme={theme} onToggle={toggleTheme} /></div>}{content}</>;
 }

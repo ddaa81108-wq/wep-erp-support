@@ -4,6 +4,7 @@ import { NotificationCenter } from './NotificationCenter.tsx';
 import type { DebtSection } from '../sections/debts/sectionConfig.ts';
 import { GlobalAccountSearch } from './GlobalAccountSearch.tsx';
 import { SyncStatus } from './SyncStatus.tsx';
+import { Readability } from '../components/Readability.tsx';
 import { Menu } from 'lucide-react';
 import { SECTION_CONTRACTS } from '../../shared/sections.ts';
 
@@ -39,7 +40,10 @@ export function DashboardUtilityBar({
         <div className="dashboard-section-heading" role={isUtilityHeading ? 'heading' : undefined} aria-level={isUtilityHeading ? 1 : undefined}>{SECTION_CONTRACTS[activeSection].title}</div>
       </div>
       <div className="dashboard-utility-actions">
-        <SyncStatus detailed={activeSection === 'customers'} />
+        <div className="utility-reading-group">
+          <SyncStatus detailed={activeSection === 'customers'} />
+          <Readability toolbar />
+        </div>
         <NotificationCenter user={user} onOpenSection={onOpenSection} />
       </div>
     </div>
