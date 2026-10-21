@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError, type AuditEntry } from '../../api.ts';
 import { filterAuditEntries, type AuditFilter } from './auditLogModel.ts';
 
@@ -11,23 +11,30 @@ export function useAuditLog() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<AuditFilter>('all');
+  const requestState = useRef({ sequence: 0 });
 
   const load = useCallback(async (before?: number | null) => {
+    const sequence = ++requestState.current.sequence;
     setBusy(true);
     setError('');
     try {
       const page = await api.auditLog(before);
+      if (sequence !== requestState.current.sequence) return;
       setItems((current) => (before ? [...current, ...page.items] : page.items));
       setNextBefore(page.nextBefore);
     } catch (caught) {
-      setError(errorText(caught));
+      if (sequence === requestState.current.sequence) setError(errorText(caught));
     } finally {
-      setBusy(false);
+      if (sequence === requestState.current.sequence) setBusy(false);
     }
   }, []);
 
   useEffect(() => {
+    const state = requestState.current;
     void load();
+    return () => {
+      state.sequence++;
+    };
   }, [load]);
 
   const visible = useMemo(() => filterAuditEntries(items, query, filter), [filter, items, query]);

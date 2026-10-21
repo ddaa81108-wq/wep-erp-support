@@ -1,5 +1,7 @@
 #define MyAppName "Abdo ERP Local"
-#define MyAppVersion "0.14.0"
+#ifndef MyAppVersion
+  #error "Build with npm run build:installer so the version comes from package.json."
+#endif
 #define MyAppPublisher "Abdo ERP Local"
 
 [Setup]
@@ -15,7 +17,7 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\..\dist\installer
-OutputBaseFilename=Abdo-ERP-Local-Setup-0.14.0
+OutputBaseFilename=Abdo-ERP-Local-Setup-{#MyAppVersion}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -23,7 +25,7 @@ SetupLogging=yes
 CloseApplications=yes
 RestartApplications=no
 UninstallDisplayName={#MyAppName}
-VersionInfoVersion=0.14.0.0
+VersionInfoVersion={#MyAppVersion}.0
 VersionInfoDescription=Abdo ERP Local core
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoProductName={#MyAppName}

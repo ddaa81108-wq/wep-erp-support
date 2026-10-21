@@ -26,4 +26,8 @@ export default tseslint.config(
       '@typescript-eslint/restrict-template-expressions': 'off',
     },
   },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: { '@typescript-eslint/no-explicit-any': 'error' },
+  },
 );

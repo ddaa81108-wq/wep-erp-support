@@ -16,6 +16,8 @@
     "test": "node --test tests/*.test.ts",
     "test:coverage": "node --experimental-test-coverage --test-coverage-exclude=src/client/apiClients/** --test-coverage-exclude=src/client/apiPaths.ts --test-coverage-exclude=src/client/apiTransport.ts --test-coverage-exclude=src/client/**/use*.ts --test-coverage-lines=85 --test-coverage-branches=65 --test-coverage-functions=85 --test tests/*.test.ts",
     "test:ui": "node tests/ui-smoke.ts",
+    "test:settings-requests-ui": "node tests/settings-request-order-ui.ts",
+    "test:ledger-focus-ui": "node tests/ledger-focus-ui.ts",
     "test:readability": "node tests/readability-ui.ts",
     "test:auth-l01": "node tests/auth-l01-ui.ts",
     "test:report-closing-ui": "node tests/report-closing-ui.ts",

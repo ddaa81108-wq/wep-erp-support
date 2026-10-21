@@ -13,24 +13,43 @@ let backupOperationBusy = false;
 export async function protectedBackupOperation<T>(operation: () => Promise<T>): Promise<T> {
   if (backupOperationBusy) throw conflict('BACKUP_BUSY', 'توجد عملية نسخ أو فحص استعادة قيد التنفيذ.');
   backupOperationBusy = true;
-  try { return await operation(); } finally { backupOperationBusy = false; }
+  try {
+    return await operation();
+  } finally {
+    backupOperationBusy = false;
+  }
 }
-export async function createEncryptedEmergencyBackup(db: AppDatabase, user: AuthenticatedUser, password: string) {
-  const legacy = await createEmergencyBackup(db, user);
-  return encryptBackup(Buffer.from(legacy.database, 'base64'), password);
+export async function createEncryptedEmergencyBackup(
+  db: AppDatabase,
+  user: AuthenticatedUser,
+  password: string,
+) {
+  return encryptBackup(await createBackupBytes(db, user), password);
 }
 export async function restoreBackup(db: AppDatabase, user: AuthenticatedUser, body: Record<string, unknown>) {
   requireBackupOwner(db, user);
-  if (body.confirmation !== 'استعادة') throw badRequest('RESTORE_CONFIRMATION', 'اكتب استعادة لتأكيد استبدال البيانات الحالية.');
+  if (body.confirmation !== 'استعادة')
+    throw badRequest('RESTORE_CONFIRMATION', 'اكتب استعادة لتأكيد استبدال البيانات الحالية.');
   const value = body.backup as Record<string, unknown> | undefined;
   if (value?.format !== 'abdo-erp-encrypted-backup') return stageRestore(db, user, body);
   try {
-    const password = typeof body.password === 'string' && body.password
-      ? body.password
-      : process.env.ABDO_BACKUP_KEY_FILE ? readFileSync(process.env.ABDO_BACKUP_KEY_FILE, 'utf8').trim() : '';
+    const password =
+      typeof body.password === 'string' && body.password
+        ? body.password
+        : process.env.ABDO_BACKUP_KEY_FILE
+          ? readFileSync(process.env.ABDO_BACKUP_KEY_FILE, 'utf8').trim()
+          : '';
     const bytes = await decryptBackup(value, password);
-    return stageRestore(db, user, { ...body, backup: { format: 'abdo-erp-backup', version: 1,
-      size: bytes.length, sha256: hash(bytes), database: bytes.toString('base64') } });
+    return stageRestore(db, user, {
+      ...body,
+      backup: {
+        format: 'abdo-erp-backup',
+        version: 1,
+        size: bytes.length,
+        sha256: hash(bytes),
+        database: bytes.toString('base64'),
+      },
+    });
   } catch (error) {
     if (error instanceof Error && 'status' in error) throw error;
     throw badRequest('BACKUP_DECRYPT_FAILED', 'تعذر فك النسخة. تحقق من كلمة التشفير وسلامة الملف.');
@@ -47,7 +66,9 @@ export function restoreStatus() {
   try {
     const result = JSON.parse(readFileSync(join(root, 'last-result.json'), 'utf8'));
     return { state: result.success ? 'succeeded' : 'failed', completedAt: String(result.completedAt) };
-  } catch { return { state: 'idle', completedAt: null }; }
+  } catch {
+    return { state: 'idle', completedAt: null };
+  }
 }
 export function requireBackupOwner(db: AppDatabase, user: AuthenticatedUser) {
   if (!user.isOwner || user.role !== 'admin') throw forbidden('backup.owner');
@@ -58,18 +79,28 @@ export function requireBackupOwner(db: AppDatabase, user: AuthenticatedUser) {
 export function validateBackupFile(path: string, organizationId: string) {
   const copy = new DatabaseSync(path, { readOnly: true });
   try {
-    if (Object.values(copy.prepare('PRAGMA quick_check').get()!)[0] !== 'ok' || copy.prepare('PRAGMA foreign_key_check').all().length)
+    if (
+      Object.values(copy.prepare('PRAGMA quick_check').get()!)[0] !== 'ok' ||
+      copy.prepare('PRAGMA foreign_key_check').all().length
+    )
       throw new Error('integrity');
     const version = copy.prepare('SELECT MAX(version) AS version FROM schema_migrations').get()!.version;
-    if (!Number.isSafeInteger(Number(version)) || Number(version) < 14 || Number(version) > Number(SCHEMA_VERSION)) throw new Error('version');
+    if (
+      !Number.isSafeInteger(Number(version)) ||
+      Number(version) < 14 ||
+      Number(version) > Number(SCHEMA_VERSION)
+    )
+      throw new Error('version');
     const organizations = copy.prepare('SELECT id FROM organizations').all();
     if (organizations.length !== 1 || organizations[0].id !== organizationId) throw new Error('organization');
-  } finally { copy.close(); }
+  } finally {
+    copy.close();
+  }
   // Also validate migration names and checksums against this application.
   const checked = openDatabase(path);
   checked.close();
 }
-export async function createEmergencyBackup(db: AppDatabase, user: AuthenticatedUser) {
+async function createBackupBytes(db: AppDatabase, user: AuthenticatedUser) {
   requireBackupOwner(db, user);
   const directory = mkdtempSync(join(tmpdir(), 'abdo-emergency-'));
   const path = join(directory, 'database.sqlite');
@@ -77,25 +108,56 @@ export async function createEmergencyBackup(db: AppDatabase, user: Authenticated
     await backup(db, path);
     validateBackupFile(path, user.organizationId);
     const bytes = readFileSync(path);
-    if (bytes.length > MAX_BACKUP_BYTES) throw badRequest('BACKUP_TOO_LARGE', 'حجم النسخة يتجاوز حد التنزيل من الصفحة (48 ميجابايت).');
-    return { format: 'abdo-erp-backup', version: 1, createdAt: new Date().toISOString(), schemaVersion: SCHEMA_VERSION,
-      organizationId: user.organizationId, size: bytes.length, sha256: hash(bytes), database: bytes.toString('base64') };
-  } finally { rmSync(directory, { recursive: true, force: true }); }
+    if (bytes.length > MAX_BACKUP_BYTES)
+      throw badRequest('BACKUP_TOO_LARGE', 'حجم النسخة يتجاوز حد التنزيل من الصفحة (48 ميجابايت).');
+    return bytes;
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+export async function createEmergencyBackup(db: AppDatabase, user: AuthenticatedUser) {
+  const bytes = await createBackupBytes(db, user);
+  return {
+    format: 'abdo-erp-backup',
+    version: 1,
+    createdAt: new Date().toISOString(),
+    schemaVersion: SCHEMA_VERSION,
+    organizationId: user.organizationId,
+    size: bytes.length,
+    sha256: hash(bytes),
+    database: bytes.toString('base64'),
+  };
 }
 export function stageRestore(db: AppDatabase, user: AuthenticatedUser, body: Record<string, unknown>) {
   requireBackupOwner(db, user);
-  if (process.platform !== 'win32' || !process.env.ABDO_RESTORE_ROOT) throw conflict('RESTORE_NOT_CONFIGURED', 'خدمة الاستعادة غير مهيأة على هذا الخادم.');
-  if (body.confirmation !== 'استعادة') throw badRequest('RESTORE_CONFIRMATION', 'اكتب استعادة لتأكيد استبدال البيانات الحالية.');
+  if (process.platform !== 'win32' || !process.env.ABDO_RESTORE_ROOT)
+    throw conflict('RESTORE_NOT_CONFIGURED', 'خدمة الاستعادة غير مهيأة على هذا الخادم.');
+  if (body.confirmation !== 'استعادة')
+    throw badRequest('RESTORE_CONFIRMATION', 'اكتب استعادة لتأكيد استبدال البيانات الحالية.');
   const value = body.backup as Record<string, unknown> | undefined;
-  if (!value || value.format !== 'abdo-erp-backup' || value.version !== 1 || typeof value.database !== 'string' || value.database.length > MAX_BACKUP_BYTES * 1.34)
+  if (
+    !value ||
+    value.format !== 'abdo-erp-backup' ||
+    value.version !== 1 ||
+    typeof value.database !== 'string' ||
+    value.database.length > MAX_BACKUP_BYTES * 1.34
+  )
     throw badRequest('INVALID_BACKUP', 'ملف النسخة الاحتياطية غير صالح.');
   const bytes = Buffer.from(value.database, 'base64');
-  if (bytes.length > MAX_BACKUP_BYTES || bytes.length !== value.size || hash(bytes) !== value.sha256 || (value.organizationId !== undefined && value.organizationId !== user.organizationId))
+  if (
+    bytes.length > MAX_BACKUP_BYTES ||
+    bytes.length !== value.size ||
+    hash(bytes) !== value.sha256 ||
+    (value.organizationId !== undefined && value.organizationId !== user.organizationId)
+  )
     throw badRequest('INVALID_BACKUP', 'فشل فحص حجم النسخة أو بصمتها أو المؤسسة التابعة لها.');
   const root = process.env.ABDO_RESTORE_ROOT;
   mkdirSync(root, { recursive: true });
   if (existsSync(join(root, 'recovery-required.json')))
-    throw conflict('RESTORE_RECOVERY_REQUIRED', 'توقفت استعادة سابقة أثناء الاستبدال. يلزم مراجعة نسخة الإنقاذ وسجل الاستعادة على الخادم قبل إعادة المحاولة.');
+    throw conflict(
+      'RESTORE_RECOVERY_REQUIRED',
+      'توقفت استعادة سابقة أثناء الاستبدال. يلزم مراجعة نسخة الإنقاذ وسجل الاستعادة على الخادم قبل إعادة المحاولة.',
+    );
   if (existsSync(join(root, 'pending.json')) || existsSync(join(root, 'processing.json')))
     throw conflict('RESTORE_PENDING', 'توجد استعادة قيد التنفيذ بالفعل.');
   const directory = mkdtempSync(join(root, 'restore-'));
@@ -104,14 +166,39 @@ export function stageRestore(db: AppDatabase, user: AuthenticatedUser, body: Rec
     writeFileSync(path, bytes, { flag: 'wx' });
     validateBackupFile(path, user.organizationId);
     const checkedBytes = readFileSync(path);
-    writeFileSync(`${path}.json`, JSON.stringify({ manifestVersion: 1, file: 'database.sqlite', fileSizeBytes: checkedBytes.length,
-      schemaVersion: Number(SCHEMA_VERSION), sha256: hash(checkedBytes) }), { flag: 'wx' });
-    writeFileSync(join(root, 'pending.tmp'), JSON.stringify({ path, sha256: hash(checkedBytes), organizationId: user.organizationId, requestedAt: new Date().toISOString() }), { flag: 'wx' });
+    writeFileSync(
+      `${path}.json`,
+      JSON.stringify({
+        manifestVersion: 1,
+        file: 'database.sqlite',
+        fileSizeBytes: checkedBytes.length,
+        schemaVersion: Number(SCHEMA_VERSION),
+        sha256: hash(checkedBytes),
+      }),
+      { flag: 'wx' },
+    );
+    writeFileSync(
+      join(root, 'pending.tmp'),
+      JSON.stringify({
+        path,
+        sha256: hash(checkedBytes),
+        organizationId: user.organizationId,
+        requestedAt: new Date().toISOString(),
+      }),
+      { flag: 'wx' },
+    );
     renameSync(join(root, 'pending.tmp'), join(root, 'pending.json'));
-    return { queued: true, message: 'تم فحص النسخة. ستبدأ الاستعادة خلال دقيقة، مع إنشاء نسخة إنقاذ وإعادة تشغيل الخادم. سجّل الدخول مجددًا بعد اكتمالها.' };
+    return {
+      queued: true,
+      message:
+        'تم فحص النسخة. ستبدأ الاستعادة خلال دقيقة، مع إنشاء نسخة إنقاذ وإعادة تشغيل الخادم. سجّل الدخول مجددًا بعد اكتمالها.',
+    };
   } catch {
     rmSync(join(root, 'pending.tmp'), { force: true });
     rmSync(directory, { recursive: true, force: true });
-    throw badRequest('RESTORE_VALIDATION_FAILED', 'النسخة تالفة أو لا تطابق إصدار التطبيق أو المؤسسة الحالية. لم تتغير البيانات الحية.');
+    throw badRequest(
+      'RESTORE_VALIDATION_FAILED',
+      'النسخة تالفة أو لا تطابق إصدار التطبيق أو المؤسسة الحالية. لم تتغير البيانات الحية.',
+    );
   }
 }

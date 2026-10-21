@@ -5,6 +5,7 @@ import { ledgerBalances } from './ledgerModel.ts';
 import { LedgerRecordRow } from './LedgerRecordRow.tsx';
 import { LedgerTotal } from './LedgerTotal.tsx';
 import type { DebtSection } from './sectionConfig.ts';
+import { scheduleLedgerDraftFocus } from './ledgerDraftFocus.ts';
 
 function navigateLedgerRows(event: KeyboardEvent<HTMLDivElement>) {
   const target = event.target as HTMLElement;
@@ -62,13 +63,8 @@ export function LedgerEntriesTable({
   }, [ledger.customer.id]);
   useEffect(() => {
     if (!canWrite || (section !== 'customers' && section !== 'companies' && section !== 'libyan-deposits')) return;
-    const frame = window.requestAnimationFrame(() => {
-      const input = tableRef.current?.querySelector<HTMLInputElement>(
-        '[data-new-ledger-draft] input[aria-label="قيمة المعاملة"]:not(:disabled)',
-      );
-      input?.focus();
-    });
-    return () => window.cancelAnimationFrame(frame);
+    const node = tableRef.current;
+    if (node) return scheduleLedgerDraftFocus(node);
   }, [ledger.customer.id, newDraftKey, canWrite, section]);
   return (
     <div className="ledger-table-wrap" ref={tableRef} onKeyDown={navigateLedgerRows}>
