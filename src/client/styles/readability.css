@@ -17,6 +17,23 @@
   cursor: pointer;
 }
 .readability-control span { font-size: 11px; }
+.ledger-fitted-amount { position: relative; }
+.ledger-fitted-amount .ledger-full-amount {
+  position: absolute;
+  top: 100%;
+  inset-inline: 0;
+  z-index: 20;
+  min-width: 180px;
+  max-width: min(300px,calc(100vw - 24px));
+  padding: 7px 10px;
+  background: #17150f;
+  color: #fff3ce;
+  border: 1px solid #d5b15a;
+  border-radius: 7px;
+  font-size: 14px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
 .utility-search-group { display:flex; align-items:center; gap:8px; min-width:0; grid-column:2; grid-row:1; flex:1; }
 .utility-search-group .global-account-search { flex:1; width:100%; min-width:0; }
 .utility-search-group .readability-control { position:static; flex:0 0 36px; width:36px; min-height:34px; height:34px; justify-content:center; padding:0; box-shadow:none; z-index:auto; }

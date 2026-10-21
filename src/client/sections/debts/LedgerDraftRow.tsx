@@ -13,6 +13,7 @@ import {
   type LedgerDraftKind,
 } from './ledgerModel.ts';
 import type { DebtSection } from './sectionConfig.ts';
+import { useFittedAmountInput } from '../../components/useFittedAmountInput.ts';
 
 type Props = {
   section: DebtSection;
@@ -47,6 +48,8 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
     [balanceBefore, factor, kind, mode, value],
   );
   const projectedBalance = kind === 'debt' ? balanceBefore + result : balanceBefore - result;
+  const displayedAmount = kind === 'full' ? Math.max(0, balanceBefore) : value;
+  const { ref: amountRef, showFullValue } = useFittedAmountInput(displayedAmount);
   useLayoutEffect(() => {
     if (editing) return;
     const hasContent = Boolean(value || factor || note);
@@ -153,18 +156,21 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
           placeholder="بيان الحركة"
         />
       </label>
-      <label className="ledger-draft-field">
+      <label className="ledger-draft-field ledger-fitted-amount">
         <span>القيمة</span>
         <input
+          ref={amountRef}
+          data-fit-amount=""
           aria-label="قيمة المعاملة"
           type="number"
           min="1"
           step="1"
-          value={kind === 'full' ? Math.max(0, balanceBefore) : value}
+          value={displayedAmount}
           onChange={(e) => setValue(e.target.value)}
           disabled={kind === 'full'}
           required
         />
+        {showFullValue && <output className="ledger-full-amount" aria-live="polite">القيمة كاملة: <bdi>{displayedAmount}</bdi></output>}
       </label>
       <div className="ledger-draft-field">
         <span>الحساب</span>
