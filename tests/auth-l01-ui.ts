@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync,rmSync,mkdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import {join,resolve} from 'node:path';
+import type {AddressInfo} from 'node:net';
+import {chromium} from '@playwright/test';
+import {createApp,listen} from '../src/server/app.ts';
+import {openDatabase} from '../src/server/db/database.ts';
+import type {ServerConfig} from '../src/server/config.ts';
+const folder=mkdtempSync(join(tmpdir(),'erp-auth-l01-'));
+const database=openDatabase(join(folder,'test.sqlite'));
+const config:ServerConfig={host:'127.0.0.1',port:0,databasePath:':memory:',sessionHours:12,secureCookie:false,internetRequired:false,internetProbeUrls:[],internetProbeTimeoutMs:100,internetProbeCacheMs:100};
+const server=createApp(database,config);
+const browser=await chromium.launch();
+try {
+ await listen(server,'127.0.0.1',0);
+ const base=`http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+ const page=await browser.newPage({viewport:{width:1672,height:941}});
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ const setup=await page.request.post(base+'/api/setup/admin',{data:{username:'admin',displayName:'اختبار البوابة',password:'Auth Preview 123!'}});assert.ok(setup.ok());
+ await page.goto(base+'/erp');
+ await page.getByRole('heading',{name:'تسجيل الدخول',exact:true}).waitFor();
+ await page.evaluate(()=>document.fonts.ready);
+ const output=resolve('artifacts/auth-l01');mkdirSync(output,{recursive:true});
+ await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin');
+ await page.getByLabel('كلمة المرور',{exact:true}).fill('Auth Preview 123!');
+ await page.getByRole('button',{name:'إظهار الأحرف',exact:true}).click();
+ assert.equal(await page.getByLabel('كلمة المرور',{exact:true}).getAttribute('type'),'text');
+ await page.getByRole('button',{name:'إخفاء الأحرف',exact:true}).click();
+ assert.equal(await page.getByLabel('كلمة المرور',{exact:true}).getAttribute('type'),'password');
+ await page.getByLabel('كلمة المرور',{exact:true}).fill('');
+ await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('');
+ await page.getByRole('heading',{name:'مرحبًا بك',exact:true}).click();
+ for(const width of [1672,1100,900,700,390,320]) {
+  await page.setViewportSize({width,height:width>700?941:844});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`overflow ${width}`);
+  assert.ok(await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).isVisible());
+  await page.screenshot({path:join(output,`login-${width}.png`),fullPage:true});
+ }
+ await page.setViewportSize({width:1672,height:941});
+ await page.getByRole('button',{name:'إنشاء حساب موظف',exact:true}).click();
+ await page.getByRole('heading',{name:'إنشاء حساب موظف',exact:true}).waitFor();
+ await page.getByRole('button',{name:'العودة لتسجيل الدخول',exact:true}).click();
+ await page.getByLabel('البريد الإلكتروني',{exact:true}).fill('admin');
+ await page.getByLabel('كلمة المرور',{exact:true}).fill('incorrect password');
+ await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();
+ await page.locator('.auth-l01 .alert.error').waitFor();
+ await page.getByLabel('كلمة المرور',{exact:true}).fill('Auth Preview 123!');
+ await page.getByRole('button',{name:'تسجيل الدخول',exact:true}).click();
+ await page.locator('.app-shell').waitFor();assert.deepEqual(errors,[]);
+ console.log('PASS L01: six viewport sizes, password visibility, registration navigation, rejected credentials, successful login, no browser errors.');
+}finally{await browser.close();await new Promise<void>(r=>server.close(()=>r()));database.close();rmSync(folder,{recursive:true,force:true});}

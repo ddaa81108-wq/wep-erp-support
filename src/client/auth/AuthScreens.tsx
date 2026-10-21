@@ -1,12 +1,21 @@
 import { type FormEvent, type ReactNode, useEffect, useState } from 'react';
-import { ShieldCheck, UserPlus } from 'lucide-react';
+import { ShieldCheck, UserPlus, Mail, Eye, EyeOff } from 'lucide-react';
 import { api, ApiError, type User } from '../api.ts';
 
 const errorText = (error: unknown) => error instanceof ApiError
   ? error.message
   : 'حدث خطأ غير متوقع. لم تُعتمد العملية.';
 
-function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
+function AuthShell({ title, subtitle, children, premium = false }: { title: string; subtitle: string; children: ReactNode; premium?: boolean }) {
+  if (premium) return <main className="auth-l01" dir="ltr">
+    <section className="auth-l01-scene" aria-hidden="true" />
+    <section className="auth-l01-panel" dir="rtl">
+      <div className="auth-l01-brand" dir="ltr"><strong>VIB</strong><span>ABDO COMPANY</span></div>
+      <p className="auth-l01-tagline">حلول مالية تنمو مع أعمالك</p>
+      <div className="auth-l01-welcome"><h1>مرحبًا بك</h1><p>في نظام <bdi>VIB Abdo Company</bdi> المالي المتكامل</p></div>
+      <div className="auth-l01-card"><h2>{title}</h2>{children}</div>
+    </section>
+  </main>;
   return (
     <main className="auth-page auth-split-reference">
       <section className="auth-showcase" aria-hidden="true" />
@@ -51,6 +60,7 @@ export function LoginScreen({ initialUsername, onLogin }: { initialUsername: str
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [googleConfigured, setGoogleConfigured] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const googleResult = new URLSearchParams(window.location.search).get('google');
   useEffect(() => { api.googleAuthStatus().then((status) => setGoogleConfigured(status.configured)).catch(() => setGoogleConfigured(false)); }, []);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -70,16 +80,16 @@ export function LoginScreen({ initialUsername, onLogin }: { initialUsername: str
       <button className="secondary wide" onClick={() => setMode('login')}>العودة لتسجيل الدخول</button>
     </div>
   </AuthShell>;
-  return <AuthShell title="تسجيل الدخول" subtitle="">
+  return <AuthShell premium title="تسجيل الدخول" subtitle="">
     <form className="stack" onSubmit={submit}>
       {googleResult === 'pending' && <div className="alert success">تم إرسال طلب حسابك إلى الإدارة. ستتمكن من الدخول بعد الموافقة.</div>}
       {googleResult === 'rejected' && <div className="alert error">لم توافق الإدارة على طلب هذا البريد.</div>}
       {googleResult === 'disabled' && <div className="alert error">هذا الحساب موقوف. راجع الإدارة.</div>}
       {googleResult === 'cancelled' && <div className="alert warning">أُلغيت محاولة Google ولم يُرسل أي طلب.</div>}
-      <label>البريد الإلكتروني<input name="username" defaultValue={initialUsername} required dir="ltr" autoComplete="username" autoFocus /></label>
-      <label>كلمة المرور<input name="password" type="password" required dir="ltr" autoComplete="current-password" /></label>
+      <label>البريد الإلكتروني<span className="auth-l01-field"><input name="username" defaultValue={initialUsername} required dir="ltr" autoComplete="username" autoFocus /><Mail size={18} aria-hidden="true" /></span></label>
+      <label>كلمة المرور<span className="auth-l01-field"><input name="password" type={passwordVisible ? 'text' : 'password'} required dir="ltr" autoComplete="current-password" /><button type="button" className="auth-l01-eye" aria-label={passwordVisible ? 'إخفاء الأحرف' : 'إظهار الأحرف'} onClick={() => setPasswordVisible(value => !value)}>{passwordVisible ? <Eye size={18} /> : <EyeOff size={18} />}</button></span></label>
       {error && <div className="alert error">{error}</div>}
-      <button className="primary wide" disabled={busy}>{busy ? 'جارٍ التحقق…' : 'تسجيل الدخول'}</button>
+      <button className="primary wide" aria-label="تسجيل الدخول" disabled={busy}>{busy ? 'جارٍ التحقق…' : 'دخول'}</button>
       <div className="auth-divider"><span>أو</span></div>
       {googleConfigured ? <a className="google-button" href="/api/auth/google/start?mode=login"><b>G</b><span>المتابعة باستخدام Google</span></a> : <button type="button" className="google-button" disabled title="ينتظر إعداد Google OAuth"><b>G</b><span>المتابعة باستخدام Google</span></button>}
       <button type="button" className="secondary wide create-account-button" onClick={() => setMode('register')}><UserPlus size={17} />إنشاء حساب موظف</button>

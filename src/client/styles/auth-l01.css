@@ -1,0 +1,51 @@
+/* L01: the approved reference supplies the exact architectural artwork only.
+   All text, fields and authentication actions remain live, accessible HTML. */
+.auth-l01 { display: grid; grid-template-columns: 68.18% 31.82%; min-height: 100svh; background: #191919; color: #eee; }
+.auth-l01-scene { background: url('/auth/l01-architecture.png') left center / 146.67% 100% no-repeat; min-height: 100%; }
+.auth-l01-panel { padding: clamp(40px,8.5vh,90px) clamp(24px,5.15vw,86px) 24px; background: radial-gradient(ellipse at 40% 30%,#222 0%,#191919 70%); border-left: 1px solid #6f614b; }
+.auth-l01-brand { color: #c8af86; text-align: center; }
+.auth-l01-brand strong { display: block; font: 500 clamp(76px,7.8vw,132px)/.85 Georgia,'Times New Roman',serif; letter-spacing: -7px; }
+.auth-l01-brand span { display: block; margin-top: 8px; font: 500 clamp(12px,1.2vw,20px)/1.4 Arial,sans-serif; letter-spacing: .32em; white-space: nowrap; }
+.auth-l01-tagline { margin: 12px 0 0; color: #8e8d88; font-size: clamp(10px,.9vw,15px); text-align: center; }
+.auth-l01-tagline::after { content: ''; display: inline-block; width: 22%; height: 1px; margin-inline-start: 12px; vertical-align: middle; background: #a48e67; }
+.auth-l01-welcome { margin: clamp(32px,5vh,55px) 0 clamp(24px,4vh,38px); text-align: center; }
+.auth-l01-welcome h1 { margin: 0; color: #f7f7f5; font-size: clamp(32px,3.2vw,54px); font-weight: 500; line-height: 1.6; }
+.auth-l01-welcome p { margin: 9px -14px 0; color: #a2a19c; font-size: clamp(10px,1vw,16px); white-space: nowrap; }
+.auth-l01-welcome::after { content: ''; display: block; width: 48px; height: 1px; margin: 24px auto 0; background: #c5ac82; }
+.auth-l01-card h2 { margin: 0 0 12px; color: #c8af86; font-size: 18px; font-weight: 500; text-align: right; }
+.auth-l01 .stack { display: flex; flex-direction: column; gap: 14px; }
+.auth-l01 label { display: flex; flex-direction: column; gap: 8px; color: #e3e0da; font-size: 14px; font-weight: 500; }
+.auth-l01-field { position: relative; display: flex; align-items: center; }
+.auth-l01 .auth-l01-field input { width: 100%; height: 48px; min-height: 48px; padding: 8px 42px 8px 12px; background: linear-gradient(125deg,#242424,#292929); border: 1px solid #77756f; border-radius: 4px; color: #fff; box-shadow: inset 0 1px 2px #0004; font-size: 16px; }
+.auth-l01-field > svg,.auth-l01-eye { position: absolute; right: 13px; color: #aaa79d; }
+.auth-l01 .auth-l01-eye { display: grid; place-items: center; padding: 0; width: 30px; height: 40px; border: 0; background: none; right: 7px; }
+.auth-l01 .auth-l01-field input:focus { outline: 2px solid #c5ab80; outline-offset: 2px; }
+.auth-l01 .primary { margin-top: 8px; min-height: 52px; padding: 5px 12px; border: 1px solid #c5aa7c; border-radius: 4px; background: linear-gradient(110deg,#b99b6e,#c5ac84); color: #16120c; font-size: 23px; font-weight: 600; box-shadow: none; }
+.auth-l01 .primary:hover:not(:disabled) { background: #d2ba92; }
+.auth-l01 .auth-divider { display: none; }
+.auth-l01 .google-button,.auth-l01 .create-account-button { min-height: 30px; padding: 3px 8px; font-size: 11px; background: transparent; color: #b9b1a4; border: 1px solid #514a3d; border-radius: 4px; box-shadow: none; }
+.auth-l01 .google-button { margin-top: 0; }
+.auth-l01 .create-account-button { margin-top: -10px; }
+.auth-l01 .local-note { display: none; }
+.auth-l01 .alert { font-size: 12px; }
+body:has(.auth-l01) .auth-theme-position { display: none; }
+body:has(.auth-l01) > #root > .readability-control { background: #202020; color: #d0b88f; border-color: #766344; }
+@media(min-width:1100px) and (min-height:800px) {
+  .auth-l01-panel { padding-top: 13.5vh; }
+}
+@media(max-width:1099px) and (min-width:701px) {
+  .auth-l01 { grid-template-columns: 55% 45%; }
+  .auth-l01-scene { background-size: auto 100%; }
+  .auth-l01-panel { padding-inline: 28px; }
+}
+@media(max-width:700px) {
+  .auth-l01 { display: block; position: relative; padding: 24px 16px; }
+  .auth-l01-scene { position: absolute; inset: 0; min-height: 0; background-size: auto 100%; opacity: .15; }
+  .auth-l01-panel { position: relative; max-width: 420px; margin: auto; padding: 24px; border: 1px solid #76634466; border-radius: 8px; background: #191919e8; }
+  .auth-l01-brand strong { font-size: 94px; }
+  .auth-l01-brand span { font-size: 15px; }
+  .auth-l01-welcome { margin: 25px 0; }
+  .auth-l01-welcome h1 { font-size: 36px; }
+  .auth-l01-welcome p { font-size: 11px; white-space: normal; }
+  .auth-l01 .stack { gap: 14px; }
+}

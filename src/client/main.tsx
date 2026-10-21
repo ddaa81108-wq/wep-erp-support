@@ -38,6 +38,7 @@ import './styles/purchases-unified-gold.css';
 import './styles/account-balance-colors.css';
 import './styles/mobile-toolbar-refinement.css';
 import './styles/readability.css';
+import './styles/auth-l01.css';
 
 let root: Root | undefined;
 void startInternetGuard(() => {
