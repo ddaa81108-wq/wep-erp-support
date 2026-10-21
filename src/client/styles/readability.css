@@ -44,6 +44,23 @@
 }
 .utility-search-group .readability-control:focus-visible { outline:2px solid #f8d260; outline-offset:2px; }
 .utility-search-group { position: relative; }
+/* Draw focus on the search shell, never on the smaller inner text field. */
+:root[data-theme] .workspace .dashboard-utility-bar .global-account-search > input {
+  height: 100%;
+  max-height: 100%;
+  padding-block: 0;
+  border-radius: inherit;
+}
+:root[data-theme] .workspace .dashboard-utility-bar .global-account-search > input:is(:focus, :focus-visible) {
+  border: 0;
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+}
+:root[data-theme] .workspace .dashboard-utility-bar .global-account-search:focus-within {
+  outline: 2px solid #f8d260;
+  outline-offset: -2px;
+}
 .readability-control[data-level='off'] { opacity: .7; }
 .readability-control .readability-feedback {
   display: block;
