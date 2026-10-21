@@ -53,7 +53,9 @@ Source: "..\..\scripts\harden-windows-services-admin.ps1"; DestDir: "{app}\scrip
 Source: "..\..\scripts\verify-https.mjs"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\..\scripts\verify-lan-install.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\..\scripts\Start-AbdoERP.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
-Source: "..\..\scripts\backup-database.mjs"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\..\dist\tools\backup-database.mjs"; DestDir: "{app}\scripts"; Flags: ignoreversion
+Source: "..\..\dist\tools\*"; DestDir: "{app}\dist\tools"; Flags: ignoreversion
+Source: "..\..\scripts\initialize-security-admin.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\..\scripts\verify-database.mjs"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\..\scripts\configure-backup-task-admin.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion
 Source: "..\..\scripts\restore-database-admin.ps1"; DestDir: "{app}\scripts"; Flags: ignoreversion

@@ -157,6 +157,8 @@ export function maintainOperationalData(database: AppDatabase) {
       .run(now, oneDayAgo);
     database.prepare('DELETE FROM login_failures WHERE occurred_at < ?').run(oneDayAgo);
     database.prepare('DELETE FROM oauth_states WHERE expires_at < ? OR consumed_at IS NOT NULL').run(now);
+    database.prepare('DELETE FROM mfa_challenges WHERE expires_at < ?').run(now);
+    database.prepare('UPDATE user_mfa SET pending_secret=NULL,pending_session=NULL,pending_expires_at=NULL WHERE pending_expires_at < ?').run(now);
     // Financial idempotency records are permanent: deleting them could allow an old
     // retried request to be posted a second time after the retention window.
     database.prepare('DELETE FROM event_log WHERE created_at < ?').run(oneHundredEightyDaysAgo);

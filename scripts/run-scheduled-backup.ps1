@@ -5,9 +5,11 @@ $script = 'C:\Program Files\Abdo ERP Local\scripts\backup-database.mjs'
 $statusPath = "$root\backup-schedule.json"
 $status = Get-Content -LiteralPath $statusPath -Raw | ConvertFrom-Json
 try {
-    & $node $script "$root\data\abdo-erp.sqlite" $status.output $status.retentionCount
+    $backupKey = "$root\secrets\backup-encryption.key"
+    if (-not (Test-Path -LiteralPath $backupKey -PathType Leaf)) { throw 'Backup encryption key is missing.' }
+    & $node $script "$root\data\abdo-erp.sqlite" $status.output $status.retentionCount $backupKey
     if ($LASTEXITCODE) { throw 'Backup validation failed.' }
-    $manifest = Get-ChildItem -LiteralPath $status.output -Filter 'abdo-erp-*.sqlite.json' |
+    $manifest = Get-ChildItem -LiteralPath $status.output -Filter 'abdo-erp-*.abdobackup.json' |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
     $verified = Get-Content -LiteralPath $manifest.FullName -Raw | ConvertFrom-Json
     $status.lastSuccess = $verified.createdAt

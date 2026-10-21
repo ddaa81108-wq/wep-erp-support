@@ -12,6 +12,7 @@ import type { User } from '../../api.ts';
 import { OperationsCenterManager } from './OperationsCenterManager.tsx';
 import { UsersManager } from './UsersManager.tsx';
 import { BackupCenterManager } from './BackupCenterManager.tsx';
+import { AccountSecurityManager } from './AccountSecurityManager.tsx';
 import { SETTINGS_MODULES, type SettingsModuleKey } from './settingsCatalog.ts';
 
 const ICONS = {
@@ -67,6 +68,7 @@ export function SettingsOverview({
             <ArrowRight size={16} /> العودة إلى الإعدادات
           </button>
         </header>
+        <AccountSecurityManager />
         <OperationsCenterManager embedded onClose={() => setOperationsOpen(false)} />
       </section>
     );

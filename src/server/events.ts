@@ -1,5 +1,10 @@
 import type { ServerResponse } from 'node:http';
 import type { AppDatabase } from './db/database.ts';
+import { HttpError } from './http/errors.ts';
+
+export const MAX_EVENT_STREAMS_PER_USER = 8;
+export const MAX_EVENT_STREAMS = 256;
+const MAX_BUFFERED_BYTES = 256 * 1024;
 
 export type EventViewer = {
   userId: string;
@@ -31,6 +36,11 @@ export class EventHub {
   attach(response: ServerResponse, after: number, viewer: EventViewer) {
     const resolved = this.resolveViewer(viewer);
     if (!resolved) return false;
+    const count = [...this.subscribers].filter(item => item.viewer.userId === viewer.userId).length;
+    if (count >= MAX_EVENT_STREAMS_PER_USER || this.subscribers.size >= MAX_EVENT_STREAMS) {
+      response.setHeader('Retry-After', '30');
+      throw new HttpError(429, 'EVENT_STREAM_LIMIT', 'اتصالات التحديث كثيرة. أغلق التبويبات الزائدة وأعد المحاولة.');
+    }
     response.writeHead(200, {
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-store',
@@ -68,6 +78,7 @@ export class EventHub {
       }
     }
 
+    if (response.destroyed || response.writableEnded) return true;
     const subscriber: Subscriber = {
       response,
       viewer,
@@ -76,7 +87,8 @@ export class EventHub {
           response.end();
           return;
         }
-        response.write(': keepalive\n\n');
+        if (response.writableLength > MAX_BUFFERED_BYTES) response.destroy();
+        else response.write(': keepalive\n\n');
       }, 25_000),
     };
     this.subscribers.add(subscriber);
@@ -157,6 +169,8 @@ export class EventHub {
   }
 
   private writeRow(response: ServerResponse, row: Record<string, unknown>) {
+    if (response.destroyed || response.writableEnded) return;
+    if (response.writableLength > MAX_BUFFERED_BYTES) { response.destroy(); return; }
     response.write(`id: ${Number(row.sequence)}\n`);
     response.write(`event: ${String(row.topic)}\n`);
     response.write(

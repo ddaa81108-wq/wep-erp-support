@@ -15,6 +15,10 @@ export const authApi = {
     rememberCsrf(result.csrfToken);
     return result;
   },
+  verifyMfa: async (code: string) => {
+    const result = await request<{ user: User; csrfToken: string }>('/api/auth/mfa/verify', { method: 'POST', body: JSON.stringify({ code }) });
+    rememberCsrf(result.csrfToken); return result;
+  },
   resume: async () => {
     const me = await request<{ user: User }>('/api/me');
     const csrf = await request<{ csrfToken: string }>('/api/auth/csrf');

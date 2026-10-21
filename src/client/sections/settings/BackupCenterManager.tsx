@@ -13,15 +13,19 @@ export function BackupCenterManager() {
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const [restoreManifest, setRestoreManifest] = useState<File | null>(null);
   const [restoreConfirmation, setRestoreConfirmation] = useState('');
+  const [backupPassword, setBackupPassword] = useState('');
+  const [backupPasswordConfirm, setBackupPasswordConfirm] = useState('');
+  const [restorePassword, setRestorePassword] = useState('');
   const downloadEmergency = async () => {
     setBusy(true); setBackupNotice('');
     try {
-      const result = await request<{ createdAt: string }>('/api/operations/backup/emergency', { method: 'POST' });
+      const result = await request<{ createdAt: string }>('/api/operations/backup/emergency', { method: 'POST', body: JSON.stringify({ password: backupPassword }) });
       const objectUrl = URL.createObjectURL(new Blob([JSON.stringify(result)], { type: 'application/json' }));
       const link = document.createElement('a');
       link.href = objectUrl; link.download = `abdo-emergency-${result.createdAt.replace(/[:.]/g, '-')}.abdobackup`;
       link.click(); setTimeout(() => URL.revokeObjectURL(objectUrl), 10_000);
-      setBackupNotice('تم إنشاء نسخة كاملة وفحصها وبدء تنزيلها. احتفظ بالملف كاملًا للاستعادة.');
+      setBackupPassword(''); setBackupPasswordConfirm('');
+      setBackupNotice('تم تنزيل نسخة مشفّرة. احتفظ بكلمة التشفير في مكان منفصل؛ لا يمكن استعادتها إذا فُقدت.');
     } catch (error) { setBackupNotice(errorText(error)); }
     finally { setBusy(false); }
   };
@@ -42,8 +46,8 @@ export function BackupCenterManager() {
         for (let index = 0; index < bytes.length; index += 8192) binary += String.fromCharCode(...bytes.subarray(index, index + 8192));
         backup = { format: 'abdo-erp-backup', version: 1, size: manifest.fileSizeBytes, sha256: manifest.sha256, database: btoa(binary) };
       } else { backup = JSON.parse(await restoreFile.text()); }
-      const result = await request<{ message: string }>('/api/operations/backup/restore', { method: 'POST', body: JSON.stringify({ backup, confirmation: restoreConfirmation }) });
-      setBackupNotice(result.message); setRestoreFile(null); setRestoreConfirmation('');
+      const result = await request<{ message: string }>('/api/operations/backup/restore', { method: 'POST', body: JSON.stringify({ backup, confirmation: restoreConfirmation, password: restorePassword }) });
+      setBackupNotice(result.message); setRestoreFile(null); setRestoreConfirmation(''); setRestorePassword('');
     } catch (error) { setBackupNotice(error instanceof ApiError ? error.message : error instanceof SyntaxError ? 'الملف ليس نسخة احتياطية صالحة.' : error instanceof Error ? error.message : 'تعذر الاستعادة.'); }
     finally { setBusy(false); }
   };
@@ -63,7 +67,10 @@ export function BackupCenterManager() {
       <section className="backup-panel">
         <h3>نسخة كاملة طارئة</h3>
         <p>تنزيل قاعدة البيانات كاملة، بما فيها الحسابات والصلاحيات والسجلات والإعدادات، مع بصمة للتحقق. لا يتوقف النظام أثناء إنشاء النسخة.</p>
-        <button className="secondary" disabled={busy} onClick={() => void downloadEmergency()}><DatabaseBackup size={17}/> {busy ? 'جارٍ التنفيذ…' : 'إنشاء وتنزيل نسخة طارئة'}</button>
+        <label>كلمة تشفير النسخة (12 حرفًا على الأقل)<input type="password" minLength={12} maxLength={256} value={backupPassword} onChange={event => setBackupPassword(event.target.value)} autoComplete="new-password" disabled={busy} /></label>
+        <label>تأكيد كلمة التشفير<input type="password" maxLength={256} value={backupPasswordConfirm} onChange={event => setBackupPasswordConfirm(event.target.value)} autoComplete="new-password" disabled={busy} /></label>
+        <small>احفظ الكلمة منفصلة عن الملف. فقدانها يمنع استعادة النسخة.</small>
+        <button className="secondary" disabled={busy || backupPassword.length < 12 || backupPassword !== backupPasswordConfirm} onClick={() => void downloadEmergency()}><DatabaseBackup size={17}/> {busy ? 'جارٍ التنفيذ…' : 'تنزيل نسخة طارئة مشفّرة'}</button>
       </section>
       <section className="backup-panel">
         <h3>استعادة نسخة احتياطية</h3>
@@ -71,6 +78,8 @@ export function BackupCenterManager() {
         <p>اختر النسخة الطارئة بصيغة abdobackup، أو اختر ملف النسخة اليومية SQLite وملف تعريفها JSON معًا. الاستعادة تستبدل البيانات الحالية بالكامل وتتطلب حساب المالك، مع حفظ نسخة إنقاذ قبل الاستبدال.</p>
         <label>ملفات النسخة <input type="file" multiple accept=".abdobackup,.sqlite,.json" disabled={busy} onChange={event => { const files = Array.from(event.target.files ?? []); setRestoreFile(files.find(file => file.name.endsWith('.abdobackup') || file.name.endsWith('.sqlite')) ?? null); setRestoreManifest(files.find(file => file.name.endsWith('.json')) ?? null); }}/></label>
         <label>اكتب «استعادة» للتأكيد <input value={restoreConfirmation} disabled={busy} onChange={event => setRestoreConfirmation(event.target.value)} autoComplete="off" /></label>
+        <label>كلمة فك التشفير (للنسخ المشفّرة)<input type="password" maxLength={256} value={restorePassword} disabled={busy} onChange={event => setRestorePassword(event.target.value)} autoComplete="off" /></label>
+        <small>للنسخ التلقائية من هذا الخادم، اترك كلمة التشفير فارغة لاستخدام مفتاح الخادم. عند الاستعادة على جهاز جديد يلزم ملف المفتاح المحفوظ منفصلًا.</small>
         <button className="secondary" disabled={busy || !restoreFile || restoreConfirmation !== 'استعادة'} onClick={() => void restore()}><RotateCcw size={17}/>فحص النسخة واستعادتها</button>
         <small>الحد الأقصى لقاعدة البيانات: 48 ميجابايت. لا تشمل النسخة ملفات البرنامج أو رمز Cloudflare. ستحتاج لتسجيل الدخول بعد الاستعادة.</small>
       </section>

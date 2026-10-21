@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { ServerConfig } from '../config.ts';
-import { createEmergencyBackup, stageRestore, requireBackupOwner } from '../domain/emergencyBackup.ts';
+import { createEncryptedEmergencyBackup, restoreBackup, protectedBackupOperation, requireBackupOwner } from '../domain/emergencyBackup.ts';
+import { secretField } from '../http/fields.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { createEmployee, listUsers, updateEmployee } from '../domain/users.ts';
 import { forbidden } from '../http/errors.ts';
@@ -30,12 +31,16 @@ function requireAdmin(user: AuthenticatedUser) {
 export async function routeUserManagement(context: UserManagementRouteContext) {
   const { database, request, response, user, url, method, correlationId } = context;
   if (method === 'POST' && url.pathname === '/api/operations/backup/emergency') {
-    sendJson(response, 200, { ok: true, data: await createEmergencyBackup(database, user) });
+    requireBackupOwner(database, user);
+    const input = await readJson(request);
+    const password = secretField(input.password, 'password', 12, 256);
+    sendJson(response, 200, { ok: true, data: await protectedBackupOperation(() => createEncryptedEmergencyBackup(database, user, password)) });
     return true;
   }
   if (method === 'POST' && url.pathname === '/api/operations/backup/restore') {
     requireBackupOwner(database, user);
-    sendJson(response, 202, { ok: true, data: stageRestore(database, user, await readJson(request, 68 * 1024 * 1024)) });
+    const input = await readJson(request, 68 * 1024 * 1024);
+    sendJson(response, 202, { ok: true, data: await protectedBackupOperation(() => restoreBackup(database, user, input)) });
     return true;
   }
 

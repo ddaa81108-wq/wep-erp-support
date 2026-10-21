@@ -7,6 +7,35 @@ import { openDatabase, type AppDatabase } from '../db/database.ts';
 import { SCHEMA_VERSION } from '../config.ts';
 import { badRequest, conflict, forbidden } from '../http/errors.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
+import { encryptBackup, decryptBackup } from '../security/backupEncryption.ts';
+
+let backupOperationBusy = false;
+export async function protectedBackupOperation<T>(operation: () => Promise<T>): Promise<T> {
+  if (backupOperationBusy) throw conflict('BACKUP_BUSY', 'توجد عملية نسخ أو فحص استعادة قيد التنفيذ.');
+  backupOperationBusy = true;
+  try { return await operation(); } finally { backupOperationBusy = false; }
+}
+export async function createEncryptedEmergencyBackup(db: AppDatabase, user: AuthenticatedUser, password: string) {
+  const legacy = await createEmergencyBackup(db, user);
+  return encryptBackup(Buffer.from(legacy.database, 'base64'), password);
+}
+export async function restoreBackup(db: AppDatabase, user: AuthenticatedUser, body: Record<string, unknown>) {
+  requireBackupOwner(db, user);
+  if (body.confirmation !== 'استعادة') throw badRequest('RESTORE_CONFIRMATION', 'اكتب استعادة لتأكيد استبدال البيانات الحالية.');
+  const value = body.backup as Record<string, unknown> | undefined;
+  if (value?.format !== 'abdo-erp-encrypted-backup') return stageRestore(db, user, body);
+  try {
+    const password = typeof body.password === 'string' && body.password
+      ? body.password
+      : process.env.ABDO_BACKUP_KEY_FILE ? readFileSync(process.env.ABDO_BACKUP_KEY_FILE, 'utf8').trim() : '';
+    const bytes = await decryptBackup(value, password);
+    return stageRestore(db, user, { ...body, backup: { format: 'abdo-erp-backup', version: 1,
+      size: bytes.length, sha256: hash(bytes), database: bytes.toString('base64') } });
+  } catch (error) {
+    if (error instanceof Error && 'status' in error) throw error;
+    throw badRequest('BACKUP_DECRYPT_FAILED', 'تعذر فك النسخة. تحقق من كلمة التشفير وسلامة الملف.');
+  }
+}
 
 export const MAX_BACKUP_BYTES = 48 * 1024 * 1024;
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');

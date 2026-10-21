@@ -62,6 +62,7 @@ export function LoginScreen({ initialUsername, onLogin }: { initialUsername: str
   const [googleConfigured, setGoogleConfigured] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const googleResult = new URLSearchParams(window.location.search).get('google');
+  const [mfaStep, setMfaStep] = useState(googleResult === 'mfa');
   useEffect(() => { api.googleAuthStatus().then((status) => setGoogleConfigured(status.configured)).catch(() => setGoogleConfigured(false)); }, []);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true); setError('');
@@ -69,8 +70,24 @@ export function LoginScreen({ initialUsername, onLogin }: { initialUsername: str
     try {
       const result = await api.login(String(form.get('username') ?? ''), String(form.get('password') ?? ''));
       onLogin(result.user);
-    } catch (caught) { setError(errorText(caught)); } finally { setBusy(false); }
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.code === 'MFA_REQUIRED') { setMfaStep(true); setError(''); }
+      else setError(errorText(caught));
+    } finally { setBusy(false); }
   }
+  if (mfaStep) return <AuthShell premium title="التحقق بخطوتين" subtitle="">
+    <form className="stack" onSubmit={event => {
+      event.preventDefault(); const form = new FormData(event.currentTarget); setBusy(true); setError('');
+      api.verifyMfa(String(form.get('code') ?? '').trim()).then(result => onLogin(result.user))
+        .catch(caught => setError(errorText(caught))).finally(() => setBusy(false));
+    }}>
+      <p>أدخل الرمز من تطبيق المصادقة، أو أحد رموز الاسترداد المحفوظة.</p>
+      <label>رمز التحقق<input name="code" required maxLength={32} autoComplete="one-time-code" autoFocus dir="ltr" /></label>
+      {error && <div className="alert error">{error}</div>}
+      <button className="primary wide" disabled={busy}>{busy ? 'جارٍ التحقق…' : 'تأكيد الدخول'}</button>
+      <button type="button" className="secondary wide" disabled={busy} onClick={() => { setMfaStep(false); setError(''); }}>العودة لتسجيل الدخول</button>
+    </form>
+  </AuthShell>;
   if (mode === 'register') return <AuthShell title="إنشاء حساب موظف" subtitle="استخدم بريد Google الخاص بك. لن تدخل المنظومة قبل موافقة الإدارة.">
     <div className="stack external-register">
       <div className="approval-steps"><span>1</span><p><strong>تأكيد بريد Google</strong><small>تتحقق Google من هويتك، ولا نستلم كلمة مرورك.</small></p></div>

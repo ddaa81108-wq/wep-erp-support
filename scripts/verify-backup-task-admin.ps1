@@ -25,7 +25,7 @@ do {
 
 $info = Get-ScheduledTaskInfo -TaskName $taskName
 if ($info.LastTaskResult -ne 0) { throw "Backup task failed with result $($info.LastTaskResult)." }
-$backup = Get-ChildItem -LiteralPath $backupRoot -Filter '*.sqlite' -File |
+$backup = Get-ChildItem -LiteralPath $backupRoot -Filter '*.abdobackup' -File |
   Where-Object LastWriteTime -ge $startedAt.AddSeconds(-2) |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 1

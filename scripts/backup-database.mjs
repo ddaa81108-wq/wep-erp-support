@@ -3,6 +3,7 @@ import console from 'node:console';
 import {
   createReadStream,
   mkdirSync,
+  readFileSync,
   readdirSync,
   renameSync,
   rmSync,
@@ -27,12 +28,14 @@ function hashFile(path) {
 const sourcePath = resolve(process.argv[2] ?? 'C:\\ProgramData\\AbdoErpLocal\\data\\abdo-erp.sqlite');
 const outputRoot = resolve(process.argv[3] ?? 'C:\\ProgramData\\AbdoErpLocal\\backups');
 const retentionCount = Number(process.argv[4] ?? 30);
+const keyPath = process.argv[5];
 if (!Number.isSafeInteger(retentionCount) || retentionCount < 1 || retentionCount > 365) {
   throw new Error('Backup retention count must be an integer between 1 and 365.');
 }
 mkdirSync(outputRoot, { recursive: true });
 const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-const outputPath = join(outputRoot, `abdo-erp-${stamp}.sqlite`);
+let outputPath = join(outputRoot, `abdo-erp-${stamp}.sqlite`);
+const plaintextPath = outputPath;
 let backupCommitted = false;
 
 try {
@@ -60,6 +63,18 @@ try {
   if (foreignKeyProblems !== 0) throw new Error(`Backup has ${foreignKeyProblems} foreign-key problem(s).`);
   if (schemaVersion < 14) throw new Error(`Backup schema version is unsupported: ${schemaVersion}`);
 
+  if (keyPath) {
+    const { encryptBackup } = await import('../src/server/security/backupEncryption.ts');
+    // The key is read from an ACL-protected file, never a command argument or log.
+    const password = readFileSync(resolve(keyPath), 'utf8').trim();
+    const encrypted = await encryptBackup(readFileSync(outputPath), password);
+    const encryptedPath = outputPath.replace(/\.sqlite$/, '.abdobackup');
+    writeFileSync(`${encryptedPath}.tmp`, JSON.stringify(encrypted), { flag: 'wx' });
+    renameSync(`${encryptedPath}.tmp`, encryptedPath);
+    outputPath = encryptedPath;
+    unlinkSync(plaintextPath);
+  }
+
   const sha256 = await hashFile(outputPath);
   const manifest = {
     manifestVersion: 1,
@@ -82,7 +97,7 @@ try {
   const removed = [];
   try {
     const retained = readdirSync(outputRoot)
-      .filter((name) => /^abdo-erp-\d{4}-\d{2}-\d{2}T.*\.sqlite$/.test(name))
+      .filter((name) => /^abdo-erp-\d{4}-\d{2}-\d{2}T.*\.(sqlite|abdobackup)$/.test(name))
       .map((name) => ({ name, modifiedAt: statSync(join(outputRoot, name)).mtimeMs }))
       .sort((left, right) =>
         left.name === basename(outputPath)
@@ -119,6 +134,8 @@ try {
   );
 } catch (error) {
   if (!backupCommitted) {
+    rmSync(plaintextPath, { force: true });
+    rmSync(plaintextPath.replace(/\.sqlite$/, '.abdobackup.tmp'), { force: true });
     rmSync(outputPath, { force: true });
     rmSync(`${outputPath}.json.tmp`, { force: true });
   }

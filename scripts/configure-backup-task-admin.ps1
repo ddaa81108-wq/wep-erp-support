@@ -16,7 +16,7 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 $taskName = 'Abdo ERP Local Database Backup'
 $node = 'C:\Program Files\Abdo ERP Local\vendor\runtime\node-v24.16.0-win-x64\node.exe'
 $script = 'C:\Program Files\Abdo ERP Local\scripts\backup-database.mjs'
-$sourceScript = Join-Path $PSScriptRoot 'backup-database.mjs'
+$sourceScript = Join-Path $PSScriptRoot '..\dist\tools\backup-database.mjs'
 $database = 'C:\ProgramData\AbdoErpLocal\data\abdo-erp.sqlite'
 $output = 'C:\ProgramData\AbdoErpLocal\backups'
 
@@ -53,7 +53,9 @@ New-Item -ItemType Directory -Path $output -Force | Out-Null
 & icacls.exe $output /inheritance:r /grant:r 'SYSTEM:(OI)(CI)F' 'Administrators:(OI)(CI)F' | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Failed to protect the backup directory.' }
 
-$arguments = '"{0}" "{1}" "{2}" {3}' -f $script, $database, $output, $RetentionCount
+$backupKey = 'C:\ProgramData\AbdoErpLocal\secrets\backup-encryption.key'
+if (-not (Test-Path -LiteralPath $backupKey -PathType Leaf)) { throw 'Run initialize-security-admin.ps1 first.' }
+$arguments = '"{0}" "{1}" "{2}" {3} "{4}"' -f $script, $database, $output, $RetentionCount, $backupKey
 $action = New-ScheduledTaskAction -Execute $node -Argument $arguments
 $trigger = New-ScheduledTaskTrigger -Daily -At $DailyAt
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 30)

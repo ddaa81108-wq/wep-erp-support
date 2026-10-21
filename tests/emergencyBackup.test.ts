@@ -28,7 +28,7 @@ test('emergency backup preserves all tables and rejects corrupted restore packag
     const legacyPath = join(root, 'schema47.sqlite');
     copyFileSync(path, legacyPath);
     const legacy = new DatabaseSync(legacyPath);
-    legacy.exec('DROP TABLE daily_financial_closings; DROP TRIGGER trg_notification_browser_push; DROP TABLE browser_push_outbox; DROP TABLE browser_push_subscriptions; DELETE FROM schema_migrations WHERE version>=48;');
+    legacy.exec('DROP TABLE mfa_challenges; DROP TABLE user_mfa; DROP TABLE daily_financial_closings; DROP TRIGGER trg_notification_browser_push; DROP TABLE browser_push_outbox; DROP TABLE browser_push_subscriptions; DELETE FROM schema_migrations WHERE version>=48;');
     legacy.exec(migrations.find(migration => migration.version === 47)!.sql);
     legacy.close();
     validateBackupFile(legacyPath, owner.organizationId);

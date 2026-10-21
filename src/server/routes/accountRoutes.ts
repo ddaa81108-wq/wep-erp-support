@@ -25,6 +25,8 @@ import {
   setupIsAuthorized,
 } from '../security/loginProtection.ts';
 import { hashPassword, verifyPassword } from '../security/password.ts';
+import { beginMfa, confirmMfa, consumeMfaChallenge, createMfaChallenge, hasMfa, mfaConfigured, verifyMfa } from '../security/mfa.ts';
+import { forbidden } from '../http/errors.ts';
 import {
   clearSessionCookie,
   createSession,
@@ -46,6 +48,43 @@ type AccountRouteContext = {
   method: string;
   correlationId: string;
 };
+
+const MFA_COOKIE = 'abdo_mfa';
+function challenge(context: AccountRouteContext, userId: string) {
+  const token = createMfaChallenge(context.database, userId);
+  const previous = context.response.getHeader('Set-Cookie');
+  context.response.setHeader('Set-Cookie', [...(previous ? Array.isArray(previous) ? previous.map(String) : [String(previous)] : []),
+    `${MFA_COOKIE}=${token}; Path=/api/auth; HttpOnly; SameSite=Lax; Max-Age=300${context.config.secureCookie ? '; Secure' : ''}`]);
+}
+function finishLogin(context: AccountRouteContext, userId: string) {
+  const { database, request, response, config } = context;
+  const row = database.prepare('SELECT * FROM users WHERE id=?').get(userId)!;
+  const session = createSession(database, userId, String(request.headers['x-client-api-version'] ?? API_VERSION), config.sessionHours,
+    { remoteAddress: remoteAddress(request), userAgent: String(request.headers['user-agent'] ?? '') });
+  setSessionCookie(response, session.token, session.expiresAt, config.secureCookie);
+  // Keep both cookies when clearing the short-lived challenge.
+  response.setHeader('Set-Cookie', [String(response.getHeader('Set-Cookie')),
+    `${MFA_COOKIE}=; Path=/api/auth; HttpOnly; SameSite=Lax; Max-Age=0${config.secureCookie ? '; Secure' : ''}`]);
+  const permissions = database.prepare('SELECT permission FROM user_permissions WHERE user_id=? AND allowed=1 ORDER BY permission')
+    .all(userId).map(item => String(item.permission));
+  sendJson(response, 200, { ok: true, data: { user: { id: userId, username: String(row.username), displayName: String(row.display_name),
+    role: String(row.role), isOwner: Number(row.is_owner) === 1, mustChangePassword: Number(row.must_change_password) === 1, permissions },
+    csrfToken: session.csrfToken, expiresAt: session.expiresAt, apiVersion: API_VERSION } });
+}
+
+async function verifyCurrentPassword(context: AccountRouteContext, user: AuthenticatedUser, input: Record<string, unknown>) {
+  const password = secretField(input.password, 'password', 1, 256), address = remoteAddress(context.request);
+  if (loginRateLimited(context.database, user.username, address)) throw new HttpError(429, 'LOGIN_RATE_LIMITED', 'محاولات كثيرة. حاول لاحقًا.');
+  const release = reserveLoginCheck(context.database, user.username, address);
+  if (!release) throw new HttpError(429, 'LOGIN_BUSY', 'أعد المحاولة بعد قليل.');
+  try {
+    const row = context.database.prepare('SELECT password_hash,password_login_enabled FROM users WHERE id=?').get(user.id)!;
+    if (Number(row.password_login_enabled) !== 1 || !await verifyPassword(password, String(row.password_hash))) {
+      recordLoginFailure(context.database, user.username, address);
+      throw new HttpError(403, 'PASSWORD_VERIFICATION_FAILED', 'تعذر تأكيد كلمة مرور الحساب.');
+    }
+  } finally { release(); }
+}
 
 async function setupAdmin(
   database: AppDatabase,
@@ -82,6 +121,21 @@ async function setupAdmin(
 
 export async function routePublicAccount(context: AccountRouteContext) {
   const { database, config, request, response, url, method, correlationId } = context;
+  if (method === 'POST' && url.pathname === '/api/auth/mfa/verify') {
+    assertSameOrigin(request);
+    const input = await readJson(request);
+    const code = secretField(input.code, 'code', 1, 32).trim();
+    const token = (request.headers.cookie ?? '').split(';').map(item => item.trim()).find(item => item.startsWith(`${MFA_COOKIE}=`))?.slice(MFA_COOKIE.length + 1) ?? '';
+    const address = remoteAddress(request), identity = `mfa:${token.slice(0, 64)}`;
+    if (loginRateLimited(database, identity, address)) throw new HttpError(429, 'LOGIN_RATE_LIMITED', 'محاولات كثيرة. حاول لاحقًا.');
+    const userId = /^[\w-]{43}$/.test(token) ? consumeMfaChallenge(database, token, code) : null;
+    if (!userId) {
+      recordLoginFailure(database, identity, address);
+      throw new HttpError(401, 'MFA_INVALID', 'الرمز غير صحيح أو مستخدم أو انتهت محاولة الدخول.');
+    }
+    finishLogin(context, userId);
+    return true;
+  }
   if (method === 'GET' && url.pathname === '/api/setup/status') {
     const row = database.prepare('SELECT COUNT(*) AS count FROM users').get() as { count: number };
     sendJson(response, 200, { ok: true, data: { setupRequired: Number(row.count) === 0 } });
@@ -127,6 +181,11 @@ export async function routePublicAccount(context: AccountRouteContext) {
       url.searchParams.get('code') ?? '', browserBinding,
     );
     if (result.status === 'approved' && result.userId) {
+      if (hasMfa(database, result.userId)) {
+        challenge(context, result.userId);
+        response.writeHead(302, { Location: '/erp?google=mfa', 'Cache-Control': 'no-store' });
+        response.end(); return true;
+      }
       const session = createSession(
         database, result.userId,
         String(request.headers['x-client-api-version'] ?? API_VERSION), config.sessionHours,
@@ -174,29 +233,11 @@ export async function routePublicAccount(context: AccountRouteContext) {
       throw new HttpError(401, 'INVALID_CREDENTIALS', 'اسم المستخدم أو كلمة المرور غير صحيحة.');
     }
     database.prepare('DELETE FROM login_failures WHERE username = ?').run(username);
-    const session = createSession(
-      database, String(row.id),
-      String(request.headers['x-client-api-version'] ?? 'unknown'), config.sessionHours,
-      { remoteAddress: address, userAgent: String(request.headers['user-agent'] ?? '') },
-    );
-    setSessionCookie(response, session.token, session.expiresAt, config.secureCookie);
-    const loginPermissions = database.prepare(
-      'SELECT permission FROM user_permissions WHERE user_id = ? AND allowed = 1 ORDER BY permission',
-    ).all(String(row.id)).map((permission) => String(permission.permission));
-    sendJson(response, 200, {
-      ok: true,
-      data: {
-        user: {
-          id: String(row.id), username: String(row.username), displayName: String(row.display_name),
-          role: String(row.role), isOwner: Number(row.is_owner) === 1,
-          mustChangePassword: Number(row.must_change_password) === 1,
-          permissions: loginPermissions,
-        },
-        csrfToken: session.csrfToken,
-        expiresAt: session.expiresAt,
-        apiVersion: API_VERSION,
-      },
-    });
+    if (hasMfa(database, String(row.id))) {
+      challenge(context, String(row.id));
+      throw new HttpError(401, 'MFA_REQUIRED', 'أدخل رمز تطبيق المصادقة أو أحد رموز الاسترداد.');
+    }
+    finishLogin(context, String(row.id));
     return true;
   }
   return false;
@@ -206,6 +247,41 @@ export async function routeAuthenticatedAccount(
   context: AccountRouteContext & { user: AuthenticatedUser },
 ) {
   const { database, config, request, response, url, method, correlationId, user } = context;
+  if (url.pathname.startsWith('/api/auth/mfa/')) {
+    if (user.mustChangePassword) throw forbidden('password.change-required');
+    if (method === 'GET' && url.pathname === '/api/auth/mfa/status') {
+      sendJson(response, 200, { ok: true, data: { configured: mfaConfigured(), enabled: hasMfa(database, user.id) } }); return true;
+    }
+    if (method === 'POST' && ['/api/auth/mfa/begin', '/api/auth/mfa/confirm', '/api/auth/mfa/disable'].includes(url.pathname)) {
+      if (user.role !== 'admin' && url.pathname !== '/api/auth/mfa/disable') throw forbidden('mfa.admin');
+      const input = await readJson(request), address = remoteAddress(request);
+      if (loginRateLimited(database, user.username, address)) throw new HttpError(429, 'LOGIN_RATE_LIMITED', 'محاولات كثيرة. حاول لاحقًا.');
+      if (url.pathname.endsWith('/begin')) {
+        await verifyCurrentPassword(context, user, input);
+        sendJson(response, 200, { ok: true, data: beginMfa(database, user.id, user.username, user.sessionTokenHash) }); return true;
+      }
+      const code = secretField(input.code, 'code', 1, 32).trim();
+      if (url.pathname.endsWith('/confirm')) {
+        const codes = confirmMfa(database, user.id, user.sessionTokenHash, code);
+        if (!codes) { recordLoginFailure(database, user.username, address); throw new HttpError(400, 'MFA_INVALID', 'الرمز غير صحيح أو انتهى وقت الإعداد.'); }
+        mfaAudit('user.mfa.enable');
+        sendJson(response, 200, { ok: true, data: { recoveryCodes: codes } }); return true;
+      }
+      await verifyCurrentPassword(context, user, input);
+      if (!verifyMfa(database, user.id, code)) { recordLoginFailure(database, user.username, address); throw new HttpError(403, 'MFA_INVALID', 'تعذر تأكيد رمز المصادقة.'); }
+      inImmediateTransaction(database, () => {
+        database.prepare('DELETE FROM user_mfa WHERE user_id=?').run(user.id);
+        database.prepare('DELETE FROM mfa_challenges WHERE user_id=?').run(user.id);
+        database.prepare('UPDATE sessions SET revoked_at=? WHERE user_id=? AND token_hash<>? AND revoked_at IS NULL').run(nowIso(), user.id, user.sessionTokenHash);
+        mfaAudit('user.mfa.disable');
+      });
+      sendJson(response, 200, { ok: true, data: { disabled: true } }); return true;
+    }
+  }
+  function mfaAudit(action: string) {
+    database.prepare(`INSERT INTO audit_log(actor_user_id,organization_id,action,entity_type,entity_id,correlation_id,outcome,details_json,created_at)
+      VALUES(?,?,?,'user',?,?,'success','{}',?)`).run(user.id, user.organizationId, action, user.id, correlationId, nowIso());
+  }
   if (method === 'GET' && url.pathname === '/api/organization-branding') {
     const { systemName } = getOrganizationSettings(database, user.organizationId);
     sendJson(response, 200, { ok: true, data: { systemName } });
