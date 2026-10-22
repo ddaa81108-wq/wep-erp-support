@@ -29,8 +29,8 @@ export function useCollectionsDashboard() {
   });
   async function run(id: string, operation: () => Promise<unknown>) {
     setBusy(id); setError('');
-    try { await operation(); await load(); }
-    catch (caught) { setError(collectionError(caught)); }
+    try { await operation(); await load(); return true; }
+    catch (caught) { setError(collectionError(caught)); return false; }
     finally { setBusy(''); }
   }
   return { data, error, busy, setError, setBusy, load, run };

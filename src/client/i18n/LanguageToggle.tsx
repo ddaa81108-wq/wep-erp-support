@@ -43,6 +43,8 @@ export function LanguageToggle() {
       }
       const url = new URL(window.location.href);
       url.searchParams.set('lang', next);
+      // Financial draft guards already asked; avoid a second browser warning for this reload.
+      window.dispatchEvent(new Event('abdo:navigation-approved'));
       window.location.assign(url.href);
     } catch {
       setError(

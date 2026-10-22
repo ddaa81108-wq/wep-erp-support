@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { ArrowDownToLine, ArrowUpFromLine, Landmark, RefreshCw } from 'lucide-react';
 import { api, ApiError, type TreasuryCashEntry, type TreasuryDashboard, type User } from '../../api.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
+import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { TreasuryCards } from './TreasuryCards.tsx';
 import { TreasuryCashEntryForm, type TreasuryEntryMode } from './TreasuryCashEntryForm.tsx';
 import { TreasuryCashLedger } from './TreasuryCashLedger.tsx';
@@ -113,7 +114,8 @@ export function TreasurySection({ user }: { user: User }) {
     }
   }
 
-  function openEntry(direction: TreasuryEntryMode) {
+  async function openEntry(direction: TreasuryEntryMode) {
+    if (mode && !(await flushBeforeNavigation())) return;
     pendingRequestId.current = crypto.randomUUID();
     setMode(direction);
     setMessage('');
@@ -186,7 +188,7 @@ export function TreasurySection({ user }: { user: User }) {
             </div>
           )}
         </div>
-        {mode && <TreasuryCashEntryForm mode={mode} busy={busy} onCancel={cancelEntry} onSubmit={submit} />}
+        {mode && <TreasuryCashEntryForm key={mode} mode={mode} busy={busy} onCancel={cancelEntry} onSubmit={submit} />}
         {nextBefore && (
           <button className="treasury-older" disabled={busy} onClick={() => void older()}>
             {uiText("تحميل حركات أقدم")}</button>

@@ -15,6 +15,7 @@ import {
 } from './ledgerModel.ts';
 import type { DebtSection } from './sectionConfig.ts';
 import { useFittedAmountInput } from '../../components/useFittedAmountInput.ts';
+import { useUnsavedDraft } from '../../dashboard/useUnsavedDraft.ts';
 
 type Props = {
   section: DebtSection;
@@ -43,6 +44,11 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
   const [busy, setBusy] = useState(false);
   const submitting = useRef(false);
   const [error, setError] = useState('');
+  const signature = JSON.stringify({kind, mode, value, factor, date, note});
+  const [baseline] = useState(() => editing ? signature : JSON.stringify({
+    kind: section === 'libyan-deposits' ? 'partial' : 'debt', mode: 'direct', value: '', factor: '', date, note: '',
+  }));
+  const { confirmLeave, markSaved } = useUnsavedDraft(signature !== baseline, busy, signature);
   const balanceBefore = ledgerBalanceBeforeDraft(ledger, editing);
   const result = useMemo(
     () => ledgerDraftResult(kind, mode, value, factor, balanceBefore),
@@ -80,6 +86,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       const saved = editing
         ? await editSectionTransaction(section, ledger.customer.id, editing.id, body)
         : await addSectionTransaction(section, ledger.customer.id, body);
+      markSaved();
       if (!editing) localStorage.removeItem(draftKey);
       await onSaved(editing ? uiText("تم تعديل المعاملة في مكانها.") : uiText("تم اعتماد المعاملة وإضافة سطر جديد فارغ."), { ...saved, customerId: ledger.customer.id });
     } catch (caught) {
@@ -117,7 +124,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
   }
 
   return (
-    <form className="ledger-grid ledger-draft-row" data-new-ledger-draft={!editing || undefined} onSubmit={submit} onKeyDown={navigateFields}>
+    <form className="ledger-grid ledger-draft-row" data-unsaved-guard="true" data-new-ledger-draft={!editing || undefined} onSubmit={submit} onKeyDown={navigateFields}>
       <div className="ledger-draft-field sequence-cell">
         <span>{uiText("التسلسل")}</span>
         <strong>#{editing?.sequence ?? ledger.customer.nextSequence}</strong>
@@ -233,7 +240,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
         className="row-action cancel"
         aria-label={uiText("إلغاء المسودة")}
         title={uiText("إلغاء المسودة")}
-        onClick={() => { if (!editing) localStorage.removeItem(draftKey); onClose(); }}
+        onClick={() => { if (!confirmLeave()) return; if (!editing) localStorage.removeItem(draftKey); onClose(); }}
       >
         <X size={18} />
       </button>

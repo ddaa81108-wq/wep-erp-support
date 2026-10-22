@@ -2,6 +2,8 @@
 export function hasEditedForm(document: Document) {
   return [...document.querySelectorAll('form input, form textarea, form select, input[type="file"]')].some(
     (control) => {
+      // Its registered navigation guard has already asked before a language change.
+      if (control.closest('form[data-unsaved-guard="true"]')) return false;
       if (control instanceof HTMLInputElement) {
         if (control.disabled || ['hidden', 'submit', 'button', 'reset'].includes(control.type)) return false;
         if (control.type === 'file') return Boolean(control.files?.length);

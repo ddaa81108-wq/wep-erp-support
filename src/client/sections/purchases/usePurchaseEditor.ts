@@ -1,6 +1,7 @@
 import { uiText } from '../../i18n/language.ts';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { api, type PurchaseEntry, type PurchaseMerchantKey } from '../../api.ts';
+import { useUnsavedDraft } from '../../dashboard/useUnsavedDraft.ts';
 import {
   blankPurchaseDraft,
   choosePurchaseType,
@@ -37,7 +38,11 @@ export function usePurchaseEditor({
     entry ? purchaseDraftFromEntry(entry) : blankPurchaseDraft(),
   );
   const saving = useRef(false);
+  const [busy, setSavingBusy] = useState(false);
   const requestId = useRef(crypto.randomUUID());
+  const [baseline, setBaseline] = useState(() => JSON.stringify(draft));
+  const signature = JSON.stringify(draft);
+  const { confirmLeave, markSaved } = useUnsavedDraft(signature !== baseline, busy, signature);
 
   function changed() {
     requestId.current = crypto.randomUUID();
@@ -63,11 +68,14 @@ export function usePurchaseEditor({
       return false;
     }
     saving.current = true;
+    setSavingBusy(true);
     setBusy(true);
     try {
       const body = purchaseEntryInput(draft, requestId.current, dayVersion);
       if (entry) await api.updatePurchase(merchant, entry.id, { ...body, expectedVersion: entry.version });
       else await api.createPurchase(merchant, body);
+      markSaved(JSON.stringify(blankPurchaseDraft()));
+      setBaseline(JSON.stringify(blankPurchaseDraft()));
       requestId.current = crypto.randomUUID();
       setDraft(blankPurchaseDraft());
       await saved();
@@ -78,6 +86,7 @@ export function usePurchaseEditor({
       return false;
     } finally {
       saving.current = false;
+      setSavingBusy(false);
       setBusy(false);
     }
   }
@@ -88,5 +97,5 @@ export function usePurchaseEditor({
     void commit();
   }
 
-  return { draft, ...purchaseDraftTotals(draft), set, choose, commit, keys };
+  return { draft, ...purchaseDraftTotals(draft), set, choose, commit, keys, confirmLeave };
 }

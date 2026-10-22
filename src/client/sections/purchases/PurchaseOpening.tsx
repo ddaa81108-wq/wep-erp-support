@@ -2,6 +2,7 @@ import { uiText } from '../../i18n/language.ts';
 import { useState } from 'react';
 import { api, type PurchaseMerchantKey, type PurchasesPage } from '../../api.ts';
 import { purchaseErrorText } from './purchaseEditorModel.ts';
+import { useUnsavedDraft } from '../../dashboard/useUnsavedDraft.ts';
 
 type Props = {
   page: PurchasesPage;
@@ -14,6 +15,10 @@ export function PurchaseOpening({ page, merchant, reload, setMessage }: Props) {
   const [debt, setDebt] = useState(String(page.day.previousDebtUnits));
   const [vodafone, setVodafone] = useState(String(page.day.previousVodafoneUnits));
   const [busy, setBusy] = useState(false);
+  const signature = JSON.stringify([debt, vodafone]);
+  const { markSaved } = useUnsavedDraft(
+    debt !== String(page.day.previousDebtUnits) || vodafone !== String(page.day.previousVodafoneUnits), busy, signature,
+  );
 
   async function save() {
     setBusy(true);
@@ -23,6 +28,7 @@ export function PurchaseOpening({ page, merchant, reload, setMessage }: Props) {
         previousDebtUnits: Number(debt || 0),
         previousVodafoneUnits: Number(vodafone || 0),
       });
+      markSaved();
       await reload();
       setMessage(uiText("تم حفظ قيم البداية."));
     } catch (error) {

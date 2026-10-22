@@ -1,5 +1,6 @@
 import { uiText } from '../../i18n/language.ts';
 import type { FormEvent } from 'react';
+import { useUnsavedForm } from '../../dashboard/useUnsavedForm.ts';
 
 export type TreasuryEntryMode = 'in' | 'out';
 
@@ -11,8 +12,9 @@ type TreasuryCashEntryFormProps = {
 };
 
 export function TreasuryCashEntryForm({ mode, busy, onCancel, onSubmit }: TreasuryCashEntryFormProps) {
+  const { bindForm, trackChanges, confirmLeave } = useUnsavedForm(busy);
   return (
-    <form className={`treasury-entry-form ${mode}`} onSubmit={onSubmit}>
+    <form ref={bindForm} onInput={trackChanges} onChange={trackChanges} className={`treasury-entry-form ${mode}`} onSubmit={onSubmit}>
       <strong>{mode === 'in' ? uiText("دخول فلوس نشطة") : uiText("خروج فلوس نشطة")}</strong>
       <label>
         {uiText("القيمة")}<input name="amountUnits" type="number" min="1" step="1" inputMode="numeric" required autoFocus />
@@ -20,7 +22,7 @@ export function TreasuryCashEntryForm({ mode, busy, onCancel, onSubmit }: Treasu
       <label>
         {uiText("البيان")}<input name="description" maxLength={500} placeholder={uiText("سبب الحركة")} />
       </label>
-      <button type="button" onClick={onCancel}>
+      <button type="button" onClick={() => { if (confirmLeave()) onCancel(); }}>
         {uiText("إلغاء")}</button>
       <button className="primary" disabled={busy}>
         {uiText("اعتماد")}</button>

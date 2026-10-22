@@ -1,4 +1,5 @@
 import { uiText } from '../../i18n/language.ts';
+import { useUnsavedForm } from '../../dashboard/useUnsavedForm.ts';
 import { OutstandingCollectionCash } from '../../sections/collections/OutstandingCollectionCash.tsx';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Phone } from 'lucide-react';
@@ -11,9 +12,22 @@ import {
 import { CollectionsOverview } from '../../sections/collections/CollectionsOverview.tsx';
 import { CollectionPayrollPanel } from '../../sections/collections/CollectionPayrollPanel.tsx';
 
+function PartialReceiptForm({ busy, submit }: { busy: boolean; submit: (amount: number) => Promise<boolean> }) {
+  const { bindForm, trackChanges, markSaved } = useUnsavedForm(busy);
+  return <form ref={bindForm} onInput={trackChanges} onChange={trackChanges} className="partial-collection-form"
+    onSubmit={async event => {
+      event.preventDefault();
+      if (await submit(Number(new FormData(event.currentTarget).get('amount')))) markSaved();
+    }}>
+    <label>{uiText("القيمة")}<input name="amount" inputMode="numeric" type="number" min="1" step="1" required placeholder={uiText("المبلغ")} /></label>
+    <button disabled={busy}>{uiText("حفظ")}</button>
+  </form>;
+}
+
 export function EmployeeCollectionsSection() {
   const { data, error, busy, setError, setBusy, load, run } = useCollectionsDashboard();
   const [creating, setCreating] = useState(false);
+  const { bindForm: bindCreate, trackChanges: changeCreate, markSaved: savedCreate, confirmLeave: leaveCreate } = useUnsavedForm(busy === 'unlinked-create');
   const createPanel = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!creating || !window.matchMedia('(max-width: 560px)').matches) return;
@@ -24,13 +38,9 @@ export function EmployeeCollectionsSection() {
   async function submit(id: string, mode: 'full' | 'partial', amount: number) {
     if (!Number.isSafeInteger(amount) || amount <= 0) {
       setError(uiText("اكتب قيمة صحيحة أكبر من صفر."));
-      return;
+      return false;
     }
-    await run(id, () => api.submitCollection(id, mode, amount));
-  }
-  function submitPartial(event: FormEvent<HTMLFormElement>, id: string) {
-    event.preventDefault();
-    void submit(id, 'partial', Number(new FormData(event.currentTarget).get('amount')));
+    return run(id, () => api.submitCollection(id, mode, amount));
   }
   async function createUnlinked(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,6 +61,7 @@ export function EmployeeCollectionsSection() {
     try {
       await api.createUnlinkedCollectionReceipt(customerName, amountUnits, crypto.randomUUID());
       form.reset();
+      savedCreate();
       setCreating(false);
       await load();
     } catch (caught) {
@@ -74,7 +85,7 @@ export function EmployeeCollectionsSection() {
   }
   return (
     <div className="collections-page employee-collections-page">
-      <CollectionsOverview data={data} description={uiText("الكروت الموجهة إليك للاستلام")} onPayroll={() => setPayrollOpen(true)} creating={creating} onToggleCreate={() => setCreating((value) => !value)} />
+      <CollectionsOverview data={data} description={uiText("الكروت الموجهة إليك للاستلام")} onPayroll={() => { if (leaveCreate()) setPayrollOpen(true); }} creating={creating} onToggleCreate={() => { if (!creating || leaveCreate()) setCreating((value) => !value); }} />
       <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} />
       {error && <div className="alert error">{error}</div>}
       {creating && (
@@ -85,7 +96,7 @@ export function EmployeeCollectionsSection() {
               <p>{uiText("سجّل الاسم والقيمة فقط. لن تتغير أي أرصدة حتى تربطه الإدارة بكارت أصلي وتعتمده.")}</p>
             </div>
           </header>
-          <form onSubmit={createUnlinked}>
+          <form ref={bindCreate} onInput={changeCreate} onChange={changeCreate} onSubmit={createUnlinked}>
             <label>
               {uiText("اسم العميل")}<input
                 name="customerName"
@@ -187,23 +198,7 @@ export function EmployeeCollectionsSection() {
                     ) : (
                       <details className="partial-collection-details">
                         <summary>{uiText("استلام جزئي")}</summary>
-                        <form
-                          className="partial-collection-form"
-                          onSubmit={(event) => submitPartial(event, assignment.id)}
-                        >
-                          <label>
-                            {uiText("القيمة")}<input
-                              name="amount"
-                              inputMode="numeric"
-                              type="number"
-                              min="1"
-                              step="1"
-                              required
-                              placeholder={uiText("المبلغ")}
-                            />
-                          </label>
-                          <button disabled={busy === assignment.id}>{uiText("حفظ")}</button>
-                        </form>
+                        <PartialReceiptForm busy={busy === assignment.id} submit={amount => submit(assignment.id, 'partial', amount)} />
                       </details>
                     )}
                     <a

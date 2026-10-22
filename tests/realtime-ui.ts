@@ -112,6 +112,7 @@ try {
   await expect(page.getByLabel('قيمة المعاملة', { exact: true })).toHaveValue('7');
   await expect(page.getByLabel('ملاحظة المعاملة', { exact: true })).toHaveValue('مسودة لا تمسح');
   await expect(reportPage.locator('[data-label="ديون لنا"]').first()).toContainText('125', { timeout: 7000 });
+  page.once('dialog', dialog => void dialog.accept());
   await page.locator('.ledger-panel > header .icon-button').click();
   const search = page.locator('.dashboard-search input');
   await search.fill('عميل المزامنة');

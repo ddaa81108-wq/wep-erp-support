@@ -1,4 +1,5 @@
 import { uiText } from '../../i18n/language.ts';
+import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { PurchaseInlineEditor } from './PurchaseInlineEditor.tsx';
@@ -59,7 +60,10 @@ export function PurchaseRegister({ purchases, canWrite, canFinalize }: PurchaseR
             entry={entry} showSeparator={index === 0 || entries[index - 1].dayNumber !== entry.dayNumber}
             showClosing={entry.dayStatus === 'finalized' && entries[index + 1]?.dayId !== entry.dayId}
             editing={editingId === entry.id} busy={busy} canWrite={canWrite} canFinalize={canFinalize}
-            merchant={merchant} onEdit={() => setEditingId(entry.id)} onRemove={() => void remove(entry)}
+            merchant={merchant} onEdit={async () => {
+              if (editingId && editingId !== entry.id && !(await flushBeforeNavigation())) return;
+              setEditingId(entry.id);
+            }} onRemove={() => void remove(entry)}
             onToggleCorrection={(open) => void toggleCorrection(entry, open)} onMarkDirty={markDirty}
             onCancelEditing={cancelEditing} onSaved={async () => { setEditingId(null); await load(merchant, true); }}
             onBusyChange={setBusy} onMessage={setMessage} />
@@ -68,6 +72,7 @@ export function PurchaseRegister({ purchases, canWrite, canFinalize }: PurchaseR
       {canWrite && (
         <div className={`purchase-day-entry purchase-day-tone-${page.day.dayNumber % 5}`}>
           <PurchaseInlineEditor
+            key={`${merchant}:${page.day.dayNumber}`}
             dayVersion={page.day.version}
             busy={busy}
             markDirty={markDirty}

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type PurchaseEntry, type PurchaseMerchantKey, type PurchasesPage } from '../../api.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
 import { purchaseErrorText } from './purchaseEditorModel.ts';
+import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 
 export function usePurchasesPage() {
   const [merchant, setMerchant] = useState<PurchaseMerchantKey>('al_bayan');
@@ -80,6 +81,7 @@ export function usePurchasesPage() {
   }
 
   async function finalize() {
+    if (!(await flushBeforeNavigation())) return;
     if (!page || !confirm(uiText("ترحيل اليوم سيحوّل معاملاته إلى قراءة فقط. هل تريد المتابعة؟"))) return;
     const requestId = finalizeRequestId.current ?? crypto.randomUUID();
     finalizeRequestId.current = requestId;
@@ -126,7 +128,9 @@ export function usePurchasesPage() {
 
   return {
     merchant,
-    setMerchant,
+    setMerchant: async (next: PurchaseMerchantKey) => {
+      if (next !== merchant && await flushBeforeNavigation()) setMerchant(next);
+    },
     page,
     entries,
     editingId,

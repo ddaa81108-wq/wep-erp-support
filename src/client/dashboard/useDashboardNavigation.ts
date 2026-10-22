@@ -38,6 +38,12 @@ export function useDashboardNavigation(user: User) {
     setMenuOpen,
     sidebarHidden,
     setSidebarVisibility,
-    restoreSection: (section: MainSection) => commitSection(section),
+    restoreSection: async (section: MainSection) => {
+      if (section !== activeSection && !(await flushBeforeNavigation())) {
+        window.history.pushState({erpGuard: true, erpSection: activeSection}, '', '/erp');
+        return;
+      }
+      commitSection(section);
+    },
   };
 }

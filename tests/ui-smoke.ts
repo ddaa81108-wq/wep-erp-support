@@ -294,6 +294,7 @@ try {
   await page.getByRole('heading', { name: 'متجر النور' }).waitFor();
   await page.locator('.ledger-panel.section-customers').waitFor({ state: 'visible' });
   await page.locator('.ledger-draft-row').getByLabel('ملاحظة المعاملة').fill('مسودة تستعاد تلقائيًا');
+  page.once('dialog', dialog => void dialog.accept());
   await page.getByRole('button', { name: 'إغلاق السجل' }).click();
   await page.locator('.ledger-panel').waitFor({ state: 'detached' });
   await tickerCustomer.evaluate((element: HTMLButtonElement) => element.click());
@@ -305,6 +306,7 @@ try {
     await page.locator('.ledger-draft-row').getByLabel('ملاحظة المعاملة').inputValue(),
     'مسودة تستعاد تلقائيًا',
   );
+  page.once('dialog', dialog => void dialog.accept());
   await page.locator('.ledger-draft-row').getByRole('button', { name: 'إلغاء المسودة' }).click();
   await page.locator('.ledger-record').getByText('ديون', { exact: true }).first().waitFor();
   await page.locator('.ledger-record').getByText('دفع جزئي', { exact: true }).first().waitFor();
@@ -372,6 +374,7 @@ try {
   assert.equal(await duplicateDialog.getByRole('button', { name: 'حفظ الحساب' }).isDisabled(), true);
   await duplicateDialog.getByRole('button', { name: /ليس الحساب المطلوب/ }).click();
   assert.equal(await duplicateDialog.getByRole('button', { name: 'حفظ الحساب' }).isEnabled(), true);
+  page.once('dialog', dialog => void dialog.accept());
   await duplicateDialog.getByRole('button', { name: 'إلغاء' }).click();
   await page.evaluate(() => {
     document.documentElement.dataset.theme = 'dark';
@@ -656,6 +659,8 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.screenshot({ path: join(output, 'purchases-mobile.png'), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 950 });
+  // The outage-survival draft is deliberately left without submitting it.
+  page.once('dialog', dialog => void dialog.accept());
   await page.getByRole('button', { name: 'أمانات مصرية' }).click();
   await page.getByRole('heading', { name: 'أمانات مصرية' }).waitFor();
   await page.getByText('قسم المصراوية', { exact: true }).waitFor();

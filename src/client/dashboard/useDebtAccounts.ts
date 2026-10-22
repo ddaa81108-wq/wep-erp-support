@@ -2,6 +2,7 @@ import { uiText } from '../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Customer, CustomerFilter, Ledger, ConfirmedLedgerWrite } from '../api.ts';
 import { api } from '../api.ts';
+import { flushBeforeNavigation } from './navigationGuards.ts';
 import {
   getSectionAccount,
   getSectionLedger,
@@ -81,6 +82,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   );
   const loadLedger = useCallback(
     async (id: string) => {
+      if (openLedgerId.current && openLedgerId.current !== id && !(await flushBeforeNavigation())) return;
       const request = ++ledgerRequest.current;
       const next = await fetchLedger(id);
       if (request !== ledgerRequest.current) return;
@@ -234,7 +236,11 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     customers,
     visibleCustomers: visibleCustomerCards(customers, debouncedQuery, filter),
     ledger,
-    closeLedger: () => { ledgerRequest.current++; setLedger(null); },
+    closeLedger: async () => {
+      if (!(await flushBeforeNavigation())) return;
+      ledgerRequest.current++;
+      setLedger(null);
+    },
     query,
     setQuery,
     filter,

@@ -69,7 +69,7 @@ export function Dashboard({
     }
     const onBack = (event: PopStateEvent) => {
       if (dialog) {
-        setDialog(null);
+        void flushBeforeNavigation().then(allowed => { if (allowed) setDialog(null); });
         window.history.pushState({ erpGuard: true, erpSection: activeSection }, '', '/erp');
       } else if (debtAccounts.ledger) {
         debtAccounts.closeLedger();

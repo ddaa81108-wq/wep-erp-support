@@ -25,6 +25,7 @@ export function PurchasesSection({ user }: { user: User }) {
       {message && <div className="purchase-message">{message}</div>}
       {firstDay && canWrite && (
         <PurchaseOpening
+          key={merchant}
           page={page}
           merchant={merchant}
           reload={() => load(merchant, true)}

@@ -27,7 +27,7 @@ export function PurchaseInlineEditor({
   setBusy,
   setMessage,
 }: Props) {
-  const { draft, result, remaining, set, choose, commit, keys } = usePurchaseEditor({
+  const { draft, result, remaining, set, choose, commit, keys, confirmLeave } = usePurchaseEditor({
     entry,
     dayVersion,
     merchant,
@@ -128,7 +128,7 @@ export function PurchaseInlineEditor({
           <Check size={14} />
         </button>
         {entry && (
-          <button aria-label={uiText("إلغاء التعديل")} onClick={cancel}>
+          <button aria-label={uiText("إلغاء التعديل")} onClick={() => { if (confirmLeave()) cancel(); }}>
             <X size={14} />
           </button>
         )}

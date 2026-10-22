@@ -1,5 +1,7 @@
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
+  'توجد بيانات غير محفوظة. هل تريد المغادرة دون اعتمادها؟ اضغط إلغاء للرجوع للمراجعة.':
+    'There are unsaved changes. Leave without submitting them? Choose Cancel to return and review.',
   'تنبيه معاملة مكررة': 'Possible duplicate transaction',
   'توجد معاملة مماثلة في نفس المكان خلال يوم العمل الحالي. هل تريد إضافتها مرة أخرى؟':
     'A matching transaction exists in this record for the current workday. Would you like to add it again?',

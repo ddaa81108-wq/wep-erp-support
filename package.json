@@ -33,6 +33,7 @@
     "test:realtime": "node tests/realtime-ui.ts",
     "test:performance-ui": "node tests/performance-ui.ts",
     "test:duplicate-warning-ui": "node tests/duplicate-warning-ui.ts",
+    "test:unsaved-draft-ui": "node tests/unsaved-draft-ui.ts",
     "test:collections-ui": "node tests/collections-presentation-ui.ts",
     "test:zero-review-ui": "node tests/customer-zero-review-ui.ts",
     "test:treasury-ui": "node tests/treasury-presentation-ui.ts",

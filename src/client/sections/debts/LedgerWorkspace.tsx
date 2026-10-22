@@ -1,4 +1,5 @@
 import { uiText } from '../../i18n/language.ts';
+import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { Ledger, LedgerItem, ConfirmedLedgerWrite } from '../../api.ts';
@@ -68,7 +69,10 @@ export function LedgerWorkspace({
         editing={editing}
         busyId={busyId}
         newDraftKey={newDraftKey}
-        onEditingChange={setEditing}
+        onEditingChange={async item => {
+          if (item && editing && item.id !== editing.id && !(await flushBeforeNavigation())) return;
+          setEditing(item);
+        }}
         onCancel={(item) => void cancel(item)}
         onSaved={finish}
         onLoadOlder={onLoadOlder}
