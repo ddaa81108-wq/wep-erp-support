@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import {
   ArrowRight,
   BookOpenCheck,
@@ -43,12 +44,11 @@ export function SettingsOverview({
       <section className="settings-section settings-accounts-shell">
         <header className="topbar settings-topbar">
           <div>
-            <h1>الموظفون والإداريون</h1>
-            <p>إنشاء الحسابات وإدارة الإداريين والصلاحيات والوصول إلى الأقسام</p>
+            <h1>{uiText("الموظفون والإداريون")}</h1>
+            <p>{uiText("إنشاء الحسابات وإدارة الإداريين والصلاحيات والوصول إلى الأقسام")}</p>
           </div>
           <button className="secondary compact" onClick={() => setAccountsOpen(false)}>
-            <ArrowRight size={16} /> العودة إلى الإعدادات
-          </button>
+            <ArrowRight size={16} /> {uiText(" العودة إلى الإعدادات")}</button>
         </header>
         <div className="settings-accounts-page">
           <UsersManager currentUser={user} embedded onClose={() => setAccountsOpen(false)} />
@@ -61,12 +61,11 @@ export function SettingsOverview({
       <section className="settings-section settings-operations-shell">
         <header className="topbar settings-topbar">
           <div>
-            <h1>مركز التشغيل والأمان</h1>
-            <p>قاعدة البيانات والجلسات والأجهزة والأخطاء التشغيلية في صفحة واحدة</p>
+            <h1>{uiText("مركز التشغيل والأمان")}</h1>
+            <p>{uiText("قاعدة البيانات والجلسات والأجهزة والأخطاء التشغيلية في صفحة واحدة")}</p>
           </div>
           <button className="secondary compact" onClick={() => setOperationsOpen(false)}>
-            <ArrowRight size={16} /> العودة إلى الإعدادات
-          </button>
+            <ArrowRight size={16} /> {uiText(" العودة إلى الإعدادات")}</button>
         </header>
         <AccountSecurityManager />
         <OperationsCenterManager embedded onClose={() => setOperationsOpen(false)} />
@@ -78,12 +77,11 @@ export function SettingsOverview({
       <section className="settings-section settings-backup-shell">
         <header className="topbar settings-topbar">
           <div>
-            <h1>النسخ الاحتياطي والاستعادة</h1>
-            <p>مركز مستقل لحماية قاعدة البيانات والتحقق واختبار الاستعادة</p>
+            <h1>{uiText("النسخ الاحتياطي والاستعادة")}</h1>
+            <p>{uiText("مركز مستقل لحماية قاعدة البيانات والتحقق واختبار الاستعادة")}</p>
           </div>
           <button className="secondary compact" onClick={() => setBackupOpen(false)}>
-            <ArrowRight size={16} /> العودة إلى الإعدادات
-          </button>
+            <ArrowRight size={16} /> {uiText(" العودة إلى الإعدادات")}</button>
         </header>
         <BackupCenterManager />
       </section>
@@ -101,18 +99,18 @@ export function SettingsOverview({
     <section className="settings-section">
       <header className="topbar settings-topbar">
         <div>
-          <h1>الإعدادات</h1>
-          <p>إدارة مركزية للحسابات والصلاحيات والتدقيق وسياسات المنظومة</p>
+          <h1>{uiText("الإعدادات")}</h1>
+          <p>{uiText("إدارة مركزية للحسابات والصلاحيات والتدقيق وسياسات المنظومة")}</p>
         </div>
         <div className={`settings-authority ${user.isOwner ? 'owner' : 'admin'}`}>
-          <span>{user.isOwner ? 'المالك الرئيسي' : 'إداري عام'}</span>
+          <span>{user.isOwner ? uiText("المالك الرئيسي") : uiText("إداري عام")}</span>
           <strong>{user.displayName}</strong>
         </div>
       </header>
       <div className="settings-security-strip">
-        <span><b>3</b> مستويات حسابات</span>
-        <span><b>9</b> أقسام قابلة للتخصيص</span>
-        <span><b>100%</b> توثيق إداري</span>
+        <span><b>3</b> {uiText(" مستويات حسابات")}</span>
+        <span><b>9</b> {uiText(" أقسام قابلة للتخصيص")}</span>
+        <span><b>100%</b> {uiText(" توثيق إداري")}</span>
       </div>
       <div className="settings-tools-grid">
         {SETTINGS_MODULES.map((module) => {
@@ -125,7 +123,7 @@ export function SettingsOverview({
                 <strong>{module.title}</strong>
                 <span>{module.description}</span>
               </div>
-              <em>{module.state === 'ready' ? 'فتح' : 'مفعّل'}</em>
+              <em>{module.state === 'ready' ? uiText("فتح") : uiText("مفعّل")}</em>
             </>
           );
           return action ? (

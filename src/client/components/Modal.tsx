@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -32,7 +33,7 @@ export function Modal({
       >
         <header>
           <h3>{title}</h3>
-          <button className="icon-button" onClick={onClose} aria-label="إغلاق">
+          <button className="icon-button" onClick={onClose} aria-label={uiText("إغلاق")}>
             <X size={20} />
           </button>
         </header>

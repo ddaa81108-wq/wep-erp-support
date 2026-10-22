@@ -24,7 +24,7 @@ try {
     <div id="ledger">
       <div id="first" tabindex="0">First record</div>
       <div id="second" tabindex="0">Second record</div>
-      <div data-new-ledger-draft><input id="amount" aria-label="قيمة المعاملة"></div>
+      <div data-new-ledger-draft><input id="amount" data-ledger-amount aria-label="قيمة المعاملة"></div>
     </div>`);
   await page.addScriptTag({ content: bundle.outputFiles[0].text });
   const results = await page.evaluate(() => {

@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { RefreshCw, Search } from 'lucide-react';
 import { Modal } from '../../components/Modal.tsx';
 import { auditNumberFormat } from './auditLogModel.ts';
@@ -8,7 +9,7 @@ import { useAuditLog } from './useAuditLog.ts';
 export function AuditLogManager({ onClose }: { onClose: () => void }) {
   const { items, visible, nextBefore, busy, error, query, setQuery, filter, setFilter, load } = useAuditLog();
   return (
-    <Modal title="سجل التدقيق" className="audit-modal" onClose={onClose}>
+    <Modal title={uiText("سجل التدقيق")} className="audit-modal" onClose={onClose}>
       <div className="audit-manager">
         <AuditSummary items={items} />
         <section className="audit-toolbar">
@@ -17,17 +18,17 @@ export function AuditLogManager({ onClose }: { onClose: () => void }) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="ابحث باسم الموظف أو نوع الحركة…"
-              aria-label="البحث في سجل التدقيق"
+              placeholder={uiText("ابحث باسم الموظف أو نوع الحركة…")}
+              aria-label={uiText("البحث في سجل التدقيق")}
             />
           </label>
-          <div className="audit-filters" role="group" aria-label="تصفية سجل التدقيق">
+          <div className="audit-filters" role="group" aria-label={uiText("تصفية سجل التدقيق")}>
             {(
               [
-                ['all', 'الكل'],
-                ['financial', 'العمليات المالية'],
-                ['accounts', 'الحسابات'],
-                ['system', 'الأمان'],
+                ['all', uiText("الكل")],
+                ['financial', uiText("العمليات المالية")],
+                ['accounts', uiText("الحسابات")],
+                ['system', uiText("الأمان")],
               ] as const
             ).map(([value, label]) => (
               <button
@@ -41,8 +42,8 @@ export function AuditLogManager({ onClose }: { onClose: () => void }) {
           </div>
           <button
             className="audit-refresh"
-            title="تحديث السجل"
-            aria-label="تحديث سجل التدقيق"
+            title={uiText("تحديث السجل")}
+            aria-label={uiText("تحديث سجل التدقيق")}
             disabled={busy}
             onClick={() => void load()}
           >
@@ -52,13 +53,12 @@ export function AuditLogManager({ onClose }: { onClose: () => void }) {
         {error && <div className="alert error">{error}</div>}
         <AuditEntries entries={visible} busy={busy} />
         <footer className="audit-footer">
-          <span>يظهر أحدث {auditNumberFormat.format(items.length)} سجل</span>
+          <span>{uiText("يظهر أحدث ")}{auditNumberFormat.format(items.length)} {uiText(" سجل")}</span>
           {nextBefore && (
             <button className="secondary" disabled={busy} onClick={() => void load(nextBefore)}>
-              عرض سجلات أقدم
-            </button>
+              {uiText("عرض سجلات أقدم")}</button>
           )}
-          {busy && <span>جارٍ التحديث…</span>}
+          {busy && <span>{uiText("جارٍ التحديث…")}</span>}
         </footer>
       </div>
     </Modal>

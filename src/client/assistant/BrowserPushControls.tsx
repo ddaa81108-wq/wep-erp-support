@@ -1,12 +1,14 @@
+import { uiText } from '../i18n/language.ts';
 import { useEffect, useState } from 'react';
 import { BellRing } from 'lucide-react';
 import { request } from '../apiTransport.ts';
+import { sendPushLanguage } from '../i18n/pushLanguage.ts';
 
 type Config = { ready: boolean; publicKey: string | null; endpoints: string[] };
 function capabilityMessage() {
-  if (!window.isSecureContext) return 'إشعارات المتصفح تحتاج رابط HTTPS آمنًا.';
+  if (!window.isSecureContext) return uiText("إشعارات المتصفح تحتاج رابط HTTPS آمنًا.");
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window))
-    return 'المتصفح لا يدعم إشعارات الخلفية هنا. على iPhone أضف المنظومة للشاشة الرئيسية وافتحها من الأيقونة.';
+    return uiText("المتصفح لا يدعم إشعارات الخلفية هنا. على iPhone أضف المنظومة للشاشة الرئيسية وافتحها من الأيقونة.");
   return '';
 }
 const keyBytes = (value: string) =>
@@ -37,7 +39,7 @@ export function BrowserPushControls() {
           );
         }
       } catch {
-        if (active) setMessage('تعذر التحقق من إعدادات إشعارات المتصفح. أعد تحميل الصفحة.');
+        if (active) setMessage(uiText("تعذر التحقق من إعدادات إشعارات المتصفح. أعد تحميل الصفحة."));
       }
     })();
     return () => {
@@ -60,18 +62,19 @@ export function BrowserPushControls() {
           setEnabled(false);
           await subscription.unsubscribe();
         } else setEnabled(false);
-        setMessage('تم إيقاف إشعارات الخلفية لهذا الجهاز.');
+        setMessage(uiText("تم إيقاف إشعارات الخلفية لهذا الجهاز."));
       } else {
         // Permission must be requested directly from the user's click, including on iOS.
         const permission = await Notification.requestPermission();
         if (permission !== 'granted')
           throw new Error(
             permission === 'denied'
-              ? 'الإشعارات محظورة. اسمح بها من إعدادات الموقع في المتصفح ثم حاول مرة أخرى.'
-              : 'لم يُمنح إذن الإشعارات. يمكنك التفعيل لاحقًا.',
+              ? uiText("الإشعارات محظورة. اسمح بها من إعدادات الموقع في المتصفح ثم حاول مرة أخرى.")
+              : uiText("لم يُمنح إذن الإشعارات. يمكنك التفعيل لاحقًا."),
           );
         const registration = await navigator.serviceWorker.register('/erp-push-sw.js', { scope: '/' });
         await navigator.serviceWorker.ready;
+        sendPushLanguage(registration);
         let subscription = await registration.pushManager.getSubscription();
         if (subscription) {
           const existing = subscription.options.applicationServerKey;
@@ -94,10 +97,10 @@ export function BrowserPushControls() {
           body: JSON.stringify(subscription.toJSON()),
         });
         setEnabled(true);
-        setMessage('تم تفعيل إشعارات الخلفية لهذا الجهاز. جرّب إرسال إشعار.');
+        setMessage(uiText("تم تفعيل إشعارات الخلفية لهذا الجهاز. جرّب إرسال إشعار."));
       }
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'تعذر تغيير إعدادات إشعارات المتصفح.');
+      setMessage(error instanceof Error ? error.message : uiText("تعذر تغيير إعدادات إشعارات المتصفح."));
     } finally {
       setBusy(false);
     }
@@ -110,21 +113,21 @@ export function BrowserPushControls() {
       const subscription = await registration?.pushManager.getSubscription();
       if (!subscription || Notification.permission !== 'granted') {
         setEnabled(false);
-        throw new Error('فعّل إشعارات المتصفح من جديد.');
+        throw new Error(uiText("فعّل إشعارات المتصفح من جديد."));
       }
       await request('/api/browser-push/test', {
         method: 'POST',
         body: JSON.stringify({ endpoint: subscription.endpoint }),
       });
-      setMessage('أُضيف إشعار التجربة للإرسال. تحقق من إشعارات الجهاز؛ قبول الطلب لا يؤكد وصوله.');
+      setMessage(uiText("أُضيف إشعار التجربة للإرسال. تحقق من إشعارات الجهاز؛ قبول الطلب لا يؤكد وصوله."));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'تعذر إرسال التجربة.');
+      setMessage(error instanceof Error ? error.message : uiText("تعذر إرسال التجربة."));
     } finally {
       setBusy(false);
     }
   }
   return (
-    <section className="browser-push-controls" aria-label="إشعارات الخلفية">
+    <section className="browser-push-controls" aria-label={uiText("إشعارات الخلفية")}>
       <button
         className="browser-push-toggle"
         aria-pressed={enabled}
@@ -133,28 +136,25 @@ export function BrowserPushControls() {
       >
         <BellRing size={17} />
         <span>
-          إشعارات المتصفح{' '}
+          {uiText("إشعارات المتصفح")}{' '}
           <strong>
-            {busy ? 'جارٍ التنفيذ…' : enabled ? 'مفعّلة على هذا الجهاز' : 'تفعيل على هذا الجهاز'}
+            {busy ? uiText("جارٍ التنفيذ…") : enabled ? uiText("مفعّلة على هذا الجهاز") : uiText("تفعيل على هذا الجهاز")}
           </strong>
         </span>
       </button>
       {enabled && (
         <button className="browser-push-test" disabled={busy} onClick={() => void test()}>
-          إرسال إشعار تجريبي
-        </button>
+          {uiText("إرسال إشعار تجريبي")}</button>
       )}
       {unsupported ? (
         <p>{unsupported}</p>
       ) : config && !config.ready ? (
-        <p>إشعارات الخلفية تحتاج تجهيز الإرسال على الخادم.</p>
+        <p>{uiText("إشعارات الخلفية تحتاج تجهيز الإرسال على الخادم.")}</p>
       ) : (
         <p>
-          تصل والصفحة مغلقة بحسب دعم الجهاز، وتظل مفعّلة بعد تسجيل الخروج أو انتهاء الجلسة حتى توقفها يدويًا.
-          على iPhone افتح المنظومة من الشاشة الرئيسية.
-        </p>
+          {uiText("تصل والصفحة مغلقة بحسب دعم الجهاز، وتظل مفعّلة بعد تسجيل الخروج أو انتهاء الجلسة حتى توقفها يدويًا. على iPhone افتح المنظومة من الشاشة الرئيسية.")}</p>
       )}
-      <details><summary>معلومات الصوت والنطق</summary><small>صوت إشعار الخلفية تحدده إعدادات الجهاز؛ النطق يعمل داخل الصفحة فقط.</small></details>
+      <details><summary>{uiText("معلومات الصوت والنطق")}</summary><small>{uiText("صوت إشعار الخلفية تحدده إعدادات الجهاز؛ النطق يعمل داخل الصفحة فقط.")}</small></details>
       {message && <p role="status">{message}</p>}
     </section>
   );

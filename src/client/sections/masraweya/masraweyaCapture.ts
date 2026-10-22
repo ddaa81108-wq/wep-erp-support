@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 const isMobile = () => window.matchMedia('(max-width: 700px)').matches;
 
 type CaptureResult = 'shared' | 'copied' | 'downloaded' | 'cancelled';
@@ -28,7 +29,7 @@ export async function captureMasraweyaSummary(
     const file = new File([blob], `masraweya-${businessDate}.png`, { type: 'image/png' });
 
     if (isMobile() && navigator.share && navigator.canShare?.({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'ملخص المصراوية' });
+      await navigator.share({ files: [file], title: uiText("ملخص المصراوية") });
       return 'shared';
     }
     if (!isMobile() && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
@@ -50,10 +51,10 @@ export async function captureMasraweyaSummary(
 }
 
 export function captureResultMessage(result: CaptureResult) {
-  if (result === 'shared') return 'تم فتح المشاركة بالصورة عالية الجودة.';
-  if (result === 'copied') return 'تم نسخ صورة الجدول بأعلى جودة.';
-  if (result === 'cancelled') return 'تم إلغاء المشاركة.';
-  return 'تم تنزيل الصورة لأن النسخ أو المشاركة غير متاح في هذا المتصفح.';
+  if (result === 'shared') return uiText("تم فتح المشاركة بالصورة عالية الجودة.");
+  if (result === 'copied') return uiText("تم نسخ صورة الجدول بأعلى جودة.");
+  if (result === 'cancelled') return uiText("تم إلغاء المشاركة.");
+  return uiText("تم تنزيل الصورة لأن النسخ أو المشاركة غير متاح في هذا المتصفح.");
 }
 
 export function usesMobileSharing() {

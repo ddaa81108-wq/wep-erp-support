@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BookOpenCheck, RefreshCw, Search, ShieldCheck, TrendingDown, TrendingUp } from 'lucide-react';
 import { api, ApiError, type FinancialLedgerEntry } from '../../api.ts';
@@ -5,36 +6,36 @@ import { Modal } from '../../components/Modal.tsx';
 
 const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 const sections: Array<[string, string]> = [
-  ['', 'كل الأقسام'],
-  ['customer_debts', 'ديون العملاء'],
-  ['company_debts', 'ديون الشركات'],
-  ['libyan_deposits', 'الأمانات الليبية'],
-  ['egyptian_deposits', 'الأمانات المصرية'],
-  ['masraweya', 'المصراوية'],
-  ['purchases', 'المشتريات'],
-  ['treasury', 'الخزينة'],
+  ['', uiText("كل الأقسام")],
+  ['customer_debts', uiText("ديون العملاء")],
+  ['company_debts', uiText("ديون الشركات")],
+  ['libyan_deposits', uiText("الأمانات الليبية")],
+  ['egyptian_deposits', uiText("الأمانات المصرية")],
+  ['masraweya', uiText("المصراوية")],
+  ['purchases', uiText("المشتريات")],
+  ['treasury', uiText("الخزينة")],
 ];
 const sectionNames = Object.fromEntries(sections);
 const entryNames: Record<string, string> = {
-  debt: 'إضافة / دخول',
-  payment: 'تسديد / خروج',
-  purchase: 'مشتريات',
-  daily_purchases: 'مشتريات اليوم',
-  daily_work: 'شغل اليوم',
-  in: 'دخول نقدية',
-  out: 'خروج نقدية',
+  debt: uiText("إضافة / دخول"),
+  payment: uiText("تسديد / خروج"),
+  purchase: uiText("مشتريات"),
+  daily_purchases: uiText("مشتريات اليوم"),
+  daily_work: uiText("شغل اليوم"),
+  in: uiText("دخول نقدية"),
+  out: uiText("خروج نقدية"),
 };
 const statusNames: Record<string, string> = {
-  posted: 'معتمد',
-  draft: 'مفتوح',
-  finalized: 'مرحّل',
-  reversed: 'ملغي',
-  corrected: 'مصحح',
-  deleted: 'محذوف',
+  posted: uiText("معتمد"),
+  draft: uiText("مفتوح"),
+  finalized: uiText("مرحّل"),
+  reversed: uiText("ملغي"),
+  corrected: uiText("مصحح"),
+  deleted: uiText("محذوف"),
 };
 
 function errorText(error: unknown) {
-  return error instanceof ApiError ? error.message : 'تعذر تحميل سجل الأستاذ المالي.';
+  return error instanceof ApiError ? error.message : uiText("تعذر تحميل سجل الأستاذ المالي.");
 }
 
 export function FinancialLedgerManager({ onClose }: { onClose: () => void }) {
@@ -87,35 +88,35 @@ export function FinancialLedgerManager({ onClose }: { onClose: () => void }) {
   }, [load]);
 
   return (
-    <Modal title="سجل الأستاذ المالي" className="financial-ledger-modal" onClose={onClose}>
+    <Modal title={uiText("سجل الأستاذ المالي")} className="financial-ledger-modal" onClose={onClose}>
       <div className="financial-ledger-manager">
         <section className="financial-ledger-summary">
           <article>
             <BookOpenCheck size={19} />
             <div>
-              <small>القيود المعروضة</small>
+              <small>{uiText("القيود المعروضة")}</small>
               <b dir="ltr">{number.format(items.length)}</b>
             </div>
           </article>
           <article className={totals.LYD >= 0 ? 'positive' : 'negative'}>
             {totals.LYD >= 0 ? <TrendingUp size={19} /> : <TrendingDown size={19} />}
             <div>
-              <small>صافي الصفحة — ليبي</small>
-              <b dir="ltr">{number.format(totals.LYD)} د.ل</b>
+              <small>{uiText("صافي الصفحة — ليبي")}</small>
+              <b dir="ltr">{number.format(totals.LYD)} {uiText(" د.ل")}</b>
             </div>
           </article>
           <article className={totals.EGP >= 0 ? 'positive' : 'negative'}>
             {totals.EGP >= 0 ? <TrendingUp size={19} /> : <TrendingDown size={19} />}
             <div>
-              <small>صافي الصفحة — مصري</small>
-              <b dir="ltr">{number.format(totals.EGP)} ج.م</b>
+              <small>{uiText("صافي الصفحة — مصري")}</small>
+              <b dir="ltr">{number.format(totals.EGP)} {uiText(" ج.م")}</b>
             </div>
           </article>
           <div className="financial-ledger-readonly">
             <ShieldCheck size={18} />
             <span>
-              <strong>قراءة فقط</strong>
-              <small>لا يغيّر الأرصدة ولا يكرر تأثير المعاملات</small>
+              <strong>{uiText("قراءة فقط")}</strong>
+              <small>{uiText("لا يغيّر الأرصدة ولا يكرر تأثير المعاملات")}</small>
             </span>
           </div>
         </section>
@@ -126,14 +127,14 @@ export function FinancialLedgerManager({ onClose }: { onClose: () => void }) {
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="اسم، بيان، مرجع أو موظف…"
-              aria-label="البحث في سجل الأستاذ"
+              placeholder={uiText("اسم، بيان، مرجع أو موظف…")}
+              aria-label={uiText("البحث في سجل الأستاذ")}
             />
           </label>
           <select
             value={section}
             onChange={(event) => setSection(event.target.value)}
-            aria-label="تصفية القسم"
+            aria-label={uiText("تصفية القسم")}
           >
             {sections.map(([value, label]) => (
               <option key={value} value={value}>
@@ -144,18 +145,18 @@ export function FinancialLedgerManager({ onClose }: { onClose: () => void }) {
           <select
             value={currency}
             onChange={(event) => setCurrency(event.target.value as '' | 'LYD' | 'EGP')}
-            aria-label="تصفية العملة"
+            aria-label={uiText("تصفية العملة")}
           >
-            <option value="">كل العملات</option>
-            <option value="LYD">دينار ليبي</option>
-            <option value="EGP">جنيه مصري</option>
+            <option value="">{uiText("كل العملات")}</option>
+            <option value="LYD">{uiText("دينار ليبي")}</option>
+            <option value="EGP">{uiText("جنيه مصري")}</option>
           </select>
           <button
             className="financial-ledger-refresh"
             onClick={() => void load()}
             disabled={busy}
-            aria-label="تحديث سجل الأستاذ"
-            title="تحديث"
+            aria-label={uiText("تحديث سجل الأستاذ")}
+            title={uiText("تحديث")}
           >
             <RefreshCw size={17} />
           </button>
@@ -164,14 +165,14 @@ export function FinancialLedgerManager({ onClose }: { onClose: () => void }) {
         {error && <div className="alert error">{error}</div>}
         <section className="financial-ledger-table-wrap">
           <div className="financial-ledger-head">
-            <span>التاريخ</span>
-            <span>القسم</span>
-            <span>الطرف / البيان</span>
-            <span>نوع القيد</span>
-            <span>القيمة</span>
-            <span>الأثر</span>
-            <span>بواسطة</span>
-            <span>الحالة</span>
+            <span>{uiText("التاريخ")}</span>
+            <span>{uiText("القسم")}</span>
+            <span>{uiText("الطرف / البيان")}</span>
+            <span>{uiText("نوع القيد")}</span>
+            <span>{uiText("القيمة")}</span>
+            <span>{uiText("الأثر")}</span>
+            <span>{uiText("بواسطة")}</span>
+            <span>{uiText("الحالة")}</span>
           </div>
           <div className="financial-ledger-list">
             {items.map((entry) => {
@@ -190,14 +191,14 @@ export function FinancialLedgerManager({ onClose }: { onClose: () => void }) {
                   </strong>
                   <div className="financial-ledger-description">
                     <strong>{entry.counterpartyName || '—'}</strong>
-                    <small>{entry.description || entry.referenceNo || 'بدون بيان'}</small>
+                    <small>{entry.description || entry.referenceNo || uiText("بدون بيان")}</small>
                   </div>
                   <div>
                     <strong>{entryNames[entry.entryKind] ?? entry.entryKind}</strong>
                     <small dir="ltr">{entry.referenceNo || `#${entry.id}`}</small>
                   </div>
                   <b className="financial-ledger-amount" dir="ltr">
-                    {number.format(entry.amountUnits)} {entry.currency === 'LYD' ? 'د.ل' : 'ج.م'}
+                    {number.format(entry.amountUnits)} {entry.currency === 'LYD' ? uiText("د.ل") : uiText("ج.م")}
                   </b>
                   <b className={`financial-ledger-effect ${positive ? 'positive' : 'negative'}`} dir="ltr">
                     {positive ? '+' : '−'}
@@ -216,20 +217,19 @@ export function FinancialLedgerManager({ onClose }: { onClose: () => void }) {
             {!busy && items.length === 0 && (
               <div className="empty compact">
                 <Search size={27} />
-                <h3>لا توجد قيود</h3>
-                <p>غيّر البحث أو المرشحات.</p>
+                <h3>{uiText("لا توجد قيود")}</h3>
+                <p>{uiText("غيّر البحث أو المرشحات.")}</p>
               </div>
             )}
           </div>
         </section>
         <footer className="financial-ledger-footer">
-          <span>النتائج مقسمة إلى صفحات للحفاظ على سرعة المنظومة.</span>
+          <span>{uiText("النتائج مقسمة إلى صفحات للحفاظ على سرعة المنظومة.")}</span>
           {nextBefore && (
             <button className="secondary" disabled={busy} onClick={() => void load(nextBefore)}>
-              عرض قيود أقدم
-            </button>
+              {uiText("عرض قيود أقدم")}</button>
           )}
-          {busy && <span>جارٍ التحديث…</span>}
+          {busy && <span>{uiText("جارٍ التحديث…")}</span>}
         </footer>
       </div>
     </Modal>

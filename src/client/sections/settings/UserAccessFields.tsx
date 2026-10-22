@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useState } from 'react';
 import type { ManagedUser } from '../../api.ts';
 import { currentAccess, USER_ACCESS_CONFIG, type AccessLevel } from './userAccessModel.ts';
@@ -12,20 +13,19 @@ export function UserAccessFields({ editing }: { editing: ManagedUser | null }) {
   return (
     <>
       <div className="permission-templates">
-        <span>قوالب سريعة:</span>
-        <button type="button" onClick={() => applyTemplate(USER_ACCESS_CONFIG.map((item) => item.field))}>كل الأقسام</button>
-        <button type="button" onClick={() => applyTemplate([])}>قفل الكل</button>
-        <button type="button" onClick={() => applyTemplate(['customerDebtsAccess', 'companyDebtsAccess', 'collectionsAccess'])}>الديون والاستلامات</button>
-        <button type="button" onClick={() => applyTemplate(['masraweyaAccess', 'purchasesAccess', 'egyptianDepositsAccess'])}>الحسابات المصرية</button>
-        <button type="button" onClick={() => applyTemplate(['treasuryAccess', 'reportsAccess'])}>الخزينة والتقارير</button>
+        <span>{uiText("قوالب سريعة:")}</span>
+        <button type="button" onClick={() => applyTemplate(USER_ACCESS_CONFIG.map((item) => item.field))}>{uiText("كل الأقسام")}</button>
+        <button type="button" onClick={() => applyTemplate([])}>{uiText("قفل الكل")}</button>
+        <button type="button" onClick={() => applyTemplate(['customerDebtsAccess', 'companyDebtsAccess', 'collectionsAccess'])}>{uiText("الديون والاستلامات")}</button>
+        <button type="button" onClick={() => applyTemplate(['masraweyaAccess', 'purchasesAccess', 'egyptianDepositsAccess'])}>{uiText("الحسابات المصرية")}</button>
+        <button type="button" onClick={() => applyTemplate(['treasuryAccess', 'reportsAccess'])}>{uiText("الخزينة والتقارير")}</button>
       </div>
       <div className="user-access-grid">
       {USER_ACCESS_CONFIG.map((config) => (
         <fieldset key={config.field}>
           <legend>{config.title}</legend>
           <label>
-            صلاحية القسم
-            <select
+            {uiText("صلاحية القسم")}<select
               name={config.field}
               value={levels[config.field] === 'manage' ? 'manage' : 'none'}
               onChange={(event) => setLevels((current) => ({
@@ -33,7 +33,7 @@ export function UserAccessFields({ editing }: { editing: ManagedUser | null }) {
                 [config.field]: event.target.value as AccessLevel,
               }))}
             >
-              <option value="none">ظاهر ومقفول</option>
+              <option value="none">{uiText("ظاهر ومقفول")}</option>
               <option value="manage">{config.availableLabel}</option>
             </select>
           </label>

@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import type { User } from '../api.ts';
 import type { MainSection } from '../../shared/sections.ts';
 import { NotificationCenter } from './NotificationCenter.tsx';
@@ -30,17 +31,17 @@ export function DashboardUtilityBar({
         type="button"
         className="mobile-app-menu"
         onClick={onOpenMenu}
-        aria-label="فتح القائمة الرئيسية"
-        title="فتح القائمة الرئيسية"
+        aria-label={uiText("فتح القائمة الرئيسية")}
+        title={uiText("فتح القائمة الرئيسية")}
       >
         <Menu size={19} />
       </button>
       <div className="utility-search-group">
-        <GlobalAccountSearch onSelect={onOpenAccount} desktopLabel={(activeSection === 'companies' || activeSection === 'treasury') ? 'البحث الموحد' : undefined} />
+        <GlobalAccountSearch onSelect={onOpenAccount} desktopLabel={(activeSection === 'companies' || activeSection === 'treasury') ? uiText("البحث الموحد") : undefined} />
         <Readability toolbar />
       </div>
-      <div className="dashboard-section-title" aria-label={`القسم الحالي: ${SECTION_CONTRACTS[activeSection].title}`}>
-        <div className="dashboard-section-heading" role={isUtilityHeading ? 'heading' : undefined} aria-level={isUtilityHeading ? 1 : undefined}>{SECTION_CONTRACTS[activeSection].title}</div>
+      <div className="dashboard-section-title" aria-label={uiText("القسم الحالي: {0}", [uiText(SECTION_CONTRACTS[activeSection].title)])}>
+        <div className="dashboard-section-heading" role={isUtilityHeading ? 'heading' : undefined} aria-level={isUtilityHeading ? 1 : undefined}>{uiText(SECTION_CONTRACTS[activeSection].title)}</div>
       </div>
       <div className="dashboard-utility-actions">
         <SyncStatus detailed={activeSection === 'customers'} />

@@ -1,3 +1,4 @@
+import { direction, uiText } from '../../i18n/language.ts';
 import type { User } from '../../api.ts';
 import { MasraweyaSummary } from './MasraweyaSummary.tsx';
 import { MasraweyaWorkTable } from './MasraweyaWorkTable.tsx';
@@ -11,27 +12,26 @@ export function MasraweyaSection({ user }: { user: User }) {
     return (
       <section className="masraweya-page">
         <div className="empty">
-          {state.loading ? 'جارٍ تحميل المصراوية…' : state.error}
-          <button onClick={() => void state.goToday()}>إعادة المحاولة</button>
+          {state.loading ? uiText("جارٍ تحميل المصراوية…") : state.error}
+          <button onClick={() => void state.goToday()}>{uiText("إعادة المحاولة")}</button>
         </div>
       </section>
     );
   return (
     <section
       className="masraweya-page"
-      dir="rtl"
+      dir={direction}
       onBlurCapture={() => {
         if (state.dirty && !state.error) void state.flush();
       }}
     >
       <header className="masraweya-header">
         <div>
-          <h1>صفحة المصراوية</h1>
-          <p>دفتر يومي بالجنيه المصري — يبدأ اليوم الساعة 4 صباحًا بتوقيت ليبيا</p>
+          <h1>{uiText("صفحة المصراوية")}</h1>
+          <p>{uiText("دفتر يومي بالجنيه المصري — يبدأ اليوم الساعة 4 صباحًا بتوقيت ليبيا")}</p>
         </div>
         <label>
-          تاريخ العمل
-          <input
+          {uiText("تاريخ العمل")}<input
             type="date"
             dir="ltr"
             value={state.date}
@@ -43,30 +43,25 @@ export function MasraweyaSection({ user }: { user: User }) {
           />
         </label>
         <button className="secondary compact" onClick={() => void state.goToday()} disabled={state.loading}>
-          اليوم الحالي
-        </button>
+          {uiText("اليوم الحالي")}</button>
         <span className="masraweya-status">{state.accessLabel}</span>
       </header>
       {state.incompatible && (
         <div className="alert error" role="alert">
-          الواجهة متصلة بخادم قديم لا يدعم المصراوية الجديدة. يلزم تحديث الخادم والواجهة معًا؛ اليوم ليس
-          مقفلًا بسبب التاريخ.
-        </div>
+          {uiText("الواجهة متصلة بخادم قديم لا يدعم المصراوية الجديدة. يلزم تحديث الخادم والواجهة معًا؛ اليوم ليس مقفلًا بسبب التاريخ.")}</div>
       )}
       {state.error && (
         <div className="alert error" role="alert">
-          {state.error} <span>لم تُحذف مسودتك.</span>
+          {state.error} <span>{uiText("لم تُحذف مسودتك.")}</span>
           <button onClick={() => void state.flush()} disabled={state.busy}>
-            إعادة المحاولة
-          </button>
+            {uiText("إعادة المحاولة")}</button>
           <button
             onClick={() => {
-              if (window.confirm('تحميل النسخة المحفوظة سيستبدل المسودة غير المحفوظة. هل تريد المتابعة؟'))
+              if (window.confirm(uiText("تحميل النسخة المحفوظة سيستبدل المسودة غير المحفوظة. هل تريد المتابعة؟")))
                 void state.reload();
             }}
           >
-            تحميل النسخة المحفوظة
-          </button>
+            {uiText("تحميل النسخة المحفوظة")}</button>
         </div>
       )}
       <div className="masraweya-layout">
@@ -94,14 +89,14 @@ export function MasraweyaSection({ user }: { user: User }) {
       <footer className="masraweya-actions">
         <span className={`masraweya-autosave-state ${state.error ? 'failed' : ''}`} role="status">
           {state.error
-            ? 'توجد تعديلات غير محفوظة'
+            ? uiText("توجد تعديلات غير محفوظة")
             : state.busy
-              ? 'جارٍ الحفظ…'
+              ? uiText("جارٍ الحفظ…")
               : state.dirty
-                ? 'سيتم الحفظ تلقائيًا'
-                : 'محفوظ تلقائيًا'}
+                ? uiText("سيتم الحفظ تلقائيًا")
+                : uiText("محفوظ تلقائيًا")}
         </span>
-        <small>بداية اليوم 4 صباحًا • تعديل آخر 7 أيام لمن لديه صلاحية الكتابة</small>
+        <small>{uiText("بداية اليوم 4 صباحًا • تعديل آخر 7 أيام لمن لديه صلاحية الكتابة")}</small>
       </footer>
     </section>
   );

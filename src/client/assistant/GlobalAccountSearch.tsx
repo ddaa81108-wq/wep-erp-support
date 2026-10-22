@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { AccountSuggestion } from '../api.ts';
@@ -30,11 +31,11 @@ export function GlobalAccountSearch({ onSelect, desktopLabel }: { onSelect: (sec
   return <div className="global-account-search">
     <Search size={16} />
     {desktopLabel && !query && <span className="global-search-desktop-label" aria-hidden="true">{desktopLabel}</span>}
-    <input aria-label="البحث الموحد" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="بحث موحد في كل الحسابات…" />
-    {query && <button aria-label="مسح البحث" onClick={() => setQuery('')}><X size={14} /></button>}
+    <input aria-label={uiText("البحث الموحد")} value={query} onChange={(event) => setQuery(event.target.value)} placeholder={uiText("بحث موحد في كل الحسابات…")} />
+    {query && <button aria-label={uiText("مسح البحث")} onClick={() => setQuery('')}><X size={14} /></button>}
     {query.trim().length >= 2 && <div className="global-search-results">
-      {loading && <p>جارٍ البحث…</p>}
-      {!loading && items.length === 0 && <p>لا توجد حسابات مشابهة.</p>}
+      {loading && <p>{uiText("جارٍ البحث…")}</p>}
+      {!loading && items.length === 0 && <p>{uiText("لا توجد حسابات مشابهة.")}</p>}
       {items.map((item) => <button key={`${item.section}-${item.id}`} onClick={() => {
         onSelect(item.section, item.id); setQuery('');
       }}>

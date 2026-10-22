@@ -1,3 +1,4 @@
+import { direction, uiText } from '../../i18n/language.ts';
 import { OutstandingCollectionCash } from '../../sections/collections/OutstandingCollectionCash.tsx';
 import { useState } from 'react';
 import { Check, WalletCards, X } from 'lucide-react';
@@ -30,7 +31,7 @@ export function AdminCollectionsSection() {
           collectorName: item.collectorName,
           customerName: item.customerName,
           phone: item.phone,
-          modeLabel: item.mode === 'full' ? 'كلي' : 'جزئي',
+          modeLabel: item.mode === 'full' ? uiText("كلي") : uiText("جزئي"),
           amountUnits: item.amountUnits,
           cashReceivedAt: item.cashReceivedAt,
         })) ?? []),
@@ -40,14 +41,14 @@ export function AdminCollectionsSection() {
           collectorName: item.collectorName,
           customerName: item.customerName,
           phone: null,
-          modeLabel: 'استلام ربطته الإدارة',
+          modeLabel: uiText("استلام ربطته الإدارة"),
           amountUnits: item.amountUnits,
           cashReceivedAt: item.cashReceivedAt,
         })) ?? []),
     ];
     try {
       const report = document.createElement('div');
-      report.dir = 'rtl';
+      report.dir = direction;
       Object.assign(report.style, {
         position: 'fixed',
         right: '-10000px',
@@ -59,15 +60,15 @@ export function AdminCollectionsSection() {
         fontFamily: 'Cairo, sans-serif',
       });
       const title = document.createElement('h1');
-      title.textContent = 'كشف استلامات الديون';
+      title.textContent = uiText("كشف استلامات الديون");
       report.append(title);
       const date = document.createElement('p');
-      date.textContent = `يوم العمل: ${businessDate}`;
+      date.textContent = uiText("يوم العمل: {0}", [businessDate]);
       report.append(date);
       const table = document.createElement('table');
       Object.assign(table.style, { width: '100%', borderCollapse: 'collapse', fontSize: '14px' });
       const header = document.createElement('tr');
-      for (const value of ['الموظف', 'العميل', 'الهاتف', 'نوع الاستلام', 'القيمة', 'استلام الإدارة']) {
+      for (const value of [uiText("الموظف"), uiText("العميل"), uiText("الهاتف"), uiText("نوع الاستلام"), uiText("القيمة"), uiText("استلام الإدارة")]) {
         const cell = document.createElement('th');
         cell.textContent = value;
         cell.style.border = '1px solid #999';
@@ -82,8 +83,8 @@ export function AdminCollectionsSection() {
           row.customerName,
           row.phone || '—',
           row.modeLabel,
-          `${collectionMoney.format(row.amountUnits)} د.ل`,
-          row.cashReceivedAt ? 'تم' : 'لم يتم',
+          uiText("{0} د.ل", [collectionMoney.format(row.amountUnits)]),
+          row.cashReceivedAt ? uiText("تم") : uiText("لم يتم"),
         ]) {
           const cell = document.createElement('td');
           cell.textContent = value;
@@ -95,7 +96,7 @@ export function AdminCollectionsSection() {
       }
       report.append(table);
       const total = document.createElement('h2');
-      total.textContent = `إجمالي اليوم: ${collectionMoney.format(rows.reduce((sum, row) => sum + row.amountUnits, 0))} د.ل`;
+      total.textContent = uiText("إجمالي اليوم: {0} د.ل", [collectionMoney.format(rows.reduce((sum, row) => sum + row.amountUnits, 0))]);
       report.append(total);
       document.body.append(report);
       const [canvasModule, { jsPDF }] = await Promise.all([import('html2canvas'), import('jspdf')]);
@@ -114,7 +115,7 @@ export function AdminCollectionsSection() {
         if (page > 0) pdf.addPage();
         pdf.addImage(image, 'PNG', 10, 10 - offset, width, height);
       }
-      pdf.save(`كشف-استلامات-${businessDate}.pdf`);
+      pdf.save(uiText("كشف-استلامات-{0}.pdf", [businessDate]));
     } catch (caught) {
       setError(collectionError(caught));
     } finally {
@@ -140,7 +141,7 @@ export function AdminCollectionsSection() {
     return (
       <div className="empty">
         <div className="spinner" />
-        <p>جارٍ تحميل الاستلامات…</p>
+        <p>{uiText("جارٍ تحميل الاستلامات…")}</p>
         {error && <div className="alert error">{error}</div>}
       </div>
     );
@@ -154,23 +155,23 @@ export function AdminCollectionsSection() {
   }
   return (
     <div className="collections-page admin-collections-page">
-      <CollectionsOverview data={data} description="متابعة الموظفين، الاعتماد، واستلام النقدية" onPayroll={() => setPayrollOpen(true)} desktopBatchActions={<div className="collection-desktop-batch-actions">
-        {data.openBatches.length > 1 && <select aria-label="دفعة العمل" value={selectedBatch.id} onChange={event => setSelectedBatchId(event.target.value)}>{data.openBatches.map(batch => <option key={batch.id} value={batch.id}>{batch.businessDate} • دفعة {batch.batchNumber}</option>)}</select>}
-        <button className={`compact-action batch-close-button ${selectedBatch && batchHasCards(selectedBatch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && setClosingBatchId(selectedBatch.id)}><X size={16} aria-hidden="true" />إغلاق ومسح الدفعة</button>
-        <button className="compact-action" disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && void exportPdf(selectedBatch.id, selectedBatch.businessDate)}>كشف PDF</button>
+      <CollectionsOverview data={data} description={uiText("متابعة الموظفين، الاعتماد، واستلام النقدية")} onPayroll={() => setPayrollOpen(true)} desktopBatchActions={<div className="collection-desktop-batch-actions">
+        {data.openBatches.length > 1 && <select aria-label={uiText("دفعة العمل")} value={selectedBatch.id} onChange={event => setSelectedBatchId(event.target.value)}>{data.openBatches.map(batch => <option key={batch.id} value={batch.id}>{batch.businessDate} {uiText(" • دفعة ")}{batch.batchNumber}</option>)}</select>}
+        <button className={`compact-action batch-close-button ${selectedBatch && batchHasCards(selectedBatch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && setClosingBatchId(selectedBatch.id)}><X size={16} aria-hidden="true" />{uiText("إغلاق ومسح الدفعة")}</button>
+        <button className="compact-action" disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && void exportPdf(selectedBatch.id, selectedBatch.businessDate)}>{uiText("كشف PDF")}</button>
       </div>} />
       {data.employeeTotals && data.employeeTotals.length > 0 && (
-        <section className="collection-panel employee-totals-panel" aria-label="تفصيل إجماليات الموظفين">
+        <section className="collection-panel employee-totals-panel" aria-label={uiText("تفصيل إجماليات الموظفين")}>
           <div className="employee-totals-row">
-            <h2>إجماليات الموظفين</h2>
-            <p className="muted">تفصيل إداري</p>
+            <h2>{uiText("إجماليات الموظفين")}</h2>
+            <p className="muted">{uiText("تفصيل إداري")}</p>
           </div>
           <div className="employee-totals-grid">
             {data.employeeTotals.map((employee) => (
               <article className="employee-total-card" key={employee.employeeId}>
                 <strong>{employee.employeeName}</strong>
-                <b>{collectionMoney.format(employee.collectedUnits)} د.ل</b>
-                <span>معتمد {collectionMoney.format(employee.approvedCount)} · ينتظر {collectionMoney.format(employee.pendingCount)}</span>
+                <b>{collectionMoney.format(employee.collectedUnits)} {uiText(" د.ل")}</b>
+                <span>{uiText("معتمد ")}{collectionMoney.format(employee.approvedCount)} {uiText(" · ينتظر ")}{collectionMoney.format(employee.pendingCount)}</span>
               </article>
             ))}
           </div>
@@ -186,10 +187,10 @@ export function AdminCollectionsSection() {
         load={load}
       />
       <section className="collection-panel admin-collection-panel">
-        <h2>متابعة استلامات الموظفين</h2>
+        <h2>{uiText("متابعة استلامات الموظفين")}</h2>
         <div className="admin-collection-grid">
           {data.assignments.length === 0 ? (
-            <p className="muted">لا توجد كروت موجهة.</p>
+            <p className="muted">{uiText("لا توجد كروت موجهة.")}</p>
           ) : (
             data.assignments.map((assignment) => {
               const payments = history(assignment.id);
@@ -204,11 +205,11 @@ export function AdminCollectionsSection() {
                       <strong>{assignment.customerName}</strong>
                       <span>{assignment.assigneeName}</span>
                     </div>
-                    <b>{collectionMoney.format(assignment.balanceUnits)} د.ل</b>
+                    <b>{collectionMoney.format(assignment.balanceUnits)} {uiText(" د.ل")}</b>
                   </header>
                   <div className="admin-card-history">
                     {payments.length === 0 ? (
-                      <small>لم يسجل الموظف استلامًا بعد.</small>
+                      <small>{uiText("لم يسجل الموظف استلامًا بعد.")}</small>
                     ) : (
                       payments.map((item) => {
                         if (item.mode === 'partial') partial += 1;
@@ -216,9 +217,9 @@ export function AdminCollectionsSection() {
                           <article key={item.id}>
                             <div>
                               <strong>
-                                {item.mode === 'full' ? 'استلام كلي' : `استلام جزئي ${partial}`}
+                                {item.mode === 'full' ? uiText("استلام كلي") : uiText("استلام جزئي {0}", [partial])}
                               </strong>
-                              <span>{collectionMoney.format(item.amountUnits)} د.ل</span>
+                              <span>{collectionMoney.format(item.amountUnits)} {uiText(" د.ل")}</span>
                             </div>
                             {item.status === 'pending' ? (
                               <div className="admin-inline-actions">
@@ -228,19 +229,17 @@ export function AdminCollectionsSection() {
                                   onClick={() => void decide(item.id, 'approve')}
                                 >
                                   <Check size={14} />
-                                  اعتماد
-                                </button>
+                                  {uiText("اعتماد")}</button>
                                 <button
                                   className="reject"
                                   disabled={busy === item.id}
                                   onClick={() => void decide(item.id, 'reject')}
                                 >
                                   <X size={14} />
-                                  رفض
-                                </button>
+                                  {uiText("رفض")}</button>
                               </div>
                             ) : item.cashReceivedAt ? (
-                              <em>تم استلام النقدية</em>
+                              <em>{uiText("تم استلام النقدية")}</em>
                             ) : (
                               <button
                                 className="cash-button"
@@ -248,8 +247,7 @@ export function AdminCollectionsSection() {
                                 onClick={() => void cash(item.id)}
                               >
                                 <WalletCards size={14} />
-                                تم استلام النقدية
-                              </button>
+                                {uiText("تم استلام النقدية")}</button>
                             )}
                           </article>
                         );
@@ -264,19 +262,17 @@ export function AdminCollectionsSection() {
       </section>
       {(
         <section className="collection-panel day-actions">
-          <h2>إغلاق دفعة العمل</h2>
-          {data.openBatches.length === 0 && <button className="batch-close-button batch-empty" disabled><X size={16} aria-hidden="true" />إغلاق ومسح الدفعة</button>}
+          <h2>{uiText("إغلاق دفعة العمل")}</h2>
+          {data.openBatches.length === 0 && <button className="batch-close-button batch-empty" disabled><X size={16} aria-hidden="true" />{uiText("إغلاق ومسح الدفعة")}</button>}
           {data.openBatches.map((batch) => (
             <article key={batch.id}>
               <strong>
-                {batch.businessDate} • دفعة {batch.batchNumber}
+                {batch.businessDate} {uiText(" • دفعة ")}{batch.batchNumber}
               </strong>
               <button disabled={busy !== ''} onClick={() => void exportPdf(batch.id, batch.businessDate)}>
-                كشف PDF اختياري
-              </button>
+                {uiText("كشف PDF اختياري")}</button>
               <button className={`batch-close-button ${batchHasCards(batch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== ''} onClick={() => setClosingBatchId(batch.id)}><X size={16} aria-hidden="true" />
-                إغلاق ومسح الدفعة
-              </button>
+                {uiText("إغلاق ومسح الدفعة")}</button>
             </article>
           ))}
         </section>
@@ -284,16 +280,13 @@ export function AdminCollectionsSection() {
       {closingBatchId && (
         <div className="collection-confirm-shade">
           <section role="dialog" aria-modal="true">
-            <h3>تأكيد مسح دفعة العمل</h3>
+            <h3>{uiText("تأكيد مسح دفعة العمل")}</h3>
             <p>
-              هل تم اعتماد جميع العمليات واستلام النقدية بالكامل؟ ستُمسح الدفعة نهائيًا، ولن يتأثر سجل ديون
-              العملاء.
-            </p>
+              {uiText("هل تم اعتماد جميع العمليات واستلام النقدية بالكامل؟ ستُمسح الدفعة نهائيًا، ولن يتأثر سجل ديون العملاء.")}</p>
             <div>
-              <button onClick={() => setClosingBatchId('')}>لا</button>
+              <button onClick={() => setClosingBatchId('')}>{uiText("لا")}</button>
               <button className="danger" disabled={busy !== ''} onClick={() => void closeDay()}>
-                نعم، امسح الدفعة
-              </button>
+                {uiText("نعم، امسح الدفعة")}</button>
             </div>
           </section>
         </div>

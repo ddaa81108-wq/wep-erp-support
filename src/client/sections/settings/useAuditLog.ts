@@ -1,8 +1,9 @@
+import { uiText } from '../../i18n/language.ts';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, ApiError, type AuditEntry } from '../../api.ts';
 import { filterAuditEntries, type AuditFilter } from './auditLogModel.ts';
 
-const errorText = (error: unknown) => (error instanceof ApiError ? error.message : 'تعذر تحميل سجل التدقيق.');
+const errorText = (error: unknown) => (error instanceof ApiError ? error.message : uiText("تعذر تحميل سجل التدقيق."));
 
 export function useAuditLog() {
   const [items, setItems] = useState<AuditEntry[]>([]);

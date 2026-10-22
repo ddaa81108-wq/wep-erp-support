@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Check, X } from 'lucide-react';
 import { ApiError, type Ledger, type LedgerItem } from '../../api.ts';
@@ -79,7 +80,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       if (editing) await editSectionTransaction(section, ledger.customer.id, editing.id, body);
       else await addSectionTransaction(section, ledger.customer.id, body);
       if (!editing) localStorage.removeItem(draftKey);
-      await onSaved(editing ? 'تم تعديل المعاملة في مكانها.' : 'تم اعتماد المعاملة وإضافة سطر جديد فارغ.');
+      await onSaved(editing ? uiText("تم تعديل المعاملة في مكانها.") : uiText("تم اعتماد المعاملة وإضافة سطر جديد فارغ."));
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === 'VERSION_CONFLICT') await onConflict();
       setError(ledgerErrorText(caught));
@@ -98,7 +99,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       event.preventDefault();
       if (!busy && !submitting.current) {
         if (result > 0) event.currentTarget.requestSubmit();
-        else { event.currentTarget.reportValidity(); setError('أكمل القيمة والسعر بشكل صحيح قبل اعتماد المعاملة.'); }
+        else { event.currentTarget.reportValidity(); setError(uiText("أكمل القيمة والسعر بشكل صحيح قبل اعتماد المعاملة.")); }
       }
       return;
     }
@@ -117,13 +118,13 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
   return (
     <form className="ledger-grid ledger-draft-row" data-new-ledger-draft={!editing || undefined} onSubmit={submit} onKeyDown={navigateFields}>
       <div className="ledger-draft-field sequence-cell">
-        <span>التسلسل</span>
+        <span>{uiText("التسلسل")}</span>
         <strong>#{editing?.sequence ?? ledger.customer.nextSequence}</strong>
       </div>
       <label className="ledger-draft-field">
-        <span>اليوم والتاريخ</span>
+        <span>{uiText("اليوم والتاريخ")}</span>
         <input
-          aria-label="تاريخ المعاملة"
+          aria-label={uiText("تاريخ المعاملة")}
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
@@ -131,37 +132,38 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
         />
       </label>
       <div className="ledger-draft-field">
-        <span>النوع</span>
-        {(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? <div className="ledger-choice-group" role="group" aria-label="نوع المعاملة">
-          {(section === 'egyptian-deposits' ? [['debt', 'إيداع مصري'], ['partial', 'سحب مصري']] as const : section === 'libyan-deposits' ? [['debt', 'إيداع أمانة'], ['partial', 'سحب أمانة']] as const : [['debt', 'ديون'], ['partial', 'دفع جزئي'], ['full', 'دفع كلي']] as const).map(([choice, label]) =>
+        <span>{uiText("النوع")}</span>
+        {(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? <div className="ledger-choice-group" role="group" aria-label={uiText("نوع المعاملة")}>
+          {(section === 'egyptian-deposits' ? [['debt', uiText("إيداع مصري")], ['partial', uiText("سحب مصري")]] as const : section === 'libyan-deposits' ? [['debt', uiText("إيداع أمانة")], ['partial', uiText("سحب أمانة")]] as const : [['debt', uiText("ديون")], ['partial', uiText("دفع جزئي", [], 'compact')], ['full', uiText("دفع كلي", [], 'compact')]] as const).map(([choice, label]) =>
             <button type="button" key={choice} className={`ledger-choice choice-${choice}`} aria-pressed={kind === choice} onClick={() => setKind(choice)}>{label}</button>)}
         </div> :
         <select
-          aria-label="نوع المعاملة"
+          aria-label={uiText("نوع المعاملة")}
           value={kind}
           onChange={(e) => setKind(e.target.value as LedgerDraftKind)}
         >
-          <option value="debt">{isDepositSection(section) ? 'دخول' : 'دين'}</option>
-          <option value="partial">{isDepositSection(section) ? 'خروج' : 'سداد جزئي'}</option>
-          {!isDepositSection(section) && <option value="full">سداد كامل</option>}
+          <option value="debt">{isDepositSection(section) ? uiText("دخول", [], 'ledger') : uiText("دين")}</option>
+          <option value="partial">{isDepositSection(section) ? uiText("خروج") : uiText("سداد جزئي")}</option>
+          {!isDepositSection(section) && <option value="full">{uiText("سداد كامل")}</option>}
         </select>}
       </div>
       <label className="ledger-draft-field">
-        <span>البيان</span>
+        <span>{uiText("البيان")}</span>
         <input
-          aria-label="ملاحظة المعاملة"
+          aria-label={uiText("ملاحظة المعاملة")}
           value={note}
           onChange={(e) => setNote(e.target.value)}
           maxLength={1000}
-          placeholder="بيان الحركة"
+          placeholder={uiText("بيان الحركة")}
         />
       </label>
       <label className="ledger-draft-field ledger-fitted-amount">
-        <span>القيمة</span>
+        <span>{uiText("القيمة")}</span>
         <input
           ref={amountRef}
           data-fit-amount=""
-          aria-label="قيمة المعاملة"
+          aria-label={uiText("قيمة المعاملة")}
+          data-ledger-amount=""
           type="number"
           min="1"
           step="1"
@@ -170,29 +172,29 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
           disabled={kind === 'full'}
           required
         />
-        {showFullValue && <output className="ledger-full-amount" aria-live="polite">القيمة كاملة: <bdi>{displayedAmount}</bdi></output>}
+        {showFullValue && <output className="ledger-full-amount" aria-live="polite">{uiText("القيمة كاملة: ")}<bdi>{displayedAmount}</bdi></output>}
       </label>
       <div className="ledger-draft-field">
-        <span>الحساب</span>
-        {(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? <div className="ledger-choice-group" role="group" aria-label="طريقة الحساب">
-          {([['direct', 'مباشر'], ['divide', 'قسمة'], ['multiply', 'ضرب']] as const).map(([choice, label]) =>
+        <span>{uiText("الحساب")}</span>
+        {(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? <div className="ledger-choice-group" role="group" aria-label={uiText("طريقة الحساب")}>
+          {([['direct', uiText("مباشر")], ['divide', uiText("قسمة")], ['multiply', uiText("ضرب")]] as const).map(([choice, label]) =>
             <button type="button" key={choice} className={`ledger-choice choice-${choice}`} aria-label={label} title={label} aria-pressed={(kind === 'full' ? 'direct' : mode) === choice} disabled={kind === 'full'} onClick={() => setMode(choice)}>{choice === 'divide' ? '÷' : choice === 'multiply' ? '×' : label}</button>)}
         </div> :
         <select
-          aria-label="طريقة الحساب"
+          aria-label={uiText("طريقة الحساب")}
           value={kind === 'full' ? 'direct' : mode}
           onChange={(e) => setMode(e.target.value as LedgerCalculationMode)}
           disabled={kind === 'full'}
         >
-          <option value="direct">مباشرة</option>
-          <option value="multiply">ضرب</option>
-          <option value="divide">قسمة</option>
+          <option value="direct">{uiText("مباشرة")}</option>
+          <option value="multiply">{uiText("ضرب")}</option>
+          <option value="divide">{uiText("قسمة")}</option>
         </select>}
       </div>
       <label className="ledger-draft-field">
-        <span>{(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? 'السعر' : 'المعامل'}</span>
+        <span>{(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? uiText("السعر") : uiText("المعامل")}</span>
         <input
-          aria-label={(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? 'السعر' : 'المعامل'}
+          aria-label={(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? uiText("السعر") : uiText("المعامل")}
           type="number"
           min="0.000001"
           step="any"
@@ -204,23 +206,23 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
         />
       </label>
       <div className="ledger-draft-field draft-result debt-value">
-        <span>{isDepositSection(section) ? (section === 'libyan-deposits' ? 'إيداع أمانة' : 'إيداع مصري') : 'دين مضاف'}</span>
+        <span>{isDepositSection(section) ? (section === 'libyan-deposits' ? uiText("إيداع أمانة") : uiText("إيداع مصري")) : uiText("دين مضاف")}</span>
         <strong>{kind === 'debt' ? `${ledgerMoney.format(result)} ${currencyLabel(section)}` : '—'}</strong>
       </div>
       <div className="ledger-draft-field draft-result payment-value">
-        <span>{isDepositSection(section) ? (section === 'libyan-deposits' ? 'سحب أمانة' : 'سحب مصري') : 'مدفوع'}</span>
+        <span>{isDepositSection(section) ? (section === 'libyan-deposits' ? uiText("سحب أمانة") : uiText("سحب مصري")) : uiText("مدفوع")}</span>
         <strong>{kind !== 'debt' ? `${ledgerMoney.format(result)} ${currencyLabel(section)}` : '—'}</strong>
       </div>
       <div className="ledger-draft-field draft-result">
-        <span>الرصيد</span>
+        <span>{uiText("الرصيد")}</span>
         <strong>
           {ledgerMoney.format(projectedBalance)} {currencyLabel(section)}
         </strong>
       </div>
       <button
         className="row-action approve"
-        aria-label="اعتماد المعاملة"
-        title="اعتماد المعاملة"
+        aria-label={uiText("اعتماد المعاملة")}
+        title={uiText("اعتماد المعاملة")}
         disabled={busy || result <= 0}
       >
         <Check size={18} />
@@ -228,14 +230,14 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       <button
         type="button"
         className="row-action cancel"
-        aria-label="إلغاء المسودة"
-        title="إلغاء المسودة"
+        aria-label={uiText("إلغاء المسودة")}
+        title={uiText("إلغاء المسودة")}
         onClick={() => { if (!editing) localStorage.removeItem(draftKey); onClose(); }}
       >
         <X size={18} />
       </button>
       {error && <div className="draft-error">{error}</div>}
-      {!editing && wasRestored && <div className="draft-restored">تمت استعادة المسودة غير المحفوظة.</div>}
+      {!editing && wasRestored && <div className="draft-restored">{uiText("تمت استعادة المسودة غير المحفوظة.")}</div>}
     </form>
   );
 }

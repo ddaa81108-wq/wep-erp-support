@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { sectionLoaders } from './sectionLoaders.ts';
 import { lazy, Suspense } from 'react';
 import type { User } from '../api.ts';
@@ -17,7 +18,7 @@ const TreasurySection = lazy(sectionLoaders['treasury']);
 const ReportsSection = lazy(sectionLoaders['reports']);
 
 function SectionLoading() {
-  return <div className="empty"><div className="spinner" /><p>جارٍ فتح القسم…</p></div>;
+  return <div className="empty"><div className="spinner" /><p>{uiText("جارٍ فتح القسم…")}</p></div>;
 }
 
 type DashboardSectionContentProps = {

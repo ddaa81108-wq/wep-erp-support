@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import type { MasraweyaDay } from '../../apiTypes/masraweya.ts';
 
 export function masraweyaAccessState(day: Partial<MasraweyaDay> | null, canWrite: boolean, loading: boolean) {
@@ -10,16 +11,16 @@ export function masraweyaAccessState(day: Partial<MasraweyaDay> | null, canWrite
   );
   const locked = loading || !day || incompatible || !canWrite || !day.editable;
   const accessLabel = loading
-    ? 'جارٍ تحميل اليوم…'
+    ? uiText("جارٍ تحميل اليوم…")
     : incompatible
-      ? 'نسخة الخادم تحتاج تحديثًا'
+      ? uiText("نسخة الخادم تحتاج تحديثًا")
       : !canWrite
-        ? 'لا توجد صلاحية كتابة'
+        ? uiText("لا توجد صلاحية كتابة")
         : !day?.editable
-          ? 'للقراءة فقط'
+          ? uiText("للقراءة فقط")
           : day.businessDate === day.today
-            ? 'يوم العمل الحالي'
-            : 'تعديل يوم سابق';
+            ? uiText("يوم العمل الحالي")
+            : uiText("تعديل يوم سابق");
   return { locked, incompatible, accessLabel };
 }
 

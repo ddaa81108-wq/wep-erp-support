@@ -1,3 +1,4 @@
+import { direction, uiText } from '../../i18n/language.ts';
 import type { User } from '../../api.ts';
 import { PurchaseActionDock } from './PurchaseActionDock.tsx';
 import { PurchaseOpening } from './PurchaseOpening.tsx';
@@ -13,13 +14,13 @@ export function PurchasesSection({ user }: { user: User }) {
   if (!page)
     return (
       <section className="purchases-page">
-        <div className="empty">{busy ? 'جارٍ التحميل…' : message}</div>
+        <div className="empty">{busy ? uiText("جارٍ التحميل…") : message}</div>
       </section>
     );
   const firstDay = page.day.dayNumber === 1 && purchases.entries.length === 0;
   return (
-    <section className="purchases-page" dir="rtl">
-      <h1 className="purchase-section-title">قسم المشتريات</h1>
+    <section className="purchases-page" dir={direction}>
+      <h1 className="purchase-section-title">{uiText("قسم المشتريات")}</h1>
       <PurchaseRegister purchases={purchases} canWrite={canWrite} canFinalize={canFinalize} />
       {message && <div className="purchase-message">{message}</div>}
       {firstDay && canWrite && (

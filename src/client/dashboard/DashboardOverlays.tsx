@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { Customer, Ledger } from '../api.ts';
@@ -10,7 +11,7 @@ const FinancialLedgerManager = lazy(() => import('../sections/settings/Financial
 const SystemSettingsManager = lazy(() => import('../sections/settings/SystemSettingsManager.tsx').then((module) => ({ default: module.SystemSettingsManager })));
 
 function OverlayLoading() {
-  return <div className="settings-loading"><div className="spinner" /> جارٍ فتح النافذة…</div>;
+  return <div className="settings-loading"><div className="spinner" /> {uiText(" جارٍ فتح النافذة…")}</div>;
 }
 
 type Notice = { kind: 'success' | 'error'; text: string } | null;

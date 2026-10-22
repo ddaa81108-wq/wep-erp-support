@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { ShieldPlus, UserPlus } from 'lucide-react';
 import type { User } from '../../api.ts';
 import { Modal } from '../../components/Modal.tsx';
@@ -37,13 +38,11 @@ export function UsersManager({ currentUser, onClose, embedded = false }: { curre
           <div className="users-manager-actions">
             <button className="primary" onClick={() => startCreate('employee')}>
               <UserPlus size={18} />
-              موظف جديد
-            </button>
+              {uiText("موظف جديد")}</button>
             {currentUser.isOwner && (
               <button className="secondary" onClick={() => startCreate('admin')}>
                 <ShieldPlus size={18} />
-                إداري عام جديد
-              </button>
+                {uiText("إداري عام جديد")}</button>
             )}
           </div>
         )}
@@ -62,5 +61,5 @@ export function UsersManager({ currentUser, onClose, embedded = false }: { curre
         {!showForm && error && <div className="alert error">{error}</div>}
       </div>
   );
-  return embedded ? content : <Modal title="الموظفون والصلاحيات" onClose={onClose}>{content}</Modal>;
+  return embedded ? content : <Modal title={uiText("الموظفون والصلاحيات")} onClose={onClose}>{content}</Modal>;
 }

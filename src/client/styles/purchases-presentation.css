@@ -94,7 +94,7 @@
 .purchases-page .purchase-register .purchase-actions button {
   background: #008851; color: white; border: 1px solid #8aefbf; border-radius: 999px; width: 37px; height: 26px;
 }
-.purchases-page .purchase-register .purchase-actions button:is(.danger, [aria-label='إلغاء التعديل']) { background: #bd152c; border-color: #ff9bad; }
+.purchases-page .purchase-register .purchase-actions button:is(.danger, :is([aria-label='إلغاء التعديل'], [aria-label='Cancel edit'])) { background: #bd152c; border-color: #ff9bad; }
 .purchases-page .purchase-register .purchase-register-total { background: var(--purchase-accent); color: white; border-radius: 23px; margin-top: 7px; border: 0; }
 .purchases-page .purchase-register-total > :is(span,strong) { border-radius: 999px; border-color: #ffffff66; }
 .purchases-page .purchase-register .purchase-vodafone-total { background: #009c54; color: white; }

@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { Check, Pencil, Trash2 } from 'lucide-react';
 import type { PurchaseEntry, PurchaseMerchantKey } from '../../api.ts';
 import { PurchaseInlineEditor } from './PurchaseInlineEditor.tsx';
@@ -43,12 +44,12 @@ export function PurchaseEntryGroup({
     <div className={`purchase-day-entry purchase-day-tone-${entry.dayNumber % 5}`}>
       {showSeparator && (
         <div className="purchase-day-separator">
-          <span>يوم #{entry.dayNumber}</span>
+          <span>{uiText("يوم #")}{entry.dayNumber}</span>
           <b>{entry.businessDate}</b>
-          <em>{entry.dayStatus === 'finalized' ? entry.correctionOpen ? 'مفتوح للتعديل' : 'مُرحّل' : 'اليوم الحالي'}</em>
+          <em>{entry.dayStatus === 'finalized' ? entry.correctionOpen ? uiText("مفتوح للتعديل") : uiText("مُرحّل") : uiText("اليوم الحالي")}</em>
           {canFinalize && entry.dayStatus === 'finalized' && (
             <button onClick={() => onToggleCorrection(!entry.correctionOpen)}>
-              {entry.correctionOpen ? 'إنهاء تعديل اليوم' : 'تعديل اليوم'}
+              {entry.correctionOpen ? uiText("إنهاء تعديل اليوم") : uiText("تعديل اليوم")}
             </button>
           )}
         </div>
@@ -60,32 +61,32 @@ export function PurchaseEntryGroup({
       ) : (
         <div className="purchase-grid purchase-row"
           onDoubleClick={() => entry.dayStatus === 'draft' && canWrite && onEdit()}>
-          <span data-label="التسلسل">{entry.sequence}</span>
-          <span data-label="النوع"><b className="purchase-type-badge" data-kind={entry.itemCode} title={entry.itemLabel}>{entry.itemLabel}</b>
-            {!entry.actorIsOwner && <small className="operation-actor" title={`بواسطة ${entry.actorName}`}>بواسطة {entry.actorName}</small>}
+          <span data-label={uiText("التسلسل")}>{entry.sequence}</span>
+          <span data-label={uiText("النوع")}><b className="purchase-type-badge" data-kind={entry.itemCode} title={entry.itemCode === 'custom' ? entry.itemLabel : uiText(entry.itemLabel)}>{entry.itemCode === 'custom' ? entry.itemLabel : uiText(entry.itemLabel)}</b>
+            {!entry.actorIsOwner && <small className="operation-actor" title={uiText("بواسطة {0}", [entry.actorName])}>{uiText("بواسطة ")}{entry.actorName}</small>}
           </span>
-          <span data-label="القيمة ج.م" dir="ltr">{purchaseNumber.format(entry.egpValueUnits)}</span>
-          <span data-label="العملية"><b className="purchase-operation-badge" data-mode={entry.calculationMode}>{entry.calculationMode === 'multiply' ? '×' : '÷'}</b></span>
-          <span data-label="السعر" dir="ltr">{entry.exchangeRate}</span>
-          <span data-label="الناتج" dir="ltr">{purchaseNumber.format(entry.resultUnits)}</span>
-          <span data-label="المسدد" dir="ltr">{purchaseNumber.format(entry.paidUnits)}</span>
-          <span data-label="الباقي" dir="ltr">{purchaseNumber.format(entry.remainingUnits)}</span>
-          <span data-label="مستهلك فودافون" dir="ltr">{purchaseNumber.format(entry.vodafoneConsumedUnits)}</span>
+          <span data-label={uiText("القيمة ج.م")} dir="ltr">{purchaseNumber.format(entry.egpValueUnits)}</span>
+          <span data-label={uiText("العملية")}><b className="purchase-operation-badge" data-mode={entry.calculationMode}>{entry.calculationMode === 'multiply' ? '×' : '÷'}</b></span>
+          <span data-label={uiText("السعر")} dir="ltr">{entry.exchangeRate}</span>
+          <span data-label={uiText("الناتج")} dir="ltr">{purchaseNumber.format(entry.resultUnits)}</span>
+          <span data-label={uiText("المسدد")} dir="ltr">{purchaseNumber.format(entry.paidUnits)}</span>
+          <span data-label={uiText("الباقي")} dir="ltr">{purchaseNumber.format(entry.remainingUnits)}</span>
+          <span data-label={uiText("مستهلك فودافون")} dir="ltr">{purchaseNumber.format(entry.vodafoneConsumedUnits)}</span>
           <span className="purchase-actions">
             {entry.dayStatus === 'finalized' && !entry.correctionOpen && (
-              <span className="purchase-saved-mark" role="img" aria-label="تم حفظ المعاملة وترحيل اليوم" title="تم حفظ المعاملة وترحيل اليوم"><Check size={16} /></span>
+              <span className="purchase-saved-mark" role="img" aria-label={uiText("تم حفظ المعاملة وترحيل اليوم")} title={uiText("تم حفظ المعاملة وترحيل اليوم")}><Check size={16} /></span>
             )}
             {canWrite && entry.dayStatus === 'draft' && <>
-              <button aria-label="تعديل" onClick={onEdit}><Pencil size={13} /></button>
-              <button className="danger" aria-label="حذف" onClick={onRemove}><Trash2 size={13} /></button>
+              <button aria-label={uiText("تعديل")} onClick={onEdit}><Pencil size={13} /></button>
+              <button className="danger" aria-label={uiText("حذف")} onClick={onRemove}><Trash2 size={13} /></button>
             </>}
           </span>
         </div>
       )}
       {showClosing && Number.isFinite(entry.dayClosingDebtUnits) && (
         <div className="purchase-grid purchase-day-closing" data-day-id={entry.dayId}>
-          <span className="purchase-day-closing-label">الباقي المُرحّل لليوم التالي — يوم #{entry.dayNumber}</span>
-          <strong className="purchase-day-closing-value" dir="ltr" aria-label={`الباقي المرحل لليوم ${entry.dayNumber}`}>
+          <span className="purchase-day-closing-label">{uiText("الباقي المُرحّل لليوم التالي — يوم #")}{entry.dayNumber}</span>
+          <strong className="purchase-day-closing-value" dir="ltr" aria-label={uiText("الباقي المرحل لليوم {0}", [entry.dayNumber])}>
             {purchaseNumber.format(entry.dayClosingDebtUnits)}
           </strong>
         </div>

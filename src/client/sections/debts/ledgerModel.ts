@@ -1,12 +1,13 @@
+import { uiText, displayLocale } from '../../i18n/language.ts';
 import { positiveRateMicros, convertedWholeUnits } from '../../../shared/moneyCalculation.ts';
 import { ApiError, type Ledger, type LedgerItem } from '../../api.ts';
 
 export type LedgerDraftKind = 'debt' | 'partial' | 'full';
 export type LedgerCalculationMode = 'direct' | 'multiply' | 'divide';
 
-export const ledgerFactor = new Intl.NumberFormat('ar-LY', { maximumFractionDigits: 6 });
-export const ledgerMoney = new Intl.NumberFormat('ar-LY', { maximumFractionDigits: 0 });
-export const ledgerDateFormat = new Intl.DateTimeFormat('ar-LY', {
+export const ledgerFactor = new Intl.NumberFormat(displayLocale, { maximumFractionDigits: 6 });
+export const ledgerMoney = new Intl.NumberFormat(displayLocale, { maximumFractionDigits: 0 });
+export const ledgerDateFormat = new Intl.DateTimeFormat(displayLocale, {
   weekday: 'short',
   year: 'numeric',
   month: '2-digit',
@@ -16,7 +17,7 @@ export const ledgerDateFormat = new Intl.DateTimeFormat('ar-LY', {
 });
 
 export const ledgerErrorText = (error: unknown) =>
-  error instanceof ApiError ? error.message : 'حدث خطأ غير متوقع. لم تُعتمد العملية.';
+  error instanceof ApiError ? error.message : uiText("حدث خطأ غير متوقع. لم تُعتمد العملية.");
 
 export const ledgerItemKind = (item: LedgerItem): LedgerDraftKind =>
   item.type === 'debt' ? 'debt' : item.paymentMode === 'full' ? 'full' : 'partial';

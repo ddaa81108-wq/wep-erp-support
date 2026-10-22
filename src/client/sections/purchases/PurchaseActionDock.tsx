@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { CheckCircle2, Plus } from 'lucide-react';
 import type { PurchaseMerchantKey } from '../../api.ts';
 
@@ -21,34 +22,30 @@ export function PurchaseActionDock({
   finalize,
 }: Props) {
   return (
-    <div className="purchase-action-dock" aria-label="أدوات قسم المشتريات">
+    <div className="purchase-action-dock" aria-label={uiText("أدوات قسم المشتريات")}>
       <div className="purchase-head-actions">
-        <span className="purchase-dock-day">يوم #{dayNumber}</span>
+        <span className="purchase-dock-day">{uiText("يوم #")}{dayNumber}</span>
         <div className="merchant-tabs">
           <button
             className={merchant === 'al_bayan' ? 'active' : ''}
             onClick={() => selectMerchant('al_bayan')}
           >
-            البيان
-          </button>
+            {uiText("البيان")}</button>
           <button
             className={merchant === 'simsim' ? 'active' : ''}
             onClick={() => selectMerchant('simsim')}
           >
-            سمسم
-          </button>
+            {uiText("سمسم")}</button>
         </div>
         {canWrite && (
           <button onClick={() => document.querySelector<HTMLInputElement>('[data-new-value]')?.focus()}>
             <Plus size={15} />
-            إضافة معاملة
-          </button>
+            {uiText("إضافة معاملة")}</button>
         )}
         {canFinalize && (
           <button className="finalize" onClick={() => void finalize()} disabled={busy}>
             <CheckCircle2 size={15} />
-            ترحيل اليوم
-          </button>
+            {uiText("ترحيل اليوم")}</button>
         )}
       </div>
     </div>

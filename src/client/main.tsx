@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import App from './App.tsx';
+import { loadLanguageCatalog } from './i18n/language.ts';
+import { syncPushLanguage } from './i18n/pushLanguage.ts';
 import { startInternetGuard } from './internetGuard.ts';
 import './styles/foundation-auth.css';
 import './styles/workspace.css';
@@ -39,17 +40,28 @@ import './styles/account-balance-colors.css';
 import './styles/mobile-toolbar-refinement.css';
 import './styles/readability.css';
 import './styles/auth-l01.css';
+import './styles/languages.css';
 
 let root: Root | undefined;
-void startInternetGuard(() => {
-  root ??= createRoot(document.getElementById('root')!);
-  root.render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
-});
-
-
-
-
+void loadLanguageCatalog()
+  .then(async () => {
+    syncPushLanguage();
+    const { default: App } = await import('./App.tsx');
+    return startInternetGuard(() => {
+      root ??= createRoot(document.getElementById('root')!);
+      root.render(
+        <StrictMode>
+          <App />
+        </StrictMode>,
+      );
+    });
+  })
+  .catch(() => {
+    const message = document.createElement('p');
+    message.setAttribute('role', 'alert');
+    message.textContent =
+      document.documentElement.lang === 'en'
+        ? 'Unable to load the application. Check your connection and reload the page.'
+        : 'تعذر تحميل المنظومة. تحقق من الاتصال وأعد تحميل الصفحة.';
+    document.getElementById('root')?.replaceChildren(message);
+  });

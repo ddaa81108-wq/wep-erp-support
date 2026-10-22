@@ -1,3 +1,4 @@
+import { direction, uiText } from '../../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowDownToLine, ArrowUpFromLine, Landmark, RefreshCw } from 'lucide-react';
 import { api, ApiError, type TreasuryCashEntry, type TreasuryDashboard, type User } from '../../api.ts';
@@ -6,7 +7,7 @@ import { TreasuryCards } from './TreasuryCards.tsx';
 import { TreasuryCashEntryForm, type TreasuryEntryMode } from './TreasuryCashEntryForm.tsx';
 import { TreasuryCashLedger } from './TreasuryCashLedger.tsx';
 
-const errorText = (error: unknown) => (error instanceof ApiError ? error.message : 'تعذر تنفيذ العملية.');
+const errorText = (error: unknown) => (error instanceof ApiError ? error.message : uiText("تعذر تنفيذ العملية."));
 
 export function TreasurySection({ user }: { user: User }) {
   const canWrite = user.role === 'admin' || user.permissions?.includes('treasury.write') === true;
@@ -84,7 +85,7 @@ export function TreasurySection({ user }: { user: User }) {
     const data = new FormData(event.currentTarget);
     const amountUnits = Number(data.get('amountUnits'));
     if (!Number.isSafeInteger(amountUnits) || amountUnits <= 0) {
-      setMessage('أدخل قيمة صحيحة موجبة.');
+      setMessage(uiText("أدخل قيمة صحيحة موجبة."));
       return;
     }
     submitting.current = true;
@@ -99,7 +100,7 @@ export function TreasurySection({ user }: { user: User }) {
       });
       pendingRequestId.current = null;
       setMode(null);
-      setMessage(mode === 'in' ? 'تم اعتماد دخول النقدية.' : 'تم اعتماد خروج النقدية.');
+      setMessage(mode === 'in' ? uiText("تم اعتماد دخول النقدية.") : uiText("تم اعتماد خروج النقدية."));
       await load(true);
       setScrollRequest((value) => value + 1);
     } catch (error) {
@@ -143,22 +144,21 @@ export function TreasurySection({ user }: { user: User }) {
   if (!dashboard)
     return (
       <section className="treasury-page">
-        <div className="empty">{busy ? 'جارٍ تحميل الخزينة…' : message}</div>
+        <div className="empty">{busy ? uiText("جارٍ تحميل الخزينة…") : message}</div>
       </section>
     );
   return (
-    <section className="treasury-page" dir="rtl">
+    <section className="treasury-page" dir={direction}>
       <header className="treasury-head">
         <div>
           <h1>
             <Landmark size={21} />
-            الخزينة
-          </h1>
-          <p>الإجماليات من الأقسام فقط — النقدية من سجل الدخول والخروج فقط</p>
+            {uiText("الخزينة")}</h1>
+          <p>{uiText("الإجماليات من الأقسام فقط — النقدية من سجل الدخول والخروج فقط")}</p>
         </div>
         <button
           className="icon-button"
-          aria-label="تحديث الخزينة"
+          aria-label={uiText("تحديث الخزينة")}
           disabled={busy}
           onClick={() => void load()}
         >
@@ -170,27 +170,24 @@ export function TreasurySection({ user }: { user: User }) {
       <section className="treasury-cash-panel">
         <div className="treasury-panel-head">
           <div>
-            <h2>سجل الفلوس النشطة</h2>
-            <small>سجل دائم مستقل عن معاملات العملاء والأقسام</small>
+            <h2>{uiText("سجل الفلوس النشطة")}</h2>
+            <small>{uiText("سجل دائم مستقل عن معاملات العملاء والأقسام")}</small>
           </div>
           {canWrite && (
             <div className="treasury-cash-actions">
               <button className="cash-in" onClick={() => openEntry('in')}>
                 <ArrowDownToLine size={15} />
-                دخول
-              </button>
+                {uiText("دخول")}</button>
               <button className="cash-out" onClick={() => openEntry('out')}>
                 <ArrowUpFromLine size={15} />
-                خروج
-              </button>
+                {uiText("خروج")}</button>
             </div>
           )}
         </div>
         {mode && <TreasuryCashEntryForm mode={mode} busy={busy} onCancel={cancelEntry} onSubmit={submit} />}
         {nextBefore && (
           <button className="treasury-older" disabled={busy} onClick={() => void older()}>
-            تحميل حركات أقدم
-          </button>
+            {uiText("تحميل حركات أقدم")}</button>
         )}
         <TreasuryCashLedger entries={entries} scrollRequest={scrollRequest} />
       </section>

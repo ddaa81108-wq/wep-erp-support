@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { Building2, UserRound, LogOut, PanelRightClose, PanelRightOpen, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { api, type User } from '../api.ts';
@@ -6,6 +7,7 @@ import { EmployeeNavigation } from '../employee/EmployeeNavigation.tsx';
 import type { MainSection } from '../sections/debts/sectionConfig.ts';
 import { ThemeToggle, type Theme } from '../components/ThemeToggle.tsx';
 import { useSidebarPalette } from './useSidebarPalette.ts';
+import { LanguageToggle } from '../i18n/LanguageToggle.tsx';
 
 type Props = {
   user: User;
@@ -63,21 +65,22 @@ export function DashboardSidebar({
         <span className="brand-mark" aria-hidden="true">
           VIB
         </span>
-        <div className="identity-app"><Building2 aria-hidden="true" size={19} /><strong title={systemName}>{systemName}</strong><small>محلي</small></div>
-        <div className="identity-user"><span className="identity-avatar" aria-hidden="true"><UserRound size={22} /></span><div className="identity-user-copy"><strong title={user.displayName}>{user.displayName}</strong><small>{user.role === 'admin' ? 'مدير النظام' : user.username}</small></div></div>
-        <button className="sidebar-hide-button" onClick={onHide} aria-label="إخفاء الشريط الجانبي" title="إخفاء الشريط الجانبي"><PanelRightClose size={17} /></button>
-        <button className="sidebar-mobile-close" onClick={onCloseMenu} aria-label="إغلاق القائمة الرئيسية" title="إغلاق القائمة الرئيسية"><X size={18} /></button>
+        <div className="identity-app"><Building2 aria-hidden="true" size={19} /><strong title={systemName}>{systemName}</strong><small>{uiText("محلي")}</small></div>
+        <div className="identity-user"><span className="identity-avatar" aria-hidden="true"><UserRound size={22} /></span><div className="identity-user-copy"><strong title={user.displayName}>{user.displayName}</strong><small>{user.role === 'admin' ? uiText("مدير النظام") : user.username}</small></div></div>
+        <button className="sidebar-hide-button" onClick={onHide} aria-label={uiText("إخفاء الشريط الجانبي")} title={uiText("إخفاء الشريط الجانبي")}><PanelRightClose size={17} /></button>
+        <button className="sidebar-mobile-close" onClick={onCloseMenu} aria-label={uiText("إغلاق القائمة الرئيسية")} title={uiText("إغلاق القائمة الرئيسية")}><X size={18} /></button>
       </div>
       {user.role === 'admin'
         ? <AdminNavigation active={activeSection} open={open} />
         : <EmployeeNavigation user={user} active={activeSection} open={open} />}
       <div className="sidebar-controls">
+        <LanguageToggle />
         <ThemeToggle theme={theme} onToggle={onThemeToggle} />
-        <button className="logout-button" onClick={onLogout}><LogOut size={17} /><span>تسجيل الخروج</span></button>
+        <button className="logout-button" onClick={onLogout}><LogOut size={17} /><span>{uiText("تسجيل الخروج")}</span></button>
       </div>
     </aside>
-    {hidden && <button className="sidebar-reveal" onClick={onReveal} aria-label="إظهار الشريط الجانبي" title="إظهار الشريط الجانبي"><PanelRightOpen size={18} /><span>إظهار القائمة</span></button>}
-    {menuOpen && <button className="drawer-shade" onClick={onCloseMenu} aria-label="إغلاق القائمة" />}
+    {hidden && <button className="sidebar-reveal" onClick={onReveal} aria-label={uiText("إظهار الشريط الجانبي")} title={uiText("إظهار الشريط الجانبي")}><PanelRightOpen size={18} /><span>{uiText("إظهار القائمة")}</span></button>}
+    {menuOpen && <button className="drawer-shade" onClick={onCloseMenu} aria-label={uiText("إغلاق القائمة")} />}
   </>;
 }
 

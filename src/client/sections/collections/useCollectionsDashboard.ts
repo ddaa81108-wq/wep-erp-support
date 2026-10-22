@@ -1,10 +1,11 @@
+import { uiText, displayLocale } from '../../i18n/language.ts';
 import { collectionCardTone } from '../../../shared/collectionCardState.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type CollectionsDashboard } from '../../api.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
 
-export const collectionMoney = new Intl.NumberFormat('ar-LY');
-export const collectionError = (value: unknown) => value instanceof Error ? value.message : 'تعذر تنفيذ العملية.';
+export const collectionMoney = new Intl.NumberFormat(displayLocale);
+export const collectionError = (value: unknown) => value instanceof Error ? value.message : uiText("تعذر تنفيذ العملية.");
 
 export const assignmentTone = collectionCardTone;
 

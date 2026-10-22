@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { Camera, Share2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { MasraweyaDay } from '../../api.ts';
@@ -31,7 +32,7 @@ export function MasraweyaSummary(props: Props) {
         captureResultMessage(await captureMasraweyaSummary(summaryRef.current, props.day.businessDate)),
       );
     } catch {
-      setMessage('تعذر تجهيز الصورة.');
+      setMessage(uiText("تعذر تجهيز الصورة."));
     } finally {
       setCapturing(false);
     }
@@ -40,35 +41,35 @@ export function MasraweyaSummary(props: Props) {
     <section className="masraweya-panel summary-panel">
       <div className="panel-title">
         <div>
-          <h2>ملخص اليوم</h2>
-          <small>القيم بالجنيه المصري</small>
+          <h2>{uiText("ملخص اليوم")}</h2>
+          <small>{uiText("القيم بالجنيه المصري")}</small>
         </div>
         <button onClick={() => void capture()} disabled={props.busy || capturing}>
           {mobileSharing ? <Share2 size={16} /> : <Camera size={16} />}
-          <span>{mobileSharing ? 'مشاركة الصورة' : 'نسخ الصورة'}</span>
+          <span>{mobileSharing ? uiText("مشاركة الصورة") : uiText("نسخ الصورة")}</span>
         </button>
       </div>
       <div className="masraweya-summary-sheet" ref={summaryRef}>
         <div className="masraweya-summary-date">
-          <span>المصراوية</span>
+          <span>{uiText("المصراوية")}</span>
           <time dir="ltr">{props.day.businessDate}</time>
         </div>
-        <table aria-label="إجماليات المصراوية">
+        <table aria-label={uiText("إجماليات المصراوية")}>
           <tbody>
             <tr>
               <th scope="row">
-                <span>القيمة السابقة</span>
+                <span>{uiText("القيمة السابقة")}</span>
                 <small>
                   {props.openingEditable
-                    ? 'رصيد بداية العمل'
+                    ? uiText("رصيد بداية العمل")
                     : props.day.carrySourceDate
-                      ? `من رصيد ${props.day.carrySourceDate}`
-                      : 'رصيد محفوظ'}
+                      ? uiText("من رصيد {0}", [props.day.carrySourceDate])
+                      : uiText("رصيد محفوظ")}
                 </small>
               </th>
               <td>
                 <input
-                  aria-label="القيمة السابقة"
+                  aria-label={uiText("القيمة السابقة")}
                   inputMode="numeric"
                   dir="ltr"
                   readOnly={!props.openingEditable}
@@ -80,12 +81,12 @@ export function MasraweyaSummary(props: Props) {
             </tr>
             <tr className="summary-purchases">
               <th scope="row">
-                <span>مشتريات اليوم</span>
-                <small>أدخل المبلغ هنا</small>
+                <span>{uiText("مشتريات اليوم")}</span>
+                <small>{uiText("أدخل المبلغ هنا")}</small>
               </th>
               <td>
                 <input
-                  aria-label="مشتريات اليوم"
+                  aria-label={uiText("مشتريات اليوم")}
                   inputMode="numeric"
                   dir="ltr"
                   disabled={props.locked}
@@ -96,32 +97,31 @@ export function MasraweyaSummary(props: Props) {
             </tr>
             <tr>
               <th scope="row">
-                <span>إجمالي شغل اليوم</span>
-                <small>القيم والعمولات</small>
+                <span>{uiText("إجمالي شغل اليوم")}</span>
+                <small>{uiText("القيم والعمولات")}</small>
               </th>
               <td dir="ltr">{masraweyaNumberFormat.format(props.workTotal)}</td>
             </tr>
             <tr className={`final-row ${props.final < 0 ? 'negative' : ''}`}>
               <th scope="row">
-                <span>الرصيد المتبقي</span>
-                <small>السابق + المشتريات − الشغل</small>
+                <span>{uiText("الرصيد المتبقي")}</span>
+                <small>{uiText("السابق + المشتريات − الشغل")}</small>
               </th>
               <td dir="ltr">
                 <strong>{masraweyaNumberFormat.format(props.final)}</strong>
-                <small>ج.م</small>
+                <small>{uiText("ج.م")}</small>
               </td>
             </tr>
           </tbody>
         </table>
         {props.day.historicalAdjustmentUnits !== 0 && !props.day.openingEditable && (
           <p className="masraweya-legacy-note">
-            يتضمن الرصيد فرقًا محفوظًا من النظام السابق:{' '}
-            <b dir="ltr">{masraweyaNumberFormat.format(props.day.historicalAdjustmentUnits)}</b> ج.م
-          </p>
+            {uiText("يتضمن الرصيد فرقًا محفوظًا من النظام السابق:")}{' '}
+            <b dir="ltr">{masraweyaNumberFormat.format(props.day.historicalAdjustmentUnits)}</b> {uiText(" ج.م")}</p>
         )}
       </div>
       {props.day.updatedByName && (
-        <small className="operation-actor">آخر إدخال بواسطة {props.day.updatedByName}</small>
+        <small className="operation-actor">{uiText("آخر إدخال بواسطة ")}{props.day.updatedByName}</small>
       )}
       {message && <small role="status">{message}</small>}
     </section>

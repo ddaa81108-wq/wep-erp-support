@@ -1,8 +1,9 @@
+import { uiText } from '../i18n/language.ts';
 import { useEffect, useState } from 'react';
 
 const key = 'abdo-readability';
 type Level = 'medium' | 'large' | 'off';
-const labels: Record<Level, string> = { medium: 'متوسط', large: 'كبير', off: 'متوقف' };
+const labels: Record<Level, string> = { medium: uiText("متوسط"), large: uiText("كبير"), off: uiText("متوقف") };
 const excluded = '[data-readability-controls], [data-no-magnify], input, textarea, select, [contenteditable]:not([contenteditable="false"]), [aria-hidden="true"], script, style, svg';
 
 export function Readability({ toolbar = false }: { toolbar?: boolean }) {
@@ -101,8 +102,8 @@ export function Readability({ toolbar = false }: { toolbar?: boolean }) {
     return () => window.clearTimeout(timer);
   }, [feedback, level]);
 
-  return <button type="button" className={`readability-control${toolbar ? ' utility-icon-button' : ''}`} data-level={level} data-readability-controls="" aria-label={`تكبير القراءة: ${labels[level]}`} title={`تكبير القراءة: ${labels[level]} — اضغط لتغيير المستوى`} onClick={() => {
+  return <button type="button" className={`readability-control${toolbar ? ' utility-icon-button' : ''}`} data-level={level} data-readability-controls="" aria-label={uiText("تكبير القراءة: {0}", [labels[level]])} title={uiText("تكبير القراءة: {0} — اضغط لتغيير المستوى", [labels[level]])} onClick={() => {
     setLevel(level === 'medium' ? 'large' : level === 'large' ? 'off' : 'medium');
     setFeedback(true);
-  }}>{level === 'off' ? 'ع×' : level === 'large' ? 'ع++' : 'ع+'} <span>{labels[level]}</span>{feedback && <span className="readability-feedback" role="status">{level === 'off' ? 'تكبير القراءة متوقف' : `التكبير ${labels[level]} — مرّر على النص أو ابدأ الكتابة`}</span>}</button>;
+  }}>{level === 'off' ? uiText("ع×") : level === 'large' ? uiText("ع++") : uiText("ع+")} <span>{labels[level]}</span>{feedback && <span className="readability-feedback" role="status">{level === 'off' ? uiText("تكبير القراءة متوقف") : uiText("التكبير {0} — مرّر على النص أو ابدأ الكتابة", [labels[level]])}</span>}</button>;
 }

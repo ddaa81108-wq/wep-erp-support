@@ -1,0 +1,171 @@
+.language-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 10px;
+  border: 1px solid var(--line, #a58b4f);
+  border-radius: 9px;
+  background: var(--paper, #242424);
+  color: var(--ink, #f5e5be);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.language-toggle:focus-visible {
+  outline: 2px solid #b69951;
+  outline-offset: 2px;
+}
+.language-toggle:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.auth-theme-position {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.auth-language-position {
+  position: fixed;
+  z-index: 100;
+  top: 12px;
+  inset-inline-end: 12px;
+}
+.auth-language-position .language-toggle {
+  color: #f5e5be;
+  background: #242424;
+  border-color: #a58b4f;
+}
+.sidebar-controls .language-toggle {
+  width: 100%;
+  flex-shrink: 0;
+  grid-column: 1 / -1;
+}
+:root[data-theme] .sidebar .sidebar-controls .language-toggle {
+  color: #fff4cd;
+  border-color: var(--sb-edge);
+  background: linear-gradient(#30291c, #030303 60%, #181207);
+  box-shadow: inset 0 1px 1px #fff0b260;
+  min-height: 32px;
+  font-size: 10px;
+}
+html[lang='en'] {
+  direction: ltr;
+}
+html[lang='en'] body {
+  direction: ltr;
+}
+html[lang='en'] .sidebar {
+  inset: 0 auto 0 0;
+}
+html[lang='en'] .app-shell {
+  padding-right: 0;
+  padding-left: 220px;
+  transition: padding-left 0.24s ease;
+}
+html[lang='en'] .app-shell.sidebar-hidden {
+  padding-left: 0;
+}
+html[lang='en'] .sidebar.hidden {
+  transform: translateX(-110%);
+}
+html[lang='en'] .sidebar-reveal {
+  right: auto;
+  left: 14px;
+}
+html[lang='en']
+  :is(
+    .sidebar nav button,
+    .global-search-results > button,
+    .notification-panel,
+    .notification-panel button,
+    .duplicate-suggestions > button,
+    .auth-l01-card h2,
+    .database-monitor th,
+    .database-monitor td,
+    .financial-ledger-entry
+  ) {
+  text-align: start;
+}
+html[lang='en']
+  :is(
+    .dashboard-utility-bar,
+    .utility-search-group,
+    .notification-panel,
+    .sidebar .identity-app,
+    .ledger-customer-title,
+    .ledger-edit-details,
+    .customer-toolbar,
+    .debt-toolbar
+  ) {
+  direction: ltr;
+}
+html[lang='en'] .auth-l01-panel {
+  direction: ltr;
+}
+html[lang='en'] .auth-l01-welcome p {
+  white-space: normal;
+}
+html[lang='en'] .auth-l01 .auth-l01-field input {
+  padding: 8px 12px 8px 42px;
+}
+html[lang='en'] :is(.auth-l01-field > svg, .auth-l01-eye) {
+  right: auto;
+  left: 13px;
+}
+html[lang='en'] .auth-l01 .auth-l01-eye {
+  left: 7px;
+}
+html[lang='en'] .sidebar nav button {
+  font-size: 12px;
+  white-space: normal;
+}
+html[lang='en'] .sidebar .sidebar-identity .identity-app {
+  direction: ltr;
+}
+@media (min-width: 901px) {
+  html[lang='en']:root[data-theme]
+    .workspace:is(.active-section-customers, .active-section-companies, .active-section-libyan-deposits)
+    .debt-ticker::after {
+    content: 'Debt bulletin';
+  }
+}
+:root[lang='en'][data-theme]
+  .workspace
+  .debts-toolbar
+  :is(.compact-filters, .dashboard-search, .dashboard-search .search) {
+  direction: ltr;
+  text-align: start;
+}
+:root[lang='en'][data-theme] .dashboard-search > span {
+  text-align: start;
+  align-self: flex-start;
+}
+html[lang='en'] .ledger-draft-field input[aria-label='Transaction amount'] {
+  min-width: 0;
+}
+html[lang='en'] .notification-toast {
+  direction: ltr;
+  text-align: start;
+}
+html[lang='en'] .global-search-results > button {
+  text-align: start;
+}
+html[lang='en'] .ledger-edit-details {
+  direction: ltr;
+}
+html[lang='en'] :is(.sidebar-hide-button, .sidebar-reveal) > svg {
+  transform: scaleX(-1);
+}
+@media (max-width: 900px) {
+  html[lang='en'] :is(.app-shell, .app-shell.sidebar-hidden) {
+    padding-left: 0;
+  }
+  html[lang='en'] .sidebar {
+    transform: translateX(-110%);
+  }
+  html[lang='en'] .sidebar.open {
+    transform: translateX(0);
+  }
+}

@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import type { FormEvent } from 'react';
 import type { ManagedUser } from '../../api.ts';
 import { UserAccessFields } from './UserAccessFields.tsx';
@@ -17,13 +18,12 @@ export function UserEditorForm({ editing, creatingRole, accessSource, busy, erro
   return (
     <form className="stack user-form" onSubmit={onSubmit}>
       <div className="account-form-heading">
-        <h4>{editing ? `تعديل ${editing.displayName}` : role === 'admin' ? 'إنشاء إداري عام' : 'إنشاء حساب موظف'}</h4>
-        <span className={`account-role-badge ${role}`}>{role === 'admin' ? 'صلاحية إدارية كاملة' : 'صلاحيات أقسام محددة'}</span>
+        <h4>{editing ? uiText("تعديل {0}", [editing.displayName]) : role === 'admin' ? uiText("إنشاء إداري عام") : uiText("إنشاء حساب موظف")}</h4>
+        <span className={`account-role-badge ${role}`}>{role === 'admin' ? uiText("صلاحية إدارية كاملة") : uiText("صلاحيات أقسام محددة")}</span>
       </div>
       <div className="two-cols">
         <label>
-          الاسم الظاهر
-          <input
+          {uiText("الاسم الظاهر")}<input
             name="displayName"
             defaultValue={editing?.displayName ?? ''}
             minLength={2}
@@ -32,8 +32,7 @@ export function UserEditorForm({ editing, creatingRole, accessSource, busy, erro
           />
         </label>
         <label>
-          اسم المستخدم
-          <input
+          {uiText("اسم المستخدم")}<input
             name="username"
             defaultValue={editing?.username ?? ''}
             disabled={Boolean(editing)}
@@ -44,7 +43,7 @@ export function UserEditorForm({ editing, creatingRole, accessSource, busy, erro
         </label>
       </div>
       <label>
-        البريد الإلكتروني {role === 'admin' ? '(إلزامي للإداري)' : '(اختياري)'}
+        {uiText("البريد الإلكتروني ")}{role === 'admin' ? uiText("(إلزامي للإداري)") : uiText("(اختياري)")}
         <input
           name="email"
           type="email"
@@ -55,7 +54,7 @@ export function UserEditorForm({ editing, creatingRole, accessSource, busy, erro
         />
       </label>
       <label>
-        {editing ? 'كلمة مرور جديدة (اتركها فارغة دون تغيير)' : 'كلمة المرور'}
+        {editing ? uiText("كلمة مرور جديدة (اتركها فارغة دون تغيير)") : uiText("كلمة المرور")}
         <input
           name="password"
           type="password"
@@ -69,22 +68,20 @@ export function UserEditorForm({ editing, creatingRole, accessSource, busy, erro
         <UserAccessFields editing={accessSource} />
       ) : (
         <div className="admin-full-access-note">
-          الإداري العام يرى ويدير كل أقسام المنظومة والإعدادات. إنشاء أو تعديل الإداريين يظل مقصورًا على المالك الرئيسي.
-        </div>
+          {uiText("الإداري العام يرى ويدير كل أقسام المنظومة والإعدادات. إنشاء أو تعديل الإداريين يظل مقصورًا على المالك الرئيسي.")}</div>
       )}
       {editing && (
         <label className="check active-check">
           <input name="isActive" type="checkbox" defaultChecked={editing.isActive} />
-          <span>الحساب نشط ويمكنه تسجيل الدخول</span>
+          <span>{uiText("الحساب نشط ويمكنه تسجيل الدخول")}</span>
         </label>
       )}
       {error && <div className="alert error">{error}</div>}
       <div className="form-actions">
         <button type="button" className="secondary" onClick={onCancel}>
-          إلغاء
-        </button>
+          {uiText("إلغاء")}</button>
         <button className="primary" disabled={busy}>
-          {busy ? 'جارٍ الحفظ…' : role === 'admin' ? 'حفظ الإداري' : 'حفظ الموظف'}
+          {busy ? uiText("جارٍ الحفظ…") : role === 'admin' ? uiText("حفظ الإداري") : uiText("حفظ الموظف")}
         </button>
       </div>
     </form>

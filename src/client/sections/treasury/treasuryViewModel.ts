@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import type { TreasuryDashboard } from '../../api.ts';
 
 export const treasuryNumberFormat = new Intl.NumberFormat('en-US', {
@@ -14,35 +15,35 @@ export type TreasuryCard = Readonly<{
 export function treasuryCards(dashboard: TreasuryDashboard): readonly TreasuryCard[] {
   return [
     {
-      label: 'إجمالي الديون لنا',
+      label: uiText("إجمالي الديون لنا"),
       value: dashboard.receivablesUnits,
-      note: 'غير نشط — العملاء والشركات',
+      note: uiText("غير نشط — العملاء والشركات"),
       kind: 'receivable',
     },
     {
-      label: 'إجمالي الديون علينا',
+      label: uiText("إجمالي الديون علينا"),
       value: dashboard.liabilitiesUnits,
-      note: 'غير نشط — المشتريات والأمانات الليبية',
+      note: uiText("غير نشط — المشتريات والأمانات الليبية"),
       kind: 'liability',
     },
     {
-      label: 'الفلوس النشطة',
+      label: uiText("الفلوس النشطة"),
       value: dashboard.activeCashUnits,
-      note: 'يتغير بالدخول والخروج فقط',
+      note: uiText("يتغير بالدخول والخروج فقط"),
       kind: 'active-cash',
     },
     {
-      label: 'ترحيلات الأمانات المصرية',
+      label: uiText("ترحيلات الأمانات المصرية"),
       value: dashboard.egyptianConvertedUnits,
       note: dashboard.egyptianRate
-        ? `${treasuryNumberFormat.format(dashboard.egyptianSourceUnits)} ج.م ÷ ${dashboard.egyptianRate}`
-        : 'يلزم سعر تحويل معتمد',
+        ? uiText("{0} ج.م ÷ {1}", [treasuryNumberFormat.format(dashboard.egyptianSourceUnits), dashboard.egyptianRate])
+        : uiText("يلزم سعر تحويل معتمد"),
       kind: 'egyptian',
     },
     {
-      label: 'صافي الخزينة الشامل',
+      label: uiText("صافي الخزينة الشامل"),
       value: dashboard.netUnits,
-      note: 'ديون لنا + النشط + المصري − ديون علينا',
+      note: uiText("ديون لنا + النشط + المصري − ديون علينا"),
       kind: 'net',
     },
   ];

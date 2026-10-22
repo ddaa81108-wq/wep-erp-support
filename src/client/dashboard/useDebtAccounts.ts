@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Customer, CustomerFilter, Ledger } from '../api.ts';
 import { api } from '../api.ts';
@@ -193,9 +194,9 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
       await refreshAfterMutation().catch(() => undefined);
       return;
     }
-    onNotice({ kind: 'success', text: 'تمت مراجعة التصفير ونقل الكارت إلى مجموعة المسدد.' });
+    onNotice({ kind: 'success', text: uiText("تمت مراجعة التصفير ونقل الكارت إلى مجموعة المسدد.") });
     try { await refreshAfterMutation(); }
-    catch { onNotice({ kind: 'success', text: 'تم حفظ المراجعة. ستعيد المزامنة تحديث العرض تلقائيًا.' }); }
+    catch { onNotice({ kind: 'success', text: uiText("تم حفظ المراجعة. ستعيد المزامنة تحديث العرض تلقائيًا.") }); }
   }
 
   async function togglePinned(customer: Customer) {

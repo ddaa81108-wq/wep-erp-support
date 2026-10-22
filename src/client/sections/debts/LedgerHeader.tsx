@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { Pencil, X } from 'lucide-react';
 import type { Ledger } from '../../api.ts';
 import { debtSectionText, type DebtSection } from './sectionConfig.ts';
@@ -17,7 +18,7 @@ export function LedgerHeader({
 }) {
   return (
     <header>
-      <button className="icon-button" onClick={onClose} aria-label="إغلاق السجل">
+      <button className="icon-button" onClick={onClose} aria-label={uiText("إغلاق السجل")}>
         <X />
       </button>
       <div className="ledger-customer-title">
@@ -27,8 +28,7 @@ export function LedgerHeader({
       {canWrite && (
         <button className="secondary ledger-edit-details" onClick={onEditDetails}>
           <Pencil size={16} />
-          تعديل البيانات
-        </button>
+          {uiText("تعديل البيانات")}</button>
       )}
     </header>
   );

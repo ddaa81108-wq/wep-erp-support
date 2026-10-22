@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import type { AccountRequest } from '../../api.ts';
 
 type AccountRequestsListProps = {
@@ -10,24 +11,22 @@ export function AccountRequestsList({ requests, busy, onDecide }: AccountRequest
   return (
     <section className="account-requests">
       <h4>
-        طلبات الانضمام <span>{requests.length}</span>
+        {uiText("طلبات الانضمام ")}<span>{requests.length}</span>
       </h4>
       {requests.length === 0 ? (
-        <p className="muted">لا توجد طلبات Google بانتظار الموافقة.</p>
+        <p className="muted">{uiText("لا توجد طلبات Google بانتظار الموافقة.")}</p>
       ) : (
         requests.map((request) => (
           <article key={request.id}>
             <div>
               <strong>{request.displayName}</strong>
               <span dir="ltr">{request.email}</span>
-              <small>حساب Google موثّق — ينتظر قرار الإدارة</small>
+              <small>{uiText("حساب Google موثّق — ينتظر قرار الإدارة")}</small>
             </div>
             <button className="secondary" disabled={busy} onClick={() => onDecide(request, 'reject')}>
-              رفض
-            </button>
+              {uiText("رفض")}</button>
             <button className="primary" disabled={busy} onClick={() => onDecide(request, 'approve')}>
-              موافقة بدون أقسام
-            </button>
+              {uiText("موافقة بدون أقسام")}</button>
           </article>
         ))
       )}

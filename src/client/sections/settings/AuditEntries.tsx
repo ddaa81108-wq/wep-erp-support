@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { Search } from 'lucide-react';
 import type { AuditEntry } from '../../api.ts';
 import { auditActionLabel, auditCategory, auditDetailText, auditEntityLabel } from './auditLogModel.ts';
@@ -6,11 +7,11 @@ export function AuditEntries({ entries, busy }: { entries: readonly AuditEntry[]
   return (
     <section className="audit-table-wrap">
       <div className="audit-table-head">
-        <span>التاريخ والوقت</span>
-        <span>المستخدم</span>
-        <span>الحركة</span>
-        <span>القسم / التفاصيل</span>
-        <span>الحالة</span>
+        <span>{uiText("التاريخ والوقت")}</span>
+        <span>{uiText("المستخدم")}</span>
+        <span>{uiText("الحركة")}</span>
+        <span>{uiText("القسم / التفاصيل")}</span>
+        <span>{uiText("الحالة")}</span>
       </div>
       <div className="audit-list">
         {entries.map((entry) => {
@@ -40,7 +41,7 @@ export function AuditEntries({ entries, busy }: { entries: readonly AuditEntry[]
                 <small>{auditDetailText(entry)}</small>
               </div>
               <span className={`audit-status ${entry.outcome}`}>
-                {entry.outcome === 'success' ? 'تم بنجاح' : entry.outcome === 'denied' ? 'مرفوض' : 'فشل'}
+                {entry.outcome === 'success' ? uiText("تم بنجاح") : entry.outcome === 'denied' ? uiText("مرفوض") : uiText("فشل")}
               </span>
             </article>
           );
@@ -48,8 +49,8 @@ export function AuditEntries({ entries, busy }: { entries: readonly AuditEntry[]
         {!busy && entries.length === 0 && (
           <div className="empty compact">
             <Search size={27} />
-            <h3>لا توجد نتائج</h3>
-            <p>غيّر البحث أو نوع الحركة.</p>
+            <h3>{uiText("لا توجد نتائج")}</h3>
+            <p>{uiText("غيّر البحث أو نوع الحركة.")}</p>
           </div>
         )}
       </div>

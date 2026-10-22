@@ -1,8 +1,9 @@
+import { uiText } from '../../i18n/language.ts';
 import { Copy, Pencil } from 'lucide-react';
 import type { ManagedUser, User } from '../../api.ts';
 
 const accessLabel = (level: 'none' | 'read' | 'manage') =>
-  level === 'manage' ? 'إدارة' : level === 'read' ? 'مشاهدة' : 'لا';
+  level === 'manage' ? uiText("إدارة") : level === 'read' ? uiText("مشاهدة") : uiText("لا");
 
 export function ManagedUsersList({
   users,
@@ -25,16 +26,16 @@ export function ManagedUsersList({
             <span dir="ltr">@{managed.username}</span>
             <small>
               {managed.isOwner
-                ? 'المالك الرئيسي — حساب محمي'
+                ? uiText("المالك الرئيسي — حساب محمي")
                 : managed.role === 'admin'
-                  ? 'إداري عام — جميع الصلاحيات'
-                : `العملاء: ${accessLabel(managed.sectionAccess.customerDebts)} • الشركات: ${accessLabel(managed.sectionAccess.companyDebts)}`}
+                  ? uiText("إداري عام — جميع الصلاحيات")
+                : uiText("العملاء: {0} • الشركات: {1}", [accessLabel(managed.sectionAccess.customerDebts), accessLabel(managed.sectionAccess.companyDebts)])}
             </small>
           </div>
-          <em className={managed.isActive ? 'active' : 'disabled'}>{managed.isActive ? 'نشط' : 'معطّل'}</em>
+          <em className={managed.isActive ? 'active' : 'disabled'}>{managed.isActive ? uiText("نشط") : uiText("معطّل")}</em>
           <div className="managed-user-actions">
-            {managed.role === 'employee' && <button className="icon-button" onClick={() => onCopyAccess(managed)} aria-label={`نسخ صلاحيات ${managed.displayName}`} title="إنشاء موظف جديد بنفس الصلاحيات"><Copy size={16}/></button>}
-            {!managed.isOwner && (managed.role === 'employee' || currentUser.isOwner) && <button className="icon-button" onClick={() => onEdit(managed)} aria-label={`تعديل ${managed.displayName}`}><Pencil size={17}/></button>}
+            {managed.role === 'employee' && <button className="icon-button" onClick={() => onCopyAccess(managed)} aria-label={uiText("نسخ صلاحيات {0}", [managed.displayName])} title={uiText("إنشاء موظف جديد بنفس الصلاحيات")}><Copy size={16}/></button>}
+            {!managed.isOwner && (managed.role === 'employee' || currentUser.isOwner) && <button className="icon-button" onClick={() => onEdit(managed)} aria-label={uiText("تعديل {0}", [managed.displayName])}><Pencil size={17}/></button>}
           </div>
         </article>
       ))}

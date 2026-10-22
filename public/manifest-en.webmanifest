@@ -1,0 +1,26 @@
+{
+  "id": "/erp",
+  "name": "VIB Abdo Company",
+  "short_name": "VIB Abdo Company",
+  "start_url": "/erp?lang=en",
+  "scope": "/",
+  "display": "standalone",
+  "dir": "ltr",
+  "lang": "en",
+  "background_color": "#102a26",
+  "theme_color": "#102a26",
+  "icons": [
+    {
+      "src": "/push-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/push-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

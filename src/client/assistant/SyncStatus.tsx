@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { CheckCircle2, CloudOff, LoaderCircle, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -20,9 +21,9 @@ export function SyncStatus({ detailed = false }: { detailed?: boolean }) {
       window.removeEventListener('abdo:request-error', error);
     };
   }, []);
-  const content = state === 'saving' ? [detailed ? 'جارٍ الحفظ…' : 'جارٍ الحفظ', <LoaderCircle key="i" size={15} />]
-    : state === 'offline' ? [detailed ? 'انقطع الاتصال' : 'الاتصال منقطع', <CloudOff key="i" size={15} />]
-      : state === 'error' ? [detailed ? 'غير محفوظ' : 'لم يكتمل الطلب', <TriangleAlert key="i" size={15} />]
-        : [detailed ? 'متصل • جميع التغييرات محفوظة' : 'متصل ومحفوظ', <CheckCircle2 key="i" size={15} />];
-  return <span className={`sync-status ${state}`} title="حالة الاتصال والحفظ">{content[1]}<b>{content[0]}</b></span>;
+  const content = state === 'saving' ? [detailed ? uiText("جارٍ الحفظ…") : uiText("جارٍ الحفظ"), <LoaderCircle key="i" size={15} />]
+    : state === 'offline' ? [detailed ? uiText("انقطع الاتصال") : uiText("الاتصال منقطع"), <CloudOff key="i" size={15} />]
+      : state === 'error' ? [detailed ? uiText("غير محفوظ") : uiText("لم يكتمل الطلب"), <TriangleAlert key="i" size={15} />]
+        : [detailed ? uiText("متصل • جميع التغييرات محفوظة") : uiText("متصل ومحفوظ"), <CheckCircle2 key="i" size={15} />];
+  return <span className={`sync-status ${state}`} title={uiText("حالة الاتصال والحفظ")}>{content[1]}<b>{content[0]}</b></span>;
 }

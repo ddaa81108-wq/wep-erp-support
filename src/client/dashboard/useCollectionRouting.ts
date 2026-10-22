@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { useCallback, useState } from 'react';
 import { api } from '../api.ts';
 import type { DebtSection } from '../sections/debts/sectionConfig.ts';
@@ -57,11 +58,11 @@ export function useCollectionRouting({ debtSection, refreshAccounts, onNotice }:
     }
     setRouting(false);
     setSelectedCustomers([]);
-    onNotice({ kind: 'success', text: 'تم توجيه الكروت إلى الموظف.' });
+    onNotice({ kind: 'success', text: uiText("تم توجيه الكروت إلى الموظف.") });
     try {
       await refreshAccounts();
     } catch {
-      onNotice({ kind: 'success', text: 'تم توجيه الكروت إلى الموظف. تعذر تحديث العرض مؤقتًا؛ ستعيد المزامنة المحاولة تلقائيًا.' });
+      onNotice({ kind: 'success', text: uiText("تم توجيه الكروت إلى الموظف. تعذر تحديث العرض مؤقتًا؛ ستعيد المزامنة المحاولة تلقائيًا.") });
     }
   }
 

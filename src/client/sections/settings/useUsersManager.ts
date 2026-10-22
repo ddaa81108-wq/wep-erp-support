@@ -1,9 +1,10 @@
+import { uiText } from '../../i18n/language.ts';
 import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { api, ApiError, type AccountRequest, type ManagedUser } from '../../api.ts';
 import { selectedSectionAccess, selectedUserPermissions } from './userAccessModel.ts';
 
 const errorText = (error: unknown) =>
-  error instanceof ApiError ? error.message : 'حدث خطأ غير متوقع. لم تُعتمد العملية.';
+  error instanceof ApiError ? error.message : uiText("حدث خطأ غير متوقع. لم تُعتمد العملية.");
 
 export function useUsersManager() {
   const [users, setUsers] = useState<ManagedUser[]>([]);

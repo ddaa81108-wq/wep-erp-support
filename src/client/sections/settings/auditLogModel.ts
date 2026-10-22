@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import type { AuditEntry } from '../../api.ts';
 
 export type AuditFilter = 'all' | 'financial' | 'accounts' | 'system';
@@ -5,64 +6,64 @@ export type AuditFilter = 'all' | 'financial' | 'accounts' | 'system';
 export const auditNumberFormat = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
 
 const actionLabels: Record<string, string> = {
-  'system.first_admin.create': 'إنشاء حساب المدير الأول',
-  'customer.create': 'إضافة عميل',
-  'customer.debt': 'إضافة دين عميل',
-  'customer.payment': 'تسديد عميل',
-  'customer.update': 'تعديل بيانات عميل',
-  'customer.transaction.update': 'تعديل معاملة عميل',
-  'customer.transaction.cancel': 'إلغاء معاملة عميل',
-  'company.create': 'إضافة شركة',
-  'company.debt': 'إضافة دين شركة',
-  'company.payment': 'تسديد شركة',
-  'company.update': 'تعديل بيانات شركة',
-  'company.transaction.update': 'تعديل معاملة شركة',
-  'company.transaction.cancel': 'إلغاء معاملة شركة',
-  'deposit.create': 'إضافة أمانة',
-  'deposit.debt': 'دخول أمانة',
-  'deposit.payment': 'خروج أمانة',
-  'libyan_deposit.create': 'إضافة أمانة ليبية',
-  'libyan_deposit.debt': 'دخول أمانة ليبية',
-  'libyan_deposit.payment': 'خروج أمانة ليبية',
-  'egyptian_deposit.create': 'إضافة أمانة مصرية',
-  'egyptian_deposit.debt': 'دخول أمانة مصرية',
-  'egyptian_deposit.payment': 'خروج أمانة مصرية',
-  'treasury.cash.in': 'دخول نقدية للخزينة',
-  'treasury.cash.out': 'خروج نقدية من الخزينة',
-  'purchases.entry.create': 'إضافة معاملة مشتريات',
-  'purchases.entry.update': 'تعديل معاملة مشتريات',
-  'purchases.entry.delete': 'حذف معاملة مشتريات',
-  'purchases.day.finalize': 'ترحيل يوم المشتريات',
-  'purchases.day.correction.open': 'فتح تعديل يوم مشتريات',
-  'purchases.day.correction.close': 'إغلاق تعديل يوم مشتريات',
-  'masraweya.day.save': 'حفظ يوم المصراوية',
-  'masraweya.day.finalize': 'اعتماد يوم المصراوية',
-  'masraweya.day.correction.open': 'فتح تعديل يوم المصراوية',
-  'masraweya.day.correction.close': 'إغلاق تعديل يوم المصراوية',
-  'collection.assign': 'توجيه كروت',
-  'collection.submit': 'تسجيل استلام',
-  'collection.approve': 'اعتماد استلام',
-  'collection.reject': 'رفض استلام',
-  'collection.cash_received': 'استلام النقدية',
-  'user.create': 'إنشاء حساب',
-  'user.update': 'تعديل حساب',
-  'user.password.change': 'تغيير كلمة المرور',
-  'account_request.approve': 'قبول طلب انضمام',
-  'account_request.reject': 'رفض طلب انضمام',
-  'settings.organization.update': 'تعديل إعدادات المنظومة',
+  'system.first_admin.create': uiText("إنشاء حساب المدير الأول"),
+  'customer.create': uiText("إضافة عميل"),
+  'customer.debt': uiText("إضافة دين عميل"),
+  'customer.payment': uiText("تسديد عميل"),
+  'customer.update': uiText("تعديل بيانات عميل"),
+  'customer.transaction.update': uiText("تعديل معاملة عميل"),
+  'customer.transaction.cancel': uiText("إلغاء معاملة عميل"),
+  'company.create': uiText("إضافة شركة"),
+  'company.debt': uiText("إضافة دين شركة"),
+  'company.payment': uiText("تسديد شركة"),
+  'company.update': uiText("تعديل بيانات شركة"),
+  'company.transaction.update': uiText("تعديل معاملة شركة"),
+  'company.transaction.cancel': uiText("إلغاء معاملة شركة"),
+  'deposit.create': uiText("إضافة أمانة"),
+  'deposit.debt': uiText("دخول أمانة"),
+  'deposit.payment': uiText("خروج أمانة"),
+  'libyan_deposit.create': uiText("إضافة أمانة ليبية"),
+  'libyan_deposit.debt': uiText("دخول أمانة ليبية"),
+  'libyan_deposit.payment': uiText("خروج أمانة ليبية"),
+  'egyptian_deposit.create': uiText("إضافة أمانة مصرية"),
+  'egyptian_deposit.debt': uiText("دخول أمانة مصرية"),
+  'egyptian_deposit.payment': uiText("خروج أمانة مصرية"),
+  'treasury.cash.in': uiText("دخول نقدية للخزينة"),
+  'treasury.cash.out': uiText("خروج نقدية من الخزينة"),
+  'purchases.entry.create': uiText("إضافة معاملة مشتريات"),
+  'purchases.entry.update': uiText("تعديل معاملة مشتريات"),
+  'purchases.entry.delete': uiText("حذف معاملة مشتريات"),
+  'purchases.day.finalize': uiText("ترحيل يوم المشتريات"),
+  'purchases.day.correction.open': uiText("فتح تعديل يوم مشتريات"),
+  'purchases.day.correction.close': uiText("إغلاق تعديل يوم مشتريات"),
+  'masraweya.day.save': uiText("حفظ يوم المصراوية"),
+  'masraweya.day.finalize': uiText("اعتماد يوم المصراوية"),
+  'masraweya.day.correction.open': uiText("فتح تعديل يوم المصراوية"),
+  'masraweya.day.correction.close': uiText("إغلاق تعديل يوم المصراوية"),
+  'collection.assign': uiText("توجيه كروت"),
+  'collection.submit': uiText("تسجيل استلام"),
+  'collection.approve': uiText("اعتماد استلام"),
+  'collection.reject': uiText("رفض استلام"),
+  'collection.cash_received': uiText("استلام النقدية"),
+  'user.create': uiText("إنشاء حساب"),
+  'user.update': uiText("تعديل حساب"),
+  'user.password.change': uiText("تغيير كلمة المرور"),
+  'account_request.approve': uiText("قبول طلب انضمام"),
+  'account_request.reject': uiText("رفض طلب انضمام"),
+  'settings.organization.update': uiText("تعديل إعدادات المنظومة"),
 };
 
 const entityLabels: Record<string, string> = {
-  customer: 'عميل',
-  company: 'شركة',
-  debt_transaction: 'معاملة مالية',
-  treasury_cash_entry: 'الخزينة',
-  user: 'حساب مستخدم',
-  organization_settings: 'إعدادات المنظومة',
-  purchase_entry: 'المشتريات',
-  purchase_day: 'يوم مشتريات',
-  collection: 'استلامات الديون',
-  masraweya_day: 'المصراوية',
+  customer: uiText("عميل"),
+  company: uiText("شركة"),
+  debt_transaction: uiText("معاملة مالية"),
+  treasury_cash_entry: uiText("الخزينة"),
+  user: uiText("حساب مستخدم"),
+  organization_settings: uiText("إعدادات المنظومة"),
+  purchase_entry: uiText("المشتريات"),
+  purchase_day: uiText("يوم مشتريات"),
+  collection: uiText("استلامات الديون"),
+  masraweya_day: uiText("المصراوية"),
 };
 
 export function auditCategory(entry: AuditEntry): Exclude<AuditFilter, 'all'> {
@@ -82,13 +83,13 @@ export function auditEntityLabel(entityType: string) {
 export function auditDetailText(entry: AuditEntry) {
   const details = entry.details;
   const amount = Number(details.amountUnits);
-  if (Number.isSafeInteger(amount)) return `${auditNumberFormat.format(amount)} د.ل`;
+  if (Number.isSafeInteger(amount)) return uiText("{0} د.ل", [auditNumberFormat.format(amount)]);
   const sequence = Number(details.sequence);
-  if (Number.isSafeInteger(sequence)) return `التسلسل ${auditNumberFormat.format(sequence)}`;
-  if (details.passwordReset === true) return 'إعادة تعيين كلمة المرور';
-  if (details.isActive === false) return 'تم تعطيل الحساب';
-  if (details.isActive === true) return 'الحساب نشط';
-  return entityLabels[entry.entityType] ?? 'حركة مسجلة';
+  if (Number.isSafeInteger(sequence)) return uiText("التسلسل {0}", [auditNumberFormat.format(sequence)]);
+  if (details.passwordReset === true) return uiText("إعادة تعيين كلمة المرور");
+  if (details.isActive === false) return uiText("تم تعطيل الحساب");
+  if (details.isActive === true) return uiText("الحساب نشط");
+  return entityLabels[entry.entityType] ?? uiText("حركة مسجلة");
 }
 
 export function filterAuditEntries(items: readonly AuditEntry[], query: string, filter: AuditFilter) {

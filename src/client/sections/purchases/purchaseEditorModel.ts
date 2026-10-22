@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { positiveRateMicros, convertedWholeUnits } from '../../../shared/moneyCalculation.ts';
 import { ApiError, type PurchaseEntry, type PurchaseEntryInput } from '../../api.ts';
 
@@ -100,7 +101,7 @@ export function purchaseDraftIsStandalone(draft: PurchaseDraft) {
 
 export function purchaseDraftError(draft: PurchaseDraft) {
   if (purchaseDraftIsStandalone(draft)) return null;
-  return !draft.value || !draft.rate || !draft.itemLabel.trim() ? 'أكمل النوع والقيمة وسعر الصرف.' : null;
+  return !draft.value || !draft.rate || !draft.itemLabel.trim() ? uiText("أكمل النوع والقيمة وسعر الصرف.") : null;
 }
 
 export function purchaseEntryInput(
@@ -131,4 +132,4 @@ export function purchaseEntryInput(
 }
 
 export const purchaseErrorText = (error: unknown) =>
-  error instanceof ApiError ? error.message : 'تعذر تنفيذ العملية.';
+  error instanceof ApiError ? error.message : uiText("تعذر تنفيذ العملية.");

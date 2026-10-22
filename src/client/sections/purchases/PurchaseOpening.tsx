@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useState } from 'react';
 import { api, type PurchaseMerchantKey, type PurchasesPage } from '../../api.ts';
 import { purchaseErrorText } from './purchaseEditorModel.ts';
@@ -23,7 +24,7 @@ export function PurchaseOpening({ page, merchant, reload, setMessage }: Props) {
         previousVodafoneUnits: Number(vodafone || 0),
       });
       await reload();
-      setMessage('تم حفظ قيم البداية.');
+      setMessage(uiText("تم حفظ قيم البداية."));
     } catch (error) {
       setMessage(purchaseErrorText(error));
     } finally {
@@ -33,10 +34,9 @@ export function PurchaseOpening({ page, merchant, reload, setMessage }: Props) {
 
   return (
     <div className="purchase-opening">
-      <strong>ضبط البداية لأول تشغيل فقط</strong>
+      <strong>{uiText("ضبط البداية لأول تشغيل فقط")}</strong>
       <label>
-        القيمة السابقة
-        <input
+        {uiText("القيمة السابقة")}<input
           dir="ltr"
           inputMode="numeric"
           value={debt}
@@ -44,8 +44,7 @@ export function PurchaseOpening({ page, merchant, reload, setMessage }: Props) {
         />
       </label>
       <label>
-        فودافون المرحّل
-        <input
+        {uiText("فودافون المرحّل")}<input
           dir="ltr"
           inputMode="numeric"
           value={vodafone}
@@ -53,8 +52,7 @@ export function PurchaseOpening({ page, merchant, reload, setMessage }: Props) {
         />
       </label>
       <button disabled={busy} onClick={() => void save()}>
-        حفظ البداية
-      </button>
+        {uiText("حفظ البداية")}</button>
     </div>
   );
 }

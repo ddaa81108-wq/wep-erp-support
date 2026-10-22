@@ -1,7 +1,8 @@
+import { direction, uiText, displayLocale } from '../../i18n/language.ts';
 import { useLayoutEffect, useRef } from 'react';
 import type { Customer } from '../../api.ts';
 
-const money = new Intl.NumberFormat('ar-LY', { maximumFractionDigits: 0 });
+const money = new Intl.NumberFormat(displayLocale, { maximumFractionDigits: 0 });
 
 export function DebtTicker({
   customers,
@@ -40,9 +41,9 @@ export function DebtTicker({
       animation?.cancel();
       animation = undefined;
       if (distance <= 1 || reducedMotion.matches) return;
-      // RTL starts at the right edge. Move left-hand content into view at 24 px/s.
+      // Follow the interface direction while exposing all cards at 24 px/s.
       animation = content.animate(
-        [{ transform: 'translateX(0)' }, { transform: `translateX(${distance}px)` }],
+        [{ transform: 'translateX(0)' }, { transform: `translateX(${direction === 'rtl' ? distance : -distance}px)` }],
         { duration: (distance / 24) * 1000, iterations: Infinity, direction: 'alternate', easing: 'linear' },
       );
       if (container.matches(':hover') || container.contains(document.activeElement)) pause();
@@ -75,10 +76,10 @@ export function DebtTicker({
     <section
       ref={viewport}
       className={`debt-ticker ${items.length === 0 ? 'empty-ticker' : ''}`}
-      aria-label="تنبيهات الديون القديمة"
+      aria-label={uiText("تنبيهات الديون القديمة")}
     >
       {items.length === 0 ? (
-        <span>لا توجد ديون تجاوزت 3 أيام</span>
+        <span>{uiText("لا توجد ديون تجاوزت 3 أيام")}</span>
       ) : (
         <div ref={track} className="debt-ticker-track">
           {items.map((customer) => (
@@ -88,8 +89,8 @@ export function DebtTicker({
               onClick={() => onOpenLedger(customer.id)}
             >
               <strong>{customer.name}</strong>
-              <span>{money.format(customer.balanceUnits)} د.ل</span>
-              <em>منذ {money.format(customer.debtAgeDays ?? 0)} أيام</em>
+              <span>{money.format(customer.balanceUnits)} {uiText(" د.ل")}</span>
+              <em>{uiText("منذ ")}{money.format(customer.debtAgeDays ?? 0)} {uiText(" أيام")}</em>
             </button>
           ))}
         </div>

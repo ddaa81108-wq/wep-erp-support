@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useState } from 'react';
 import { Check, Search, WalletCards, X } from 'lucide-react';
 import { api, type CollectionLinkCandidate, type UnlinkedCollectionReceipt } from '../../api.ts';
@@ -12,10 +13,10 @@ type Props = {
 };
 
 const sectionLabels: Record<CollectionLinkCandidate['sectionKey'], string> = {
-  customer_debts: 'ديون العملاء',
-  company_debts: 'ديون الشركات',
-  libyan_deposits: 'أمانات ليبية',
-  egyptian_deposits: 'أمانات مصرية',
+  customer_debts: uiText("ديون العملاء"),
+  company_debts: uiText("ديون الشركات"),
+  libyan_deposits: uiText("أمانات ليبية"),
+  egyptian_deposits: uiText("أمانات مصرية"),
 };
 
 export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load }: Props) {
@@ -55,7 +56,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
 
   const search = async () => {
     if (query.trim().length < 2) {
-      setError('اكتب حرفين على الأقل من اسم العميل.');
+      setError(uiText("اكتب حرفين على الأقل من اسم العميل."));
       return;
     }
     setBusy('candidate-search');
@@ -72,7 +73,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
 
   const approve = async () => {
     if (!linkingReceipt || (linkMode === 'existing' && !selectedCustomerId)) {
-      setError('اختر الكارت الأصلي أولًا أو أنشئ حسابًا جديدًا.');
+      setError(uiText("اختر الكارت الأصلي أولًا أو أنشئ حسابًا جديدًا."));
       return;
     }
     const completed = await run(`unlinked-${linkingReceipt.id}`, () =>
@@ -91,8 +92,8 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
   return (
     <>
       <section className="collection-panel admin-collection-panel">
-        <h2>استلامات بلا كارت موجه</h2>
-        <p className="muted">لا تؤثر على أي حساب حتى تربطها الإدارة بكارت أصلي وتعتمدها.</p>
+        <h2>{uiText("استلامات بلا كارت موجه")}</h2>
+        <p className="muted">{uiText("لا تؤثر على أي حساب حتى تربطها الإدارة بكارت أصلي وتعتمدها.")}</p>
         <div className="admin-collection-grid">
           {receipts.map((receipt) => (
             <article
@@ -104,17 +105,17 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
                   <strong>{receipt.customerName}</strong>
                   <span>{receipt.collectorName}</span>
                 </div>
-                <b>{collectionMoney.format(receipt.amountUnits)} د.ل</b>
+                <b>{collectionMoney.format(receipt.amountUnits)} {uiText(" د.ل")}</b>
               </header>
               <div className="admin-card-history">
                 <article>
                   <div>
                     <strong>
                       {receipt.status === 'pending'
-                        ? 'غير مربوط'
+                        ? uiText("غير مربوط")
                         : receipt.status === 'approved'
-                          ? 'تم الربط والاعتماد'
-                          : 'مرفوض'}
+                          ? uiText("تم الربط والاعتماد")
+                          : uiText("مرفوض")}
                     </strong>
                     <span>{receipt.businessDate}</span>
                   </div>
@@ -122,12 +123,10 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
                     <div className="admin-inline-actions">
                       <button className="approve" disabled={busy !== ''} onClick={() => openLink(receipt, 'existing')}>
                         <Search size={14} />
-                        عميل قديم
-                      </button>
+                        {uiText("عميل قديم")}</button>
                       <button className="approve create-account" disabled={busy !== ''} onClick={() => openLink(receipt, 'new')}>
                         <WalletCards size={14} />
-                        عميل جديد
-                      </button>
+                        {uiText("عميل جديد")}</button>
                       <button
                         className="reject"
                         disabled={busy !== ''}
@@ -138,8 +137,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
                         }
                       >
                         <X size={14} />
-                        رفض
-                      </button>
+                        {uiText("رفض")}</button>
                     </div>
                   ) : receipt.status === 'approved' && !receipt.cashReceivedAt ? (
                     <button
@@ -152,12 +150,11 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
                       }
                     >
                       <WalletCards size={14} />
-                      تم استلام النقدية
-                    </button>
+                      {uiText("تم استلام النقدية")}</button>
                   ) : receipt.cashReceivedAt ? (
-                    <em>تم استلام النقدية</em>
+                    <em>{uiText("تم استلام النقدية")}</em>
                   ) : (
-                    <em>تم الرفض دون تأثير مالي</em>
+                    <em>{uiText("تم الرفض دون تأثير مالي")}</em>
                   )}
                 </article>
               </div>
@@ -170,28 +167,24 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
           <section className="collection-link-dialog" role="dialog" aria-modal="true">
             <header>
               <div>
-                <h3>ربط استلام بكارت أصلي</h3>
+                <h3>{uiText("ربط استلام بكارت أصلي")}</h3>
                 <p>
-                  {linkingReceipt.customerName} — {collectionMoney.format(linkingReceipt.amountUnits)} د.ل
-                </p>
+                  {linkingReceipt.customerName} — {collectionMoney.format(linkingReceipt.amountUnits)} {uiText(" د.ل")}</p>
               </div>
-              <button className="icon-button" aria-label="إغلاق" onClick={() => setLinkingReceipt(null)}>
+              <button className="icon-button" aria-label={uiText("إغلاق")} onClick={() => setLinkingReceipt(null)}>
                 <X size={17} />
               </button>
             </header>
-            <div className="collection-link-mode" role="group" aria-label="طريقة ربط الاستلام">
+            <div className="collection-link-mode" role="group" aria-label={uiText("طريقة ربط الاستلام")}>
               <button className={linkMode === 'existing' ? 'selected' : ''} onClick={() => setLinkMode('existing')}>
-                عميل قديم — ربط بحساب موجود
-              </button>
+                {uiText("عميل قديم — ربط بحساب موجود")}</button>
               <button className={linkMode === 'new' ? 'selected' : ''} onClick={() => setLinkMode('new')}>
-                عميل جديد — إنشاء حساب جديد
-              </button>
+                {uiText("عميل جديد — إنشاء حساب جديد")}</button>
             </div>
             {linkMode === 'existing' ? <>
             <div className="collection-candidate-search">
               <label>
-                ابحث عن العميل في كل الأقسام
-                <input
+                {uiText("ابحث عن العميل في كل الأقسام")}<input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={(event) => {
@@ -204,14 +197,12 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
               </label>
               <button disabled={busy === 'candidate-search'} onClick={() => void search()}>
                 <Search size={15} />
-                بحث
-              </button>
+                {uiText("بحث")}</button>
             </div>
             <div className="collection-link-candidates">
               {candidates.length === 0 ? (
                 <p className="muted">
-                  ابحث ثم اختر الكارت الأصلي. إذا لم يوجد، أنشئه في قسمه أولًا ثم أعد البحث.
-                </p>
+                  {uiText("ابحث ثم اختر الكارت الأصلي. إذا لم يوجد، أنشئه في قسمه أولًا ثم أعد البحث.")}</p>
               ) : (
                 candidates.map((candidate) => (
                   <label className={selectedCustomerId === candidate.id ? 'selected' : ''} key={candidate.id}>
@@ -232,38 +223,35 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
             </div>
             </> : (
               <div className="collection-new-account-choice">
-                <strong>مكان إنشاء الكارت الجديد</strong>
+                <strong>{uiText("مكان إنشاء الكارت الجديد")}</strong>
                 <label className={newAccountKind === 'customer' ? 'selected' : ''}>
                   <input type="radio" name="newAccountKind" checked={newAccountKind === 'customer'} onChange={() => setNewAccountKind('customer')} />
-                  قسم ديون العملاء
-                </label>
+                  {uiText("قسم ديون العملاء")}</label>
                 <label className={newAccountKind === 'company' ? 'selected' : ''}>
                   <input type="radio" name="newAccountKind" checked={newAccountKind === 'company'} onChange={() => setNewAccountKind('company')} />
-                  قسم ديون الشركات
-                </label>
-                <p className="muted">سينشأ الكارت باسم «{linkingReceipt.customerName}» ثم تُسجل عليه الحركة بعد اعتمادك فقط.</p>
+                  {uiText("قسم ديون الشركات")}</label>
+                <p className="muted">{uiText("سينشأ الكارت باسم «")}{linkingReceipt.customerName}{uiText("» ثم تُسجل عليه الحركة بعد اعتمادك فقط.")}</p>
               </div>
             )}
             <label>
-              نوع الحركة عند الاعتماد
-              <select
+              {uiText("نوع الحركة عند الاعتماد")}<select
                 value={entryType}
                 onChange={(event) => setEntryType(event.target.value as 'payment' | 'debt')}
               >
-                <option value="payment">خصم القيمة من رصيد الكارت (تسديد / خروج)</option>
-                <option value="debt">إضافة القيمة إلى رصيد الكارت (دين / دخول)</option>
+                <option value="payment">{uiText("خصم القيمة من رصيد الكارت (تسديد / خروج)")}</option>
+                <option value="debt">{uiText("إضافة القيمة إلى رصيد الكارت (دين / دخول)")}</option>
               </select>
             </label>
-            <p className="muted">لن يحدث أي تأثير مالي إلا بعد الضغط على «ربط واعتماد».</p>
+            <p className="muted">{uiText("لن يحدث أي تأثير مالي إلا بعد الضغط على «ربط واعتماد».")}</p>
             <div className="dialog-actions">
-              <button onClick={() => setLinkingReceipt(null)}>إلغاء</button>
+              <button onClick={() => setLinkingReceipt(null)}>{uiText("إلغاء")}</button>
               <button
                 className="primary"
                 disabled={(linkMode === 'existing' && !selectedCustomerId) || busy !== ''}
                 onClick={() => void approve()}
               >
                 <Check size={15} />
-                {linkMode === 'new' ? 'إنشاء الكارت وربطه واعتماده' : 'ربط واعتماد'}
+                {linkMode === 'new' ? uiText("إنشاء الكارت وربطه واعتماده") : uiText("ربط واعتماد")}
               </button>
             </div>
           </section>

@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { Ledger, LedgerItem } from '../../api.ts';
@@ -38,12 +39,12 @@ export function LedgerWorkspace({
     onNotice({ kind: 'success', text: message });
   };
   const cancel = async (item: LedgerItem) => {
-    if (!window.confirm(`إلغاء المعاملة رقم ${item.sequence}؟ ستختفي من السجل المعروض مع الاحتفاظ بها للمراجعة.`)) return;
+    if (!window.confirm(uiText("إلغاء المعاملة رقم {0}؟ ستختفي من السجل المعروض مع الاحتفاظ بها للمراجعة.", [item.sequence]))) return;
     setBusyId(item.id);
     try {
       const body = { requestId: crypto.randomUUID(), expectedVersion: ledger.customer.version };
       await cancelSectionTransaction(section, ledger.customer.id, item.id, body);
-      await finish('تم إلغاء المعاملة وإخفاؤها من العرض مع حفظ أثرها للمراجعة.');
+      await finish(uiText("تم إلغاء المعاملة وإخفاؤها من العرض مع حفظ أثرها للمراجعة."));
     } catch (caught) {
       onNotice({ kind: 'error', text: ledgerErrorText(caught) });
     } finally {
@@ -83,7 +84,7 @@ export function LedgerWorkspace({
             onSaved={async () => {
               setDetailsOpen(false);
               await onRefresh();
-              onNotice({ kind: 'success', text: `تم تحديث بيانات ${debtSectionText[section].singular}.` });
+              onNotice({ kind: 'success', text: uiText("تم تحديث بيانات {0}.", [debtSectionText[section].singular]) });
             }}
           />
         )}

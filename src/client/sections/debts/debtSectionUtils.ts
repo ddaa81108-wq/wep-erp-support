@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import type { Customer } from '../../api.ts';
 import type { DebtSection } from './sectionConfig.ts';
 import { SECTION_CONTRACTS } from '../../../shared/sections.ts';
@@ -8,7 +9,7 @@ export const isDepositSection = (section: DebtSection): section is DepositSectio
   section === 'libyan-deposits' || section === 'egyptian-deposits'
 );
 
-export const currencyLabel = (section: DebtSection) => section === 'egyptian-deposits' ? 'ج.م' : 'د.ل';
+export const currencyLabel = (section: DebtSection) => section === 'egyptian-deposits' ? uiText("ج.م") : uiText("د.ل");
 
 export const permissionPrefixFor = (section: DebtSection) => {
   const permission = SECTION_CONTRACTS[section].readPermission;

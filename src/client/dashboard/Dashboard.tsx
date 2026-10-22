@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { useCallback, useEffect, useState } from 'react';
 import { flushBeforeNavigation } from './navigationGuards.ts';
 import { api, type User } from '../api.ts';
@@ -64,7 +65,7 @@ export function Dashboard({
         setMenu(false);
         window.history.pushState({ erpGuard: true, erpSection: activeSection }, '', '/erp');
       } else if (event.state?.erpGuard && event.state?.erpRoot) {
-        const leave = window.confirm('هل تريد تسجيل الخروج من المنظومة؟\nاضغط "إلغاء" للبقاء داخل الموقع.');
+        const leave = window.confirm(uiText("هل تريد تسجيل الخروج من المنظومة؟\nاضغط \"إلغاء\" للبقاء داخل الموقع."));
         if (leave) {
           void logout();
         } else {
@@ -73,7 +74,7 @@ export function Dashboard({
       } else if (event.state?.erpGuard && event.state?.erpSection) {
         restoreSection(event.state.erpSection);
       } else {
-        const leave = window.confirm('هل تريد تسجيل الخروج من المنظومة؟\nاضغط "إلغاء" للبقاء داخل الموقع.');
+        const leave = window.confirm(uiText("هل تريد تسجيل الخروج من المنظومة؟\nاضغط \"إلغاء\" للبقاء داخل الموقع."));
         if (leave) {
           void logout();
         } else {
@@ -190,7 +191,7 @@ export function Dashboard({
           debtAccounts.mergeCustomer(customer);
           void debtAccounts.refreshCustomer(customer.id);
           void debtAccounts.loadLedger(customer.id);
-          setNotice({ kind: 'success', text: `تم إنشاء كارت ${labels.singular} وسجله الدائم.` });
+          setNotice({ kind: 'success', text: uiText("تم إنشاء كارت {0} وسجله الدائم.", [labels.singular]) });
         }}
         onExistingCustomer={(customerId) => {
           setDialog(null);

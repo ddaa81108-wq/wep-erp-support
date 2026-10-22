@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import type { MasraweyaDay } from '../../apiTypes.ts';
 import { blankMasraweyaRows, englishInteger, type MasraweyaEntryDraft } from './masraweyaModel.ts';
 
@@ -80,7 +81,7 @@ export class MasraweyaEditor {
       if (sequence === this.loadSequence) this.hydrate(day);
     } catch (error) {
       if (sequence === this.loadSequence)
-        this.publish({ error: error instanceof Error ? error.message : 'تعذر تحميل اليوم.' });
+        this.publish({ error: error instanceof Error ? error.message : uiText("تعذر تحميل اليوم.") });
     } finally {
       if (sequence === this.loadSequence) this.publish({ loading: false });
     }
@@ -128,7 +129,7 @@ export class MasraweyaEditor {
           const number = Number(value || 0);
           if (!Number.isSafeInteger(number)) {
             this.invalidInput = true;
-            throw new Error('أكمل كتابة قيمة صحيحة في النطاق المسموح ليتم حفظها.');
+            throw new Error(uiText("أكمل كتابة قيمة صحيحة في النطاق المسموح ليتم حفظها."));
           }
           return number;
         };
@@ -147,7 +148,7 @@ export class MasraweyaEditor {
       } catch (error) {
         this.publish({
           busy: false,
-          error: error instanceof Error ? error.message : 'تعذر الحفظ؛ مسودتك باقية.',
+          error: error instanceof Error ? error.message : uiText("تعذر الحفظ؛ مسودتك باقية."),
         });
         return false;
       }

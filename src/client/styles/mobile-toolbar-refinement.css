@@ -139,7 +139,7 @@
   border-color: #ffd75c;
   box-shadow: 0 0 0 3px #ffd75c55, 0 0 22px #ffd75c55;
 }
-.ledger-panel.section-customers .ledger-draft-field input[aria-label="قيمة المعاملة"] {
+.ledger-panel.section-customers .ledger-draft-field input[data-ledger-amount] {
   font-size: 1.18rem;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
@@ -156,7 +156,7 @@
     white-space: normal;
     font-size: 22px;
   }
-  .ledger-panel.section-customers .ledger-draft-field input[aria-label="قيمة المعاملة"] {
+  .ledger-panel.section-customers .ledger-draft-field input[data-ledger-amount] {
     min-height: 42px;
     font-size: 1.35rem;
   }

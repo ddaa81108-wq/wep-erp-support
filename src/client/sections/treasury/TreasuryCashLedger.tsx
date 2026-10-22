@@ -1,8 +1,9 @@
+import { uiText, displayLocale } from '../../i18n/language.ts';
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { TreasuryCashEntry } from '../../api.ts';
 import { treasuryNumberFormat } from './treasuryViewModel.ts';
 
-const desktopDate = new Intl.DateTimeFormat('ar-LY', {
+const desktopDate = new Intl.DateTimeFormat(displayLocale, {
   timeZone: 'Africa/Tripoli', weekday: 'long', year: 'numeric', month: '2-digit',
   day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit',
 });
@@ -72,21 +73,20 @@ export function TreasuryCashLedger({
     <>
       {hasNew && (
         <button className="treasury-new-movements" onClick={goToLatest}>
-          حركات جديدة — انتقل لآخر السجل ↓
-        </button>
+          {uiText("حركات جديدة — انتقل لآخر السجل ↓")}</button>
       )}
       <div className="treasury-ledger" ref={viewport} onScroll={rememberPosition}>
         <div className="treasury-ledger-row head">
-          <span><b>التسلسل</b></span>
-          <span><b>التاريخ</b></span>
-          <span><b>الحركة</b></span>
-          <span><b>القيمة</b></span>
-          <span><b>البيان</b></span>
-          <span><b>بواسطة</b></span>
-          <span><b>الرصيد</b></span>
+          <span><b>{uiText("التسلسل")}</b></span>
+          <span><b>{uiText("التاريخ")}</b></span>
+          <span><b>{uiText("الحركة")}</b></span>
+          <span><b>{uiText("القيمة")}</b></span>
+          <span><b>{uiText("البيان")}</b></span>
+          <span><b>{uiText("بواسطة")}</b></span>
+          <span><b>{uiText("الرصيد")}</b></span>
         </div>
         {entries.length === 0 ? (
-          <div className="empty">لا توجد حركات فلوس نشطة حتى الآن.</div>
+          <div className="empty">{uiText("لا توجد حركات فلوس نشطة حتى الآن.")}</div>
         ) : (
           entries.map((entry) => (
             <div
@@ -94,18 +94,18 @@ export function TreasuryCashLedger({
               key={entry.id}
               data-sequence={entry.sequence}
             >
-              <span data-label="التسلسل">{entry.sequence}</span>
-              <span data-label="التاريخ">
-                <time className="treasury-date-phone" dateTime={entry.createdAt}>{new Date(entry.createdAt).toLocaleString('ar-LY')}</time>
+              <span data-label={uiText("التسلسل")}>{entry.sequence}</span>
+              <span data-label={uiText("التاريخ")}>
+                <time className="treasury-date-phone" dateTime={entry.createdAt}>{new Date(entry.createdAt).toLocaleString(displayLocale)}</time>
                 <time className="treasury-date-desktop" dateTime={entry.createdAt}>{desktopDate.format(new Date(entry.createdAt))}</time>
               </span>
-              <span data-label="الحركة">{entry.direction === 'in' ? 'دخول' : 'خروج'}</span>
-              <span data-label="القيمة" dir="ltr">
+              <span data-label={uiText("الحركة")}>{entry.direction === 'in' ? uiText("دخول") : uiText("خروج")}</span>
+              <span data-label={uiText("القيمة")} dir="ltr">
                 {treasuryNumberFormat.format(entry.amountUnits)}
               </span>
-              <span data-label="البيان">{entry.description || '—'}</span>
-              <span data-label="بواسطة">{entry.actorIsOwner ? '—' : entry.actorName}</span>
-              <span data-label="الرصيد" dir="ltr">
+              <span data-label={uiText("البيان")}>{entry.description || '—'}</span>
+              <span data-label={uiText("بواسطة")}>{entry.actorIsOwner ? '—' : entry.actorName}</span>
+              <span data-label={uiText("الرصيد")} dir="ltr">
                 {treasuryNumberFormat.format(entry.balanceAfterUnits)}
               </span>
             </div>

@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type PurchaseEntry, type PurchaseMerchantKey, type PurchasesPage } from '../../api.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
@@ -56,7 +57,7 @@ export function usePurchasesPage() {
   }
 
   async function remove(entry: PurchaseEntry) {
-    if (!confirm(`حذف المعاملة رقم ${entry.sequence}؟`)) return;
+    if (!confirm(uiText("حذف المعاملة رقم {0}؟", [entry.sequence]))) return;
     const requestId = deleteRequestIds.current.get(entry.id) ?? crypto.randomUUID();
     deleteRequestIds.current.set(entry.id, requestId);
     setBusy(true);
@@ -68,7 +69,7 @@ export function usePurchasesPage() {
       });
       deleteRequestIds.current.delete(entry.id);
       await load(merchant, true);
-      setMessage('تم حذف المعاملة وإعادة حساب الأيام التالية.');
+      setMessage(uiText("تم حذف المعاملة وإعادة حساب الأيام التالية."));
     } catch (error) {
       setMessage(purchaseErrorText(error));
     } finally {
@@ -77,7 +78,7 @@ export function usePurchasesPage() {
   }
 
   async function finalize() {
-    if (!page || !confirm('ترحيل اليوم سيحوّل معاملاته إلى قراءة فقط. هل تريد المتابعة؟')) return;
+    if (!page || !confirm(uiText("ترحيل اليوم سيحوّل معاملاته إلى قراءة فقط. هل تريد المتابعة؟"))) return;
     const requestId = finalizeRequestId.current ?? crypto.randomUUID();
     finalizeRequestId.current = requestId;
     setBusy(true);
@@ -85,7 +86,7 @@ export function usePurchasesPage() {
       await api.finalizePurchaseDay(merchant, { requestId, expectedDayVersion: page.day.version });
       finalizeRequestId.current = null;
       await load(merchant, true);
-      setMessage('تم ترحيل اليوم وفتح يوم جديد.');
+      setMessage(uiText("تم ترحيل اليوم وفتح يوم جديد."));
     } catch (error) {
       setMessage(purchaseErrorText(error));
     } finally {
@@ -99,7 +100,7 @@ export function usePurchasesPage() {
       await api.setPurchaseDayCorrection(merchant, entry.dayId, { open, expectedVersion: entry.dayVersion });
       setEditingId(null);
       await load(merchant, true);
-      setMessage(open ? 'فُتح اليوم كاملًا للتعديل.' : 'تم إنهاء تعديل اليوم وإغلاقه.');
+      setMessage(open ? uiText("فُتح اليوم كاملًا للتعديل.") : uiText("تم إنهاء تعديل اليوم وإغلاقه."));
     } catch (error) {
       setMessage(purchaseErrorText(error));
     } finally {

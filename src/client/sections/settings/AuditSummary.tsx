@@ -1,3 +1,4 @@
+import { uiText, displayLocale } from '../../i18n/language.ts';
 import { Activity, Clock3, ShieldCheck, Users } from 'lucide-react';
 import type { AuditEntry } from '../../api.ts';
 
@@ -12,7 +13,7 @@ export function AuditSummary({ items }: { items: readonly AuditEntry[] }) {
           <Activity size={18} />
         </span>
         <div>
-          <small>الحركات المعروضة</small>
+          <small>{uiText("الحركات المعروضة")}</small>
           <b dir="ltr">{items.length}</b>
         </div>
       </article>
@@ -21,7 +22,7 @@ export function AuditSummary({ items }: { items: readonly AuditEntry[] }) {
           <Users size={18} />
         </span>
         <div>
-          <small>المستخدمون</small>
+          <small>{uiText("المستخدمون")}</small>
           <b dir="ltr">{actors}</b>
         </div>
       </article>
@@ -30,17 +31,17 @@ export function AuditSummary({ items }: { items: readonly AuditEntry[] }) {
           <Clock3 size={18} />
         </span>
         <div>
-          <small>آخر حركة</small>
+          <small>{uiText("آخر حركة")}</small>
           <b>
-            {last ? new Date(last).toLocaleTimeString('ar-LY', { hour: '2-digit', minute: '2-digit' }) : '—'}
+            {last ? new Date(last).toLocaleTimeString(displayLocale, { hour: '2-digit', minute: '2-digit' }) : '—'}
           </b>
         </div>
       </article>
       <div className="audit-readonly">
         <ShieldCheck size={17} />
         <span>
-          <strong>سجل محمي للقراءة فقط</strong>
-          <small>لا يمكن تعديل الحركات أو حذفها</small>
+          <strong>{uiText("سجل محمي للقراءة فقط")}</strong>
+          <small>{uiText("لا يمكن تعديل الحركات أو حذفها")}</small>
         </span>
       </div>
     </section>

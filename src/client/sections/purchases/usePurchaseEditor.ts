@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { api, type PurchaseEntry, type PurchaseMerchantKey } from '../../api.ts';
 import {
@@ -70,7 +71,7 @@ export function usePurchaseEditor({
       requestId.current = crypto.randomUUID();
       setDraft(blankPurchaseDraft());
       await saved();
-      setMessage(entry ? 'تم تعديل المعاملة في مكانها.' : 'تم الحفظ وفتح صف جديد.');
+      setMessage(entry ? uiText("تم تعديل المعاملة في مكانها.") : uiText("تم الحفظ وفتح صف جديد."));
       return true;
     } catch (error) {
       setMessage(purchaseErrorText(error));

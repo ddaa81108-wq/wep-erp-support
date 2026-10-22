@@ -1,8 +1,10 @@
+import { uiText } from './i18n/language.ts';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { api, type User } from './api.ts';
 import { LoginScreen, RequiredPasswordChangeScreen, SetupScreen } from './auth/AuthScreens.tsx';
 import { ThemeToggle, type Theme } from './components/ThemeToggle.tsx';
 import { Readability } from './components/Readability.tsx';
+import { LanguageToggle } from './i18n/LanguageToggle.tsx';
 
 const Dashboard = lazy(() => import('./dashboard/Dashboard.tsx').then((module) => ({ default: module.Dashboard })));
 
@@ -20,7 +22,7 @@ const storedTheme = (): Theme => {
 if (typeof document !== 'undefined') document.documentElement.dataset.theme = storedTheme();
 
 function Loading() {
-  return <div className="loading-page"><span className="brand-mark">ع</span><div className="spinner" /><p>جارٍ الاتصال بالخادم المحلي…</p></div>;
+  return <div className="loading-page"><span className="brand-mark">{uiText("ع")}</span><div className="spinner" /><p>{uiText("جارٍ الاتصال بالخادم المحلي…")}</p></div>;
 }
 
 export default function App() {
@@ -65,5 +67,5 @@ export default function App() {
   else if (isDatabaseMonitor) content = <Suspense fallback={<Loading />}><DatabaseMonitor user={user} theme={theme} onThemeToggle={toggleTheme} onLogout={() => { setUser(null); setScreen('login'); }} /></Suspense>;
   else content = <Suspense fallback={<Loading />}><Dashboard user={user} theme={theme} onThemeToggle={toggleTheme} onLogout={() => { setUser(null); setScreen('login'); }} /></Suspense>;
 
-  return <>{screen === 'app' && isDatabaseMonitor && <Readability />}{screen !== 'app' && <div className="auth-theme-position"><ThemeToggle theme={theme} onToggle={toggleTheme} /></div>}{content}</>;
+  return <>{screen === 'app' && isDatabaseMonitor && <Readability />}{screen !== 'app' && <><div className="auth-language-position"><LanguageToggle /></div><div className="auth-theme-position"><ThemeToggle theme={theme} onToggle={toggleTheme} /></div></>}{content}</>;
 }

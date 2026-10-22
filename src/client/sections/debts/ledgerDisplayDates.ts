@@ -1,11 +1,11 @@
-/** Display only: never changes the accounting transaction date or stored timestamps. */
-const movementDate = new Intl.DateTimeFormat('ar-LY', {
+import { uiText, displayLocale } from '../../i18n/language.ts';
+const movementDate = new Intl.DateTimeFormat(displayLocale, {
   timeZone: 'Africa/Tripoli', weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit',
 });
-const recordedTime = new Intl.DateTimeFormat('ar-LY', {
+const recordedTime = new Intl.DateTimeFormat(displayLocale, {
   timeZone: 'Africa/Tripoli', hour: 'numeric', minute: '2-digit',
 });
-const recordedDateTime = new Intl.DateTimeFormat('ar-LY', {
+const recordedDateTime = new Intl.DateTimeFormat(displayLocale, {
   timeZone: 'Africa/Tripoli', dateStyle: 'full', timeStyle: 'short',
 });
 export function ledgerDisplayDates(transactionDate: string, createdAt: string) {
@@ -16,7 +16,7 @@ export function ledgerDisplayDates(transactionDate: string, createdAt: string) {
   return {
     weekday: part('weekday'),
     date: `${part('day')}/${part('month')}/${part('year')}`,
-    time: valid ? recordedTime.format(recorded) : 'غير متاح',
-    recordingTitle: valid ? `وقت التسجيل بتوقيت ليبيا: ${recordedDateTime.format(recorded)}` : 'وقت التسجيل غير متاح',
+    time: valid ? recordedTime.format(recorded) : uiText("غير متاح"),
+    recordingTitle: valid ? uiText("وقت التسجيل بتوقيت ليبيا: {0}", [recordedDateTime.format(recorded)]) : uiText("وقت التسجيل غير متاح"),
   };
 }

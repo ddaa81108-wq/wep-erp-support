@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import type { Ledger } from '../../api.ts';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
 import { ledgerMoney } from './ledgerModel.ts';
@@ -10,10 +11,10 @@ export function LedgerTotal({ section, ledger }: { section: DebtSection; ledger:
       ? debtSectionText[section].positiveLabel
       : balance < 0
         ? debtSectionText[section].negativeLabel
-        : 'الحساب صفر'
+        : uiText("الحساب صفر")
     : balance < 0
       ? debtSectionText[section].trustLabel
-      : 'إجمالي الدين الحالي';
+      : uiText("إجمالي الدين الحالي");
 
   return (
     <div className="ledger-grid ledger-footer-grid">
@@ -22,7 +23,7 @@ export function LedgerTotal({ section, ledger }: { section: DebtSection; ledger:
         <strong>
           {ledgerMoney.format(Math.abs(balance))} <small>{currencyLabel(section)}</small>
         </strong>
-        <em>{balance === 0 ? 'الحساب مسدّد' : `التالي #${ledger.customer.nextSequence}`}</em>
+        <em>{balance === 0 ? uiText("الحساب مسدّد") : uiText("التالي #{0}", [ledger.customer.nextSequence])}</em>
       </div>
     </div>
   );

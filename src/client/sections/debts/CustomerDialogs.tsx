@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { type FormEvent, useEffect, useState } from 'react';
 import { ApiError, type AccountSuggestion, type Customer, type Ledger } from '../../api.ts';
 import { Modal } from '../../components/Modal.tsx';
@@ -7,7 +8,7 @@ import { createSectionAccount, listSectionSuggestions, updateSectionAccount } fr
 
 const errorText = (error: unknown) => error instanceof ApiError
   ? error.message
-  : 'حدث خطأ غير متوقع. لم تُعتمد العملية.';
+  : uiText("حدث خطأ غير متوقع. لم تُعتمد العملية.");
 
 export function CustomerForm({ section, initial, onClose, onCreated, onExisting }: {
   section: DebtSection;
@@ -48,20 +49,20 @@ export function CustomerForm({ section, initial, onClose, onCreated, onExisting 
       setError(errorText(caught));
     } finally { setBusy(false); }
   }
-  return <Modal title={`حساب ${debtSectionText[section].singular} جديد`} onClose={onClose}><form className="stack" onSubmit={submit}>
-    <label>اسم {debtSectionText[section].singular}<input name="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={160} autoFocus placeholder={section === 'companies' ? 'اسم الشركة' : 'الاسم الكامل أو اسم المحل'} /></label>
-    {suggestions.length > 0 && <section className="duplicate-suggestions" aria-label="أسماء مشابهة">
-      <strong>راجع الحسابات المشابهة قبل الإنشاء</strong>
+  return <Modal title={uiText("حساب {0} جديد", [debtSectionText[section].singular])} onClose={onClose}><form className="stack" onSubmit={submit}>
+    <label>{uiText("اسم ")}{debtSectionText[section].singular}<input name="name" value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={160} autoFocus placeholder={section === 'companies' ? uiText("اسم الشركة") : uiText("الاسم الكامل أو اسم المحل")} /></label>
+    {suggestions.length > 0 && <section className="duplicate-suggestions" aria-label={uiText("أسماء مشابهة")}>
+      <strong>{uiText("راجع الحسابات المشابهة قبل الإنشاء")}</strong>
       {suggestions.map((item) => <button key={item.id} type="button" onClick={() => onExisting(item.id)}>
-        <span>{item.name}</span><small>{item.phone ?? 'بدون هاتف'} · رصيد {Math.abs(item.balanceUnits)}</small>
+        <span>{item.name}</span><small>{item.phone ?? uiText("بدون هاتف")} {uiText(" · رصيد ")}{Math.abs(item.balanceUnits)}</small>
       </button>)}
-      {!confirmedDistinct && <button type="button" className="confirm-distinct" onClick={() => setConfirmedDistinct(true)}>ليس الحساب المطلوب — إنشاء حساب جديد</button>}
+      {!confirmedDistinct && <button type="button" className="confirm-distinct" onClick={() => setConfirmedDistinct(true)}>{uiText("ليس الحساب المطلوب — إنشاء حساب جديد")}</button>}
     </section>}
-    <label>رقم الهاتف<input name="phone" defaultValue={initial?.phone ?? ''} inputMode="tel" dir="ltr" /></label>
-    <label>المبلغ ({currencyLabel(section)})<input name="openingBalance" type="number" step="1" defaultValue={initial?.openingBalance ?? 0} dir="ltr" /></label>
+    <label>{uiText("رقم الهاتف")}<input name="phone" defaultValue={initial?.phone ?? ''} inputMode="tel" dir="ltr" /></label>
+    <label>{uiText("المبلغ (")}{currencyLabel(section)})<input name="openingBalance" type="number" step="1" defaultValue={initial?.openingBalance ?? 0} dir="ltr" /></label>
     {error && <div className="alert error">{error}</div>}
-    {existing && <button type="button" className="secondary wide" onClick={() => onExisting(existing.id)}>فتح السجل الدائم لـ{existing.name}</button>}
-    <div className="form-actions"><button type="button" className="secondary" onClick={onClose}>إلغاء</button><button className="primary" disabled={busy || (suggestions.length > 0 && !confirmedDistinct)}>{busy ? 'جارٍ الحفظ…' : 'حفظ الحساب'}</button></div>
+    {existing && <button type="button" className="secondary wide" onClick={() => onExisting(existing.id)}>{uiText("فتح السجل الدائم لـ")}{existing.name}</button>}
+    <div className="form-actions"><button type="button" className="secondary" onClick={onClose}>{uiText("إلغاء")}</button><button className="primary" disabled={busy || (suggestions.length > 0 && !confirmedDistinct)}>{busy ? uiText("جارٍ الحفظ…") : uiText("حفظ الحساب")}</button></div>
   </form></Modal>;
 }
 
@@ -84,10 +85,10 @@ export function CustomerDetailsForm({ section, ledger, onClose, onSaved }: {
       await onSaved();
     } catch (caught) { setError(errorText(caught)); } finally { setBusy(false); }
   }
-  return <Modal title={`تعديل بيانات ${debtSectionText[section].singular}`} onClose={onClose}><form className="stack" onSubmit={submit}>
-    <label>اسم {debtSectionText[section].singular}<input name="name" defaultValue={ledger.customer.name} required minLength={2} maxLength={160} autoFocus /></label>
-    <label>رقم الهاتف<input name="phone" defaultValue={ledger.customer.phone ?? ''} inputMode="tel" dir="ltr" /></label>
+  return <Modal title={uiText("تعديل بيانات {0}", [debtSectionText[section].singular])} onClose={onClose}><form className="stack" onSubmit={submit}>
+    <label>{uiText("اسم ")}{debtSectionText[section].singular}<input name="name" defaultValue={ledger.customer.name} required minLength={2} maxLength={160} autoFocus /></label>
+    <label>{uiText("رقم الهاتف")}<input name="phone" defaultValue={ledger.customer.phone ?? ''} inputMode="tel" dir="ltr" /></label>
     {error && <div className="alert error">{error}</div>}
-    <div className="form-actions"><button type="button" className="secondary" onClick={onClose}>إلغاء</button><button className="primary" disabled={busy}>{busy ? 'جارٍ الحفظ…' : 'حفظ البيانات'}</button></div>
+    <div className="form-actions"><button type="button" className="secondary" onClick={onClose}>{uiText("إلغاء")}</button><button className="primary" disabled={busy}>{busy ? uiText("جارٍ الحفظ…") : uiText("حفظ البيانات")}</button></div>
   </form></Modal>;
 }

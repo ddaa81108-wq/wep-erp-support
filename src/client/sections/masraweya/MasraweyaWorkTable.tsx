@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { Plus } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
 import {
@@ -37,25 +38,24 @@ export function MasraweyaWorkTable({ rows, workTotal, locked, onAppend, onEdit }
     <section className="masraweya-panel work-panel">
       <div className="panel-title">
         <div>
-          <h2>شغل اليوم</h2>
-          <small>القيمة + العمولة = الناتج</small>
-          <small className="masraweya-desktop-keyboard-hint">الأسهم ↑ ↓ ← → للتنقل بين القيمة والعمولة والصفوف</small>
+          <h2>{uiText("شغل اليوم")}</h2>
+          <small>{uiText("القيمة + العمولة = الناتج")}</small>
+          <small className="masraweya-desktop-keyboard-hint">{uiText("الأسهم ↑ ↓ ← → للتنقل بين القيمة والعمولة والصفوف")}</small>
         </div>
         {!locked && (
           <button onClick={onAppend}>
             <Plus size={16} />
-            صف
-          </button>
+            {uiText("صف")}</button>
         )}
       </div>
       <div className="masraweya-table-scroll">
         <table className="masraweya-work-table">
           <thead>
             <tr>
-              <th>التسلسل</th>
-              <th>القيمة</th>
-              <th>العمولة</th>
-              <th>الناتج</th>
+              <th>{uiText("التسلسل")}</th>
+              <th>{uiText("القيمة")}</th>
+              <th>{uiText("العمولة")}</th>
+              <th>{uiText("الناتج")}</th>
             </tr>
           </thead>
           <tbody>
@@ -64,7 +64,7 @@ export function MasraweyaWorkTable({ rows, workTotal, locked, onAppend, onEdit }
                 <td>{index + 1}</td>
                 <td>
                   <input
-                    aria-label={`القيمة في الصف ${index + 1}`}
+                    aria-label={uiText("القيمة في الصف {0}", [index + 1])}
                     inputMode="numeric"
                     dir="ltr"
                     disabled={locked}
@@ -77,7 +77,7 @@ export function MasraweyaWorkTable({ rows, workTotal, locked, onAppend, onEdit }
                 </td>
                 <td>
                   <input
-                    aria-label={`العمولة في الصف ${index + 1}`}
+                    aria-label={uiText("العمولة في الصف {0}", [index + 1])}
                     inputMode="numeric"
                     dir="ltr"
                     disabled={locked}
@@ -96,7 +96,7 @@ export function MasraweyaWorkTable({ rows, workTotal, locked, onAppend, onEdit }
           </tbody>
           <tfoot>
             <tr>
-              <th colSpan={3}>إجمالي شغل اليوم</th>
+              <th colSpan={3}>{uiText("إجمالي شغل اليوم")}</th>
               <th dir="ltr">{masraweyaNumberFormat.format(workTotal)}</th>
             </tr>
           </tfoot>

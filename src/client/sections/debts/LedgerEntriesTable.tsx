@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { Ledger, LedgerItem } from '../../api.ts';
 import { LedgerDraftRow } from './LedgerDraftRow.tsx';
@@ -69,14 +70,14 @@ export function LedgerEntriesTable({
   return (
     <div className="ledger-table-wrap" ref={tableRef} onKeyDown={navigateLedgerRows}>
       <div className="ledger-grid ledger-grid-head">
-        {['التسلسل', 'اليوم والتاريخ والوقت', 'نوع الحركة', 'البيان', 'القيمة', 'العملية', (section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? 'السعر' : 'المعامل', section === 'egyptian-deposits' ? 'إيداع مصري' : section === 'libyan-deposits' ? 'إيداع أمانة' : 'دين مضاف', section === 'egyptian-deposits' ? 'سحب مصري' : section === 'libyan-deposits' ? 'سحب أمانة' : 'مدفوع', 'الرصيد', 'تعديل', 'إلغاء'].map((title) => <span key={title}>{(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? <b>{title}</b> : title}</span>)}
+        {[uiText("التسلسل"), uiText("اليوم والتاريخ والوقت"), uiText("نوع الحركة"), uiText("البيان"), uiText("القيمة"), uiText("العملية"), (section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? uiText("السعر") : uiText("المعامل"), section === 'egyptian-deposits' ? uiText("إيداع مصري") : section === 'libyan-deposits' ? uiText("إيداع أمانة") : uiText("دين مضاف"), section === 'egyptian-deposits' ? uiText("سحب مصري") : section === 'libyan-deposits' ? uiText("سحب أمانة") : uiText("مدفوع"), uiText("الرصيد"), uiText("تعديل"), uiText("إلغاء")].map((title) => <span key={title}>{(section === 'customers' || section === 'companies' || section === 'libyan-deposits' || section === 'egyptian-deposits') ? <b>{title}</b> : title}</span>)}
       </div>
       {ledger.nextCursor && (
         <button className="ledger-load-older" disabled={loadingOlder} onClick={async () => {
           setLoadingOlder(true);
           try { await onLoadOlder(); } finally { setLoadingOlder(false); }
         }}>
-          {loadingOlder ? 'جارٍ تحميل المعاملات الأقدم…' : 'تحميل المعاملات الأقدم'}
+          {loadingOlder ? uiText("جارٍ تحميل المعاملات الأقدم…") : uiText("تحميل المعاملات الأقدم")}
         </button>
       )}
       {ledger.items.filter((item) => item.status !== 'reversed').map((item) => editing?.id === item.id ? (
@@ -98,7 +99,7 @@ export function LedgerEntriesTable({
           onConflict={onConflict}
         />
       )}
-      {ledger.items.length === 0 && !canWrite && <div className="empty compact"><p>لا توجد معاملات بعد. يبدأ السجل من التسلسل رقم 1.</p></div>}
+      {ledger.items.length === 0 && !canWrite && <div className="empty compact"><p>{uiText("لا توجد معاملات بعد. يبدأ السجل من التسلسل رقم 1.")}</p></div>}
       <LedgerTotal section={section} ledger={ledger} />
     </div>
   );

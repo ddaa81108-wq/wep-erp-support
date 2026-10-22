@@ -1,11 +1,12 @@
+import { uiText, displayLocale } from '../i18n/language.ts';
 import { useEffect, useState } from 'react';
 import { request } from '../apiTransport.ts';
 import type { LiveActivity, DailyActivity } from '../../server/db/databaseActivity.ts';
 import './database-activity.css';
-const number = (value: number) => new Intl.NumberFormat('ar-LY', { maximumFractionDigits: 2 }).format(value);
+const number = (value: number) => new Intl.NumberFormat(displayLocale, { maximumFractionDigits: 2 }).format(value);
 const tripoliDay = (value = Date.now()) => new Date(value + 7200000).toISOString().slice(0, 10);
 const time = (value: number) =>
-  new Intl.DateTimeFormat('ar-LY', { timeStyle: 'medium', timeZone: 'Africa/Tripoli' }).format(value);
+  new Intl.DateTimeFormat(displayLocale, { timeStyle: 'medium', timeZone: 'Africa/Tripoli' }).format(value);
 type ChartPoint = { x: number; a: number | null; b: number | null; label: string };
 function LineChart({
   points,
@@ -117,7 +118,7 @@ export function DatabaseActivity() {
       } catch {
         if (!disposed) {
           setLive(null);
-          setLiveError('انقطع تحديث المؤشر. لا تتوفر قراءة لحظية حاليًا.');
+          setLiveError(uiText("انقطع تحديث المؤشر. لا تتوفر قراءة لحظية حاليًا."));
         }
       } finally {
         running = false;
@@ -151,7 +152,7 @@ export function DatabaseActivity() {
       } catch {
         if (!disposed) {
           setDaily(null);
-          setDailyError('تعذرت قراءة سجل النشاط لهذا اليوم.');
+          setDailyError(uiText("تعذرت قراءة سجل النشاط لهذا اليوم."));
         }
       } finally {
         running = false;
@@ -202,15 +203,15 @@ export function DatabaseActivity() {
       label: String(index).padStart(2, '0') + ':00',
     })) ?? [];
   return (
-    <section className="activity-section" aria-label="قياس نشاط قاعدة البيانات">
+    <section className="activity-section" aria-label={uiText("قياس نشاط قاعدة البيانات")}>
       <section className="dbm-panel activity-live">
         <div className="dbm-section-head">
           <div>
-            <h2>نبض قاعدة البيانات</h2>
-            <p className="dbm-note">نشاط فعلي خلال آخر خمس دقائق · تحديث كل ثانيتين</p>
+            <h2>{uiText("نبض قاعدة البيانات")}</h2>
+            <p className="dbm-note">{uiText("نشاط فعلي خلال آخر خمس دقائق · تحديث كل ثانيتين")}</p>
           </div>
           <span className={'activity-status ' + (live ? 'activity-connected' : '')}>
-            {live ? 'متصل · ' + time(live.checkedAt) : 'لا توجد قراءة حالية'}
+            {live ? uiText("متصل · ") + time(live.checkedAt) : uiText("لا توجد قراءة حالية")}
           </span>
         </div>
         {liveError && (
@@ -220,13 +221,13 @@ export function DatabaseActivity() {
         )}
         <div className="activity-summary">
           {[
-            ['قراءات / ثانية', last ? number(perSecond(last.reads)) : '—'],
-            ['كتابات / ثانية', last ? number(perSecond(last.writes)) : '—'],
+            [uiText("قراءات / ثانية"), last ? number(perSecond(last.reads)) : '—'],
+            [uiText("كتابات / ثانية"), last ? number(perSecond(last.writes)) : '—'],
             [
-              'متوسط التنفيذ',
+              uiText("متوسط التنفيذ"),
               last ? number(last.operations ? last.milliseconds / last.operations : 0) + ' ms' : '—',
             ],
-            ['أخطاء / انشغال', last ? `${last.errors} / ${last.busy}` : '—'],
+            [uiText("أخطاء / انشغال"), last ? `${last.errors} / ${last.busy}` : '—'],
           ].map(([label, value]) => (
             <div key={label}>
               <span>{label}</span>
@@ -237,35 +238,31 @@ export function DatabaseActivity() {
         {livePoints.length ? (
           <LineChart
             points={livePoints}
-            label="معدل القراءات والكتابات الفعلي في الثانية"
-            first="قراءات"
-            second="كتابات"
-            unit="عملية / ثانية"
+            label={uiText("معدل القراءات والكتابات الفعلي في الثانية")}
+            first={uiText("قراءات")}
+            second={uiText("كتابات")}
+            unit={uiText("عملية / ثانية")}
           />
         ) : (
-          <p className="activity-empty">في انتظار عينات القياس الأولى…</p>
+          <p className="activity-empty">{uiText("في انتظار عينات القياس الأولى…")}</p>
         )}
         {live && !live.historyAvailable && (
           <p className="dbm-warning">
-            تعذر حفظ أو قراءة السجل اليومي. المؤشر اللحظي مستقل؛ راجع صلاحية الكتابة بجوار قاعدة البيانات.
-          </p>
+            {uiText("تعذر حفظ أو قراءة السجل اليومي. المؤشر اللحظي مستقل؛ راجع صلاحية الكتابة بجوار قاعدة البيانات.")}</p>
         )}
         {live && live.droppedMinutes > 0 && (
-          <p className="dbm-warning">فُقدت بعض ملخصات القياس بعد تعذر الحفظ لفترة طويلة.</p>
+          <p className="dbm-warning">{uiText("فُقدت بعض ملخصات القياس بعد تعذر الحفظ لفترة طويلة.")}</p>
         )}
         <p className="dbm-note">
-          الخط يعرض محاولات تنفيذ استعلامات الخادم، بما فيها الأعمال الخلفية. المعاملة المالية قد تنفذ عدة
-          استعلامات. طلبات هذه الشاشة مستبعدة، والفجوات تعني غياب قياس. زمن التنفيذ يشمل انتظار القاعدة وجلب
-          النتيجة، ولا يشمل تجهيز الاستعلام.
-        </p>
+          {uiText("الخط يعرض محاولات تنفيذ استعلامات الخادم، بما فيها الأعمال الخلفية. المعاملة المالية قد تنفذ عدة استعلامات. طلبات هذه الشاشة مستبعدة، والفجوات تعني غياب قياس. زمن التنفيذ يشمل انتظار القاعدة وجلب النتيجة، ولا يشمل تجهيز الاستعلام.")}</p>
       </section>
       <section className="dbm-panel">
         <div className="dbm-section-head">
-          <h2>الاستهلاك اليومي</h2>
+          <h2>{uiText("الاستهلاك اليومي")}</h2>
           <label className="activity-date">
-            اليوم بتوقيت ليبيا{' '}
+            {uiText("اليوم بتوقيت ليبيا")}{' '}
             <input
-              aria-label="يوم سجل النشاط"
+              aria-label={uiText("يوم سجل النشاط")}
               type="date"
               value={day}
               min={tripoliDay((live?.checkedAt ?? initialTime) - 29 * 86400000)}
@@ -283,17 +280,16 @@ export function DatabaseActivity() {
         )}
         {daily && !daily.available && (
           <p className="dbm-warning">
-            السجل اليومي غير متاح بالكامل؛ لا تعتبر القيم المعروضة تقريرًا مكتملًا.
-          </p>
+            {uiText("السجل اليومي غير متاح بالكامل؛ لا تعتبر القيم المعروضة تقريرًا مكتملًا.")}</p>
         )}
         {observed.length ? (
           <>
             <div className="activity-summary">
               {[
-                ['محاولات التنفيذ', number(total.operations)],
-                ['متوسط التنفيذ', number(total.operations ? total.ms / total.operations : 0) + ' ms'],
-                ['عمليات بطيئة ≥ 50 ms', number(total.slow)],
-                ['أخطاء / انشغال', `${total.errors} / ${total.busy}`],
+                [uiText("محاولات التنفيذ"), number(total.operations)],
+                [uiText("متوسط التنفيذ"), number(total.operations ? total.ms / total.operations : 0) + ' ms'],
+                [uiText("عمليات بطيئة ≥ 50 ms"), number(total.slow)],
+                [uiText("أخطاء / انشغال"), `${total.errors} / ${total.busy}`],
               ].map(([label, value]) => (
                 <div key={label}>
                   <span>{label}</span>
@@ -301,41 +297,41 @@ export function DatabaseActivity() {
                 </div>
               ))}
             </div>
-            <h3>القراءات والكتابات لكل ساعة</h3>
+            <h3>{uiText("القراءات والكتابات لكل ساعة")}</h3>
             <LineChart
               points={dayPoints}
-              label="عدد القراءات والكتابات خلال ساعات اليوم"
-              first="قراءات"
-              second="كتابات"
-              unit="عدد العمليات المسجّلة"
+              label={uiText("عدد القراءات والكتابات خلال ساعات اليوم")}
+              first={uiText("قراءات")}
+              second={uiText("كتابات")}
+              unit={uiText("عدد العمليات المسجّلة")}
             />
-            <h3>حجم التخزين خلال اليوم</h3>
+            <h3>{uiText("حجم التخزين خلال اليوم")}</h3>
             <LineChart
               points={sizePoints}
-              label="حجم ملف القاعدة وملف الحركات لكل ساعة"
-              first="ملف القاعدة"
-              second="ملف WAL"
-              unit="MB · آخر عينة متاحة لكل ساعة"
+              label={uiText("حجم ملف القاعدة وملف الحركات لكل ساعة")}
+              first={uiText("ملف القاعدة")}
+              second={uiText("ملف WAL")}
+              unit={uiText("MB · آخر عينة متاحة لكل ساعة")}
             />
             <details>
-              <summary>عرض الأرقام وتغطية القياس لكل ساعة</summary>
+              <summary>{uiText("عرض الأرقام وتغطية القياس لكل ساعة")}</summary>
               <div className="dbm-table-scroll">
                 <table>
                   <thead>
                     <tr>
-                      <th>الساعة</th>
-                      <th>دقائق مرصودة</th>
-                      <th>قراءات</th>
-                      <th>كتابات</th>
-                      <th>أخرى / دفعات SQL</th>
-                      <th>أخطاء</th>
+                      <th>{uiText("الساعة")}</th>
+                      <th>{uiText("دقائق مرصودة")}</th>
+                      <th>{uiText("قراءات")}</th>
+                      <th>{uiText("كتابات")}</th>
+                      <th>{uiText("أخرى / دفعات SQL")}</th>
+                      <th>{uiText("أخطاء")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {daily!.hours.map((h, index) => (
                       <tr key={h.at}>
                         <td>{String(index).padStart(2, '0')}:00</td>
-                        <td>{h.observedMs ? number(h.observedMs / 60000) : 'لا يوجد قياس'}</td>
+                        <td>{h.observedMs ? number(h.observedMs / 60000) : uiText("لا يوجد قياس")}</td>
                         <td>{h.observedMs ? h.reads : '—'}</td>
                         <td>{h.observedMs ? h.writes : '—'}</td>
                         <td>{h.observedMs ? h.other : '—'}</td>
@@ -350,14 +346,12 @@ export function DatabaseActivity() {
         ) : (
           <p className="activity-empty">
             {daily
-              ? 'لا توجد قياسات مسجّلة لهذا اليوم. يبدأ السجل من وقت تفعيل المراقبة.'
-              : 'جارٍ تحميل سجل اليوم…'}
+              ? uiText("لا توجد قياسات مسجّلة لهذا اليوم. يبدأ السجل من وقت تفعيل المراقبة.")
+              : uiText("جارٍ تحميل سجل اليوم…")}
           </p>
         )}
         <p className="dbm-note">
-          حفظ ملخص كل دقيقة لمدة 30 يومًا في ملف منفصل. الساعة التي لم يكتمل قياسها تعرض مجموع الفترة المرصودة
-          فقط، ولا يُعاد تقدير نشاطها. لا يمثل الرسم نسبة ضغط المعالج أو عدد المعاملات المالية.
-        </p>
+          {uiText("حفظ ملخص كل دقيقة لمدة 30 يومًا في ملف منفصل. الساعة التي لم يكتمل قياسها تعرض مجموع الفترة المرصودة فقط، ولا يُعاد تقدير نشاطها. لا يمثل الرسم نسبة ضغط المعالج أو عدد المعاملات المالية.")}</p>
       </section>
     </section>
   );

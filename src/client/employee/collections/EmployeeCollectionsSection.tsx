@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { OutstandingCollectionCash } from '../../sections/collections/OutstandingCollectionCash.tsx';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Phone } from 'lucide-react';
@@ -22,7 +23,7 @@ export function EmployeeCollectionsSection() {
   const [payrollOpen, setPayrollOpen] = useState(false);
   async function submit(id: string, mode: 'full' | 'partial', amount: number) {
     if (!Number.isSafeInteger(amount) || amount <= 0) {
-      setError('اكتب قيمة صحيحة أكبر من صفر.');
+      setError(uiText("اكتب قيمة صحيحة أكبر من صفر."));
       return;
     }
     await run(id, () => api.submitCollection(id, mode, amount));
@@ -38,11 +39,11 @@ export function EmployeeCollectionsSection() {
     const customerName = String(values.get('customerName') ?? '').trim();
     const amountUnits = Number(values.get('amountUnits'));
     if (customerName.length < 2) {
-      setError('اكتب اسم العميل بوضوح.');
+      setError(uiText("اكتب اسم العميل بوضوح."));
       return;
     }
     if (!Number.isSafeInteger(amountUnits) || amountUnits <= 0) {
-      setError('اكتب قيمة صحيحة أكبر من صفر.');
+      setError(uiText("اكتب قيمة صحيحة أكبر من صفر."));
       return;
     }
     setBusy('unlinked-create');
@@ -53,7 +54,7 @@ export function EmployeeCollectionsSection() {
       setCreating(false);
       await load();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'تعذر تسجيل الاستلام غير المربوط.');
+      setError(caught instanceof Error ? caught.message : uiText("تعذر تسجيل الاستلام غير المربوط."));
     } finally {
       setBusy('');
     }
@@ -62,7 +63,7 @@ export function EmployeeCollectionsSection() {
     return (
       <div className="empty">
         <div className="spinner" />
-        <p>جارٍ تحميل الاستلامات…</p>
+        <p>{uiText("جارٍ تحميل الاستلامات…")}</p>
         {error && <div className="alert error">{error}</div>}
       </div>
     );
@@ -73,49 +74,46 @@ export function EmployeeCollectionsSection() {
   }
   return (
     <div className="collections-page employee-collections-page">
-      <CollectionsOverview data={data} description="الكروت الموجهة إليك للاستلام" onPayroll={() => setPayrollOpen(true)} creating={creating} onToggleCreate={() => setCreating((value) => !value)} />
+      <CollectionsOverview data={data} description={uiText("الكروت الموجهة إليك للاستلام")} onPayroll={() => setPayrollOpen(true)} creating={creating} onToggleCreate={() => setCreating((value) => !value)} />
       <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} />
       {error && <div className="alert error">{error}</div>}
       {creating && (
         <section id="collection-create-form" ref={createPanel} className="collection-panel unlinked-create-panel">
           <header>
             <div>
-              <h2>إنشاء عميل مستقل</h2>
-              <p>سجّل الاسم والقيمة فقط. لن تتغير أي أرصدة حتى تربطه الإدارة بكارت أصلي وتعتمده.</p>
+              <h2>{uiText("إنشاء عميل مستقل")}</h2>
+              <p>{uiText("سجّل الاسم والقيمة فقط. لن تتغير أي أرصدة حتى تربطه الإدارة بكارت أصلي وتعتمده.")}</p>
             </div>
           </header>
           <form onSubmit={createUnlinked}>
             <label>
-              اسم العميل
-              <input
+              {uiText("اسم العميل")}<input
                 name="customerName"
                 autoComplete="off"
                 maxLength={160}
                 required
-                placeholder="اسم العميل"
+                placeholder={uiText("اسم العميل")}
               />
             </label>
             <label>
-              القيمة المستلمة
-              <input
+              {uiText("القيمة المستلمة")}<input
                 name="amountUnits"
                 inputMode="numeric"
                 type="number"
                 min="1"
                 step="1"
                 required
-                placeholder="القيمة"
+                placeholder={uiText("القيمة")}
               />
             </label>
             <button className="primary" disabled={busy === 'unlinked-create'}>
-              تسجيل كارت معلّق
-            </button>
+              {uiText("تسجيل كارت معلّق")}</button>
           </form>
         </section>
       )}
       {data.unlinkedReceipts.length > 0 && (
         <section className="collection-panel">
-          <h2>استلامات سجلتها بدون كارت موجه</h2>
+          <h2>{uiText("استلامات سجلتها بدون كارت موجه")}</h2>
           <div className="collection-grid unlinked-collection-grid">
             {data.unlinkedReceipts.map((receipt) => (
               <article
@@ -124,16 +122,16 @@ export function EmployeeCollectionsSection() {
               >
                 <span>{receipt.collectorName}</span>
                 <strong>{receipt.customerName}</strong>
-                <b>{collectionMoney.format(receipt.amountUnits)} د.ل</b>
+                <b>{collectionMoney.format(receipt.amountUnits)} {uiText(" د.ل")}</b>
                 <small>
                   {receipt.status === 'pending'
-                    ? 'معلّق — لا يؤثر على الحسابات'
+                    ? uiText("معلّق — لا يؤثر على الحسابات")
                     : receipt.status === 'approved'
-                      ? 'تم الربط والاعتماد'
-                      : 'رفضته الإدارة'}
+                      ? uiText("تم الربط والاعتماد")
+                      : uiText("رفضته الإدارة")}
                 </small>
                 {receipt.status === 'approved' && (
-                  <em>{receipt.cashReceivedAt ? 'تم استلام النقدية' : 'ينتظر استلام النقدية من الإدارة'}</em>
+                  <em>{receipt.cashReceivedAt ? uiText("تم استلام النقدية") : uiText("ينتظر استلام النقدية من الإدارة")}</em>
                 )}
               </article>
             ))}
@@ -141,10 +139,10 @@ export function EmployeeCollectionsSection() {
         </section>
       )}
       <section className="collection-panel">
-        <h2>الكروت الموجهة إليك</h2>
+        <h2>{uiText("الكروت الموجهة إليك")}</h2>
         <div className="collection-grid">
           {data.assignments.length === 0 ? (
-            <p className="muted">لا توجد كروت موجهة حاليًا.</p>
+            <p className="muted">{uiText("لا توجد كروت موجهة حاليًا.")}</p>
           ) : (
             data.assignments.map((assignment) => {
               const payments = history(assignment.id);
@@ -157,17 +155,17 @@ export function EmployeeCollectionsSection() {
                 >
                   <span>{assignment.assigneeName}</span>
                   <strong>{assignment.customerName}</strong>
-                  <b>{collectionMoney.format(assignment.balanceUnits)} د.ل</b>
-                  <small>{assignment.phone || 'لا يوجد رقم هاتف'}</small>
+                  <b>{collectionMoney.format(assignment.balanceUnits)} {uiText(" د.ل")}</b>
+                  <small>{assignment.phone || uiText("لا يوجد رقم هاتف")}</small>
                   {payments.length > 0 && (
                     <div className="collection-payment-history">
                       {payments.map((item) => {
                         if (item.mode === 'partial') partial += 1;
                         return (
                           <span key={item.id}>
-                            {item.mode === 'full' ? 'استلام كلي' : `استلام جزئي ${partial}`}:{' '}
-                            <b>{collectionMoney.format(item.amountUnits)} د.ل</b>
-                            {item.status === 'pending' && <em>ينتظر الاعتماد</em>}
+                            {item.mode === 'full' ? uiText("استلام كلي") : uiText("استلام جزئي {0}", [partial])}:{' '}
+                            <b>{collectionMoney.format(item.amountUnits)} {uiText(" د.ل")}</b>
+                            {item.status === 'pending' && <em>{uiText("ينتظر الاعتماد")}</em>}
                           </span>
                         );
                       })}
@@ -183,30 +181,28 @@ export function EmployeeCollectionsSection() {
                       }
                       onClick={() => void submit(assignment.id, 'full', assignment.balanceUnits)}
                     >
-                      استلام كلي
-                    </button>
+                      {uiText("استلام كلي")}</button>
                     {inactive || Boolean(assignment.hasPending) ? (
-                      <button disabled>استلام جزئي</button>
+                      <button disabled>{uiText("استلام جزئي")}</button>
                     ) : (
                       <details className="partial-collection-details">
-                        <summary>استلام جزئي</summary>
+                        <summary>{uiText("استلام جزئي")}</summary>
                         <form
                           className="partial-collection-form"
                           onSubmit={(event) => submitPartial(event, assignment.id)}
                         >
                           <label>
-                            القيمة
-                            <input
+                            {uiText("القيمة")}<input
                               name="amount"
                               inputMode="numeric"
                               type="number"
                               min="1"
                               step="1"
                               required
-                              placeholder="المبلغ"
+                              placeholder={uiText("المبلغ")}
                             />
                           </label>
-                          <button disabled={busy === assignment.id}>حفظ</button>
+                          <button disabled={busy === assignment.id}>{uiText("حفظ")}</button>
                         </form>
                       </details>
                     )}
@@ -215,8 +211,7 @@ export function EmployeeCollectionsSection() {
                       href={!inactive && assignment.phone ? `tel:${assignment.phone}` : undefined}
                     >
                       <Phone size={15} />
-                      اتصال
-                    </a>
+                      {uiText("اتصال")}</a>
                   </div>
                 </article>
               );

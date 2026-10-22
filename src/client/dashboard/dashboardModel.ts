@@ -1,3 +1,4 @@
+import { uiText } from '../i18n/language.ts';
 import { ApiError, type Customer, type CustomerFilter, type User } from '../api.ts';
 import type { DebtSection, MainSection } from '../sections/debts/sectionConfig.ts';
 import { employeeCanOpenSection, initialEmployeeSection } from '../employee/employeeNavigationModel.ts';
@@ -17,7 +18,7 @@ const ADMIN_SECTIONS = new Set<MainSection>([
 
 export function dashboardErrorText(error: unknown) {
   if (error instanceof ApiError) return error.message;
-  return 'حدث خطأ غير متوقع. لم تُعتمد العملية.';
+  return uiText("حدث خطأ غير متوقع. لم تُعتمد العملية.");
 }
 
 export function initialDashboardSection(user: User, stored: string | null): MainSection {

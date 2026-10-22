@@ -18,6 +18,7 @@
     "test:ui": "node tests/ui-smoke.ts",
     "test:settings-requests-ui": "node tests/settings-request-order-ui.ts",
     "test:ledger-focus-ui": "node tests/ledger-focus-ui.ts",
+    "test:languages-ui": "node tests/languages-ui.ts",
     "test:readability": "node tests/readability-ui.ts",
     "test:auth-l01": "node tests/auth-l01-ui.ts",
     "test:report-closing-ui": "node tests/report-closing-ui.ts",

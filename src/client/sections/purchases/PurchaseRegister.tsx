@@ -1,3 +1,4 @@
+import { uiText } from '../../i18n/language.ts';
 import { useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { PurchaseInlineEditor } from './PurchaseInlineEditor.tsx';
@@ -49,8 +50,7 @@ export function PurchaseRegister({ purchases, canWrite, canFinalize }: PurchaseR
       {page.nextBefore && (
         <button className="purchase-older" onClick={() => void older()} disabled={busy}>
           <ChevronDown size={14} />
-          تحميل معاملات أقدم
-        </button>
+          {uiText("تحميل معاملات أقدم")}</button>
       )}
       <PurchaseRegisterHeader />
       {entries.map((entry, index) => {

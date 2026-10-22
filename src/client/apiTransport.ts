@@ -1,4 +1,6 @@
+import { uiText } from './i18n/language.ts';
 import { isApiFailure, isApiSuccess } from '../shared/httpContracts.ts';
+import { serverErrorText } from './i18n/serverMessages.ts';
 
 export const API_VERSION = '1';
 
@@ -13,7 +15,7 @@ export class ApiError extends Error {
     message: string,
     details?: Record<string, unknown>,
   ) {
-    super(message);
+    super(serverErrorText(code, message));
     this.status = status;
     this.code = code;
     this.details = details;
@@ -53,7 +55,7 @@ export async function request<T>(path: string, init: RequestInit = {}) {
       window.dispatchEvent(new Event('abdo:internet-unavailable'));
       if (tracksSaving) window.dispatchEvent(new Event('abdo:request-error'));
     }
-    throw new ApiError(0, 'NETWORK_UNAVAILABLE', 'تعذر تنفيذ الطلب.');
+    throw new ApiError(0, 'NETWORK_UNAVAILABLE', uiText("تعذر تنفيذ الطلب."));
   }
   const signalWrite = (event: 'abdo:request-finish' | 'abdo:request-error') => {
     if (typeof window !== 'undefined' && tracksSaving) window.dispatchEvent(new Event(event));
@@ -66,7 +68,7 @@ export async function request<T>(path: string, init: RequestInit = {}) {
     throw new ApiError(
       response.status,
       'INVALID_SERVER_RESPONSE',
-      'استجابة الخادم غير صالحة. أعد المحاولة أو راجع حالة الخدمة.',
+      uiText("استجابة الخادم غير صالحة. أعد المحاولة أو راجع حالة الخدمة."),
     );
   }
   if (!response.ok || isApiFailure(payload)) {
@@ -75,13 +77,13 @@ export async function request<T>(path: string, init: RequestInit = {}) {
     throw new ApiError(
       response.status,
       failure?.error.code ?? 'REQUEST_FAILED',
-      failure?.error.message ?? 'تعذر تنفيذ الطلب.',
+      failure?.error.message ?? uiText("تعذر تنفيذ الطلب."),
       failure?.error.details,
     );
   }
   if (!isApiSuccess<T>(payload)) {
     signalWrite('abdo:request-error');
-    throw new ApiError(response.status, 'INVALID_SERVER_RESPONSE', 'استجابة الخادم غير مكتملة.');
+    throw new ApiError(response.status, 'INVALID_SERVER_RESPONSE', uiText("استجابة الخادم غير مكتملة."));
   }
   signalWrite('abdo:request-finish');
   return payload.data;

@@ -1,3 +1,4 @@
+import { uiText, displayLocale } from '../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type NotificationItem, type NotificationPreferences } from '../api.ts';
 import { useRealtimeRefresh } from '../realtime/useRealtimeRefresh.ts';
@@ -96,14 +97,14 @@ export function useNotifications(enabled: boolean) {
           const speech = new SpeechSynthesisUtterance(
             notificationSentence(result.items[0]),
           );
-          speech.lang = 'ar-LY';
+          speech.lang = displayLocale;
           window.speechSynthesis.speak(speech);
         }
       }
       newestId.current = Math.max(newestId.current, latestId);
       initialized.current = true;
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'تعذر تحديث الإشعارات.');
+      setError(caught instanceof Error ? caught.message : uiText("تعذر تحديث الإشعارات."));
     } finally {
       loadingRequest.current = false;
       setLoading(false);
@@ -117,7 +118,7 @@ export function useNotifications(enabled: boolean) {
       api.notificationPreferences().then(value => {
         setPreferences(value);
         setPreferencesReady(true);
-      }).catch(() => setPreferencesError('تعذر تحميل إعدادات التنبيه. أعد تحميل الصفحة للمحاولة.')),
+      }).catch(() => setPreferencesError(uiText("تعذر تحميل إعدادات التنبيه. أعد تحميل الصفحة للمحاولة."))),
     ]);
   }, [enabled, load]);
 
@@ -184,7 +185,7 @@ export function useNotifications(enabled: boolean) {
       preferencesRef.current = saved;
       setPreferences(saved);
     } catch {
-      setPreferencesError('لم يتم حفظ إعدادات التنبيه. الحالة السابقة ما زالت مفعّلة؛ حاول مرة أخرى.');
+      setPreferencesError(uiText("لم يتم حفظ إعدادات التنبيه. الحالة السابقة ما زالت مفعّلة؛ حاول مرة أخرى."));
     } finally {
       savingPreferences.current = false;
       setPreferencesSaving(false);

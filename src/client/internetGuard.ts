@@ -1,3 +1,4 @@
+import { direction, uiText } from './i18n/language.ts';
 const CHECK_INTERVAL_MS = 2_500;
 const CHECK_TIMEOUT_MS = 2_000;
 const FAILURES_BEFORE_NOTICE = 3;
@@ -26,8 +27,8 @@ export async function startInternetGuard(mount: () => void) {
     notice = document.createElement('div');
     notice.className = 'connection-notice';
     notice.setAttribute('role', 'status');
-    notice.setAttribute('dir', 'rtl');
-    notice.textContent = 'الاتصال بالخادم غير مستقر. نعيد المحاولة تلقائيًا؛ لم يتم تأكيد حفظ أي عملية متعذرة.';
+    notice.setAttribute('dir', direction);
+    notice.textContent = uiText("الاتصال بالخادم غير مستقر. نعيد المحاولة تلقائيًا؛ لم يتم تأكيد حفظ أي عملية متعذرة.");
     document.body.append(notice);
   };
 
