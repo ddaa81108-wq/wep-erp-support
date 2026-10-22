@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { warnDuplicate, todayRange } from './duplicateWarning.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
 import { conflict } from '../http/errors.ts';
@@ -36,6 +37,12 @@ export function addTreasuryCashEntry(
       throw conflict('VERSION_CONFLICT', 'تغير رصيد الفلوس النشطة من جلسة أخرى. حدّث الخزينة.');
     }
     const before = Number(account.balance_units);
+    warnDuplicate(input, () => {
+      const { start, end } = todayRange();
+      return Boolean(database.prepare(`SELECT 1 FROM treasury_cash_entries
+        WHERE organization_id=? AND direction=? AND amount_units=? AND created_at>=? AND created_at<? LIMIT 1`)
+        .get(actor.organizationId, parsed.direction, parsed.amountUnits, start, end));
+    });
     const delta = parsed.direction === 'in' ? parsed.amountUnits : -parsed.amountUnits;
     const after = safeUnits(BigInt(before) + BigInt(delta), 'رصيد الفلوس النشطة');
     const sequence = Number(account.next_sequence);

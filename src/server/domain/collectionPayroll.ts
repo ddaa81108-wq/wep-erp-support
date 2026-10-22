@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { warnDuplicate, todayRange } from './duplicateWarning.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
 import { badRequest, conflict, forbidden, notFound } from '../http/errors.ts';
@@ -174,6 +175,13 @@ export function createCollectionPayrollEntry(
     }
     const { period } = payrollDate();
     const month = ensureMonth(db, actor.organizationId, employeeId, period);
+    warnDuplicate(input, () => {
+      const { start, end } = todayRange();
+      return Boolean(db.prepare(`SELECT 1 FROM collection_payroll_entries
+        WHERE organization_id=? AND employee_user_id=? AND entry_kind=? AND amount_units=?
+          AND created_at>=? AND created_at<? LIMIT 1`)
+        .get(actor.organizationId, employeeId, kind, amountUnits, start, end));
+    });
     const id = randomUUID();
     const createdAt = nowIso();
     db.prepare(`INSERT INTO collection_payroll_entries(id,organization_id,month_id,employee_user_id,

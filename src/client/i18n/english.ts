@@ -1,5 +1,10 @@
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
+  'تنبيه معاملة مكررة': 'Possible duplicate transaction',
+  'توجد معاملة مماثلة في نفس المكان خلال يوم العمل الحالي. هل تريد إضافتها مرة أخرى؟':
+    'A matching transaction exists in this record for the current workday. Would you like to add it again?',
+  'رجوع للمراجعة': 'Go back to review',
+  'إضافة مرة أخرى': 'Add again',
   'تم حفظ المعاملة. تعذر تحديث الإجماليات مؤقتًا؛ أعد تحديث العرض دون تكرار المعاملة.':
     'The transaction was saved. Totals could not be refreshed temporarily; refresh the view without submitting the transaction again.',
   'دفع جزئي|compact': 'Partial',

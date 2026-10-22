@@ -56,7 +56,9 @@ function requestFingerprint(input: Record<string, unknown>) {
     }
     return value;
   };
-  return createHash('sha256').update(JSON.stringify(canonical(input))).digest('hex');
+  const businessInput = Object.fromEntries(Object.entries(input)
+    .filter(([key]) => key !== 'checkDuplicate' && key !== 'allowDuplicate'));
+  return createHash('sha256').update(JSON.stringify(canonical(businessInput))).digest('hex');
 }
 
 export function readIdempotent(database: AppDatabase, actorId: string, scope: string, requestId: string, input: Record<string, unknown>) {

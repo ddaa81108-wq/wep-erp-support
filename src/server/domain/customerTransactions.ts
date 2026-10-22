@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { warnDuplicate, todayRange } from './duplicateWarning.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
 import { conflict, notFound } from '../http/errors.ts';
@@ -44,6 +45,15 @@ export function addCustomerTransaction(
     const expectedVersion = assertExpectedVersion(customer, input);
     const currentBalance = customer.currentBalanceUnits;
     const prepared = prepareTransaction(input, currentBalance);
+    warnDuplicate(input, () => {
+      const { start, end } = todayRange();
+      if (prepared.transactionDate < start || prepared.transactionDate >= end) return false;
+      return Boolean(database.prepare(`SELECT 1 FROM debt_transactions
+        WHERE customer_id=? AND entry_type=? AND amount_units=?
+          AND transaction_date>=? AND transaction_date<?
+          AND deleted_at IS NULL AND transaction_status='posted' LIMIT 1`)
+        .get(customerId, prepared.type, prepared.amountUnits, start, end));
+    });
     const transaction = insertPostedTransaction(database, actor, customer, prepared, null, kind);
     const balanceUnits = safeBalance(
       BigInt(currentBalance) +

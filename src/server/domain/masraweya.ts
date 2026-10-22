@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { warnDuplicate } from './duplicateWarning.ts';
 import { inImmediateTransaction, nowIso, type AppDatabase } from '../db/database.ts';
 import { badRequest, conflict, forbidden } from '../http/errors.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
@@ -144,6 +145,12 @@ export function saveMasraweyaDay(
         'VERSION_CONFLICT',
         'تغيرت الصفحة من جلسة أخرى أو تصحح رصيد يوم سابق. مسودتك باقية؛ راجع النسخة المحفوظة.',
       );
+    warnDuplicate(input, () => date === window.today && entries.some(row => {
+      const previousRow = before.entries.find(old => old.sequence === row.sequence);
+      if (previousRow?.valueUnits === row.valueUnits && previousRow.commissionUnits === row.commissionUnits) return false;
+      return entries.some(other => other.sequence !== row.sequence && other.valueUnits === row.valueUnits
+        && other.commissionUnits === row.commissionUnits);
+    }));
     const at = nowIso();
     const id = before.id ?? randomUUID();
     if (before.id) {

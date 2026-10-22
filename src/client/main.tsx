@@ -41,6 +41,7 @@ import './styles/mobile-toolbar-refinement.css';
 import './styles/readability.css';
 import './styles/auth-l01.css';
 import './styles/languages.css';
+import './styles/duplicate-warning.css';
 
 let root: Root | undefined;
 void loadLanguageCatalog()

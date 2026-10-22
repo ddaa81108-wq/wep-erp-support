@@ -2,6 +2,7 @@ import { uiText } from './i18n/language.ts';
 import { isApiFailure, isApiSuccess } from '../shared/httpContracts.ts';
 import { serverErrorText } from './i18n/serverMessages.ts';
 import { PendingReads } from './pendingReads.ts';
+import { confirmDuplicate, duplicateAwareInput } from './components/duplicatePrompt.ts';
 
 export const API_VERSION = '1';
 
@@ -50,7 +51,18 @@ export async function request<T>(path: string, init: RequestInit = {}) {
   if (mutation) {
     pendingReads.clear();
     try {
-      return await performRequest<T>(path, init);
+      const checked = duplicateAwareInput(path, init);
+      try {
+        return await performRequest<T>(path, checked);
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.code !== 'DUPLICATE_SAME_WORKDAY' || typeof checked.body !== 'string') throw error;
+        if (typeof window === 'undefined' || !(await confirmDuplicate()))
+          throw new ApiError(409, 'DUPLICATE_CANCELLED', '');
+        return await performRequest<T>(path, {
+          ...checked,
+          body: JSON.stringify({ ...JSON.parse(checked.body), allowDuplicate: true }),
+        });
+      }
     } finally {
       pendingReads.clear();
     }

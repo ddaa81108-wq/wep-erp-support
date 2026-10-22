@@ -1,0 +1,20 @@
+.duplicate-warning-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  box-sizing: border-box;
+  margin: auto;
+  padding: 22px;
+  border: 1px solid #b69745;
+  border-radius: 18px;
+  background: #181c24;
+  color: #fff;
+  box-shadow: 0 18px 60px #0007;
+  font-family: inherit;
+}
+.duplicate-warning-dialog::backdrop { background: #0008; }
+.duplicate-warning-dialog h2 { margin: 0 0 12px; font-size: 18px; color: #f0ce76; }
+.duplicate-warning-dialog p { margin: 0; font-size: 15px; line-height: 1.9; }
+.duplicate-warning-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.duplicate-warning-actions button { flex: 1 1 150px; min-height: 44px; border-radius: 12px; padding: 10px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+.duplicate-warning-actions button:last-child { background: #e4bd58; color: #17191c; border: 1px solid #b69745; }

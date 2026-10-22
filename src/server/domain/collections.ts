@@ -1,5 +1,6 @@
 import { compareCollectionCards, type CollectionCardState } from '../../shared/collectionCardState.ts';
 import { randomUUID } from 'node:crypto';
+import { warnDuplicate } from './duplicateWarning.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
 import { badRequest, conflict, forbidden, notFound } from '../http/errors.ts';
@@ -170,6 +171,10 @@ export function createUnlinkedCollectionReceipt(
     ) as Record<string, unknown> | undefined;
     if (replay) return { id: String(replay.id), status: String(replay.status), amountUnits: Number(replay.amountUnits), replayed: true, eventSequences: [] };
     const batch = openCollectionBatch(db, actor.organizationId);
+    warnDuplicate(input, () => Boolean(db.prepare(`SELECT 1 FROM collection_unlinked_receipts
+      WHERE organization_id=? AND collector_user_id=? AND batch_id=? AND normalized_name=?
+        AND amount_units=? AND status IN ('pending','approved') LIMIT 1`)
+      .get(actor.organizationId, actor.id, String(batch.id), normalized, amountUnits)));
     const id = randomUUID();
     const submittedAt = nowIso();
     db.prepare(`INSERT INTO collection_unlinked_receipts(
@@ -355,6 +360,9 @@ export function submitCollection(db: AppDatabase, actor: AuthenticatedUser, assi
     if (db.prepare("SELECT 1 FROM collection_submissions WHERE assignment_id=? AND status='pending'").get(assignmentId)) {
       throw conflict('PENDING_SUBMISSION_EXISTS', 'يوجد استلام معلّق لهذا الكارت وينتظر مراجعة الإدارة.');
     }
+    warnDuplicate(input, () => Boolean(db.prepare(`SELECT 1 FROM collection_submissions
+      WHERE customer_id=? AND batch_id=? AND mode=? AND amount_units=? AND status='approved' LIMIT 1`)
+      .get(String(row.customer_id), String(row.batch_id), mode, amount)));
     const id = randomUUID(); const submittedAt = nowIso();
     db.prepare(`INSERT INTO collection_submissions(id,assignment_id,customer_id,collector_user_id,mode,amount_units,status,submitted_at,business_date,batch_id)
       VALUES(?,?,?,?,?,?,'pending',?,?,?)`).run(id, assignmentId, String(row.customer_id), String(row.assignee_user_id), mode, amount, submittedAt, String(row.business_date), String(row.batch_id));

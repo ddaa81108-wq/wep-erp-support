@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { warnDuplicate } from './duplicateWarning.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
 import { conflict, notFound } from '../http/errors.ts';
@@ -38,6 +39,11 @@ export function createPurchaseEntry(
     const expectedDayVersion = integer(input.expectedDayVersion, 'إصدار اليوم');
     if (Number(day.version) !== expectedDayVersion)
       throw conflict('VERSION_CONFLICT', 'تغير سجل المشتريات من جلسة أخرى.');
+    warnDuplicate(input, () => Boolean(db.prepare(`SELECT 1 FROM purchase_entries
+      WHERE organization_id=? AND merchant_id=? AND day_id=? AND item_code=? AND item_label=?
+        AND egp_value_units=? AND result_units=? AND paid_units=? AND vodafone_consumed_units=?
+        AND deleted_at IS NULL LIMIT 1`).get(actor.organizationId, String(merchant.id), String(day.id),
+      parsed.code, parsed.label, parsed.egpValueUnits, parsed.result, parsed.paidUnits, parsed.vodafoneConsumedUnits)));
     const entryId = randomUUID();
     const at = nowIso();
     const sequence = Number(merchant.next_sequence);
