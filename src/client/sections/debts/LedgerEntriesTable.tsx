@@ -1,6 +1,6 @@
 import { uiText } from '../../i18n/language.ts';
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
-import type { Ledger, LedgerItem } from '../../api.ts';
+import type { Ledger, LedgerItem, ConfirmedLedgerWrite } from '../../api.ts';
 import { LedgerDraftRow } from './LedgerDraftRow.tsx';
 import { ledgerBalances } from './ledgerModel.ts';
 import { LedgerRecordRow } from './LedgerRecordRow.tsx';
@@ -48,7 +48,7 @@ export function LedgerEntriesTable({
   newDraftKey: number;
   onEditingChange: (item: LedgerItem | null) => void;
   onCancel: (item: LedgerItem) => void;
-  onSaved: (message: string) => Promise<void>;
+  onSaved: (message: string, saved?: ConfirmedLedgerWrite) => Promise<void>;
   onLoadOlder: () => Promise<void>;
   onResetDraft: () => void;
   onConflict: () => Promise<void>;

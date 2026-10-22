@@ -13,7 +13,9 @@ export function MasraweyaSection({ user }: { user: User }) {
       <section className="masraweya-page">
         <div className="empty">
           {state.loading ? uiText("جارٍ تحميل المصراوية…") : state.error}
-          <button onClick={() => void state.goToday()}>{uiText("إعادة المحاولة")}</button>
+          {!state.loading && state.error && (
+            <button onClick={() => void state.goToday()}>{uiText("إعادة المحاولة")}</button>
+          )}
         </div>
       </section>
     );
@@ -52,8 +54,8 @@ export function MasraweyaSection({ user }: { user: User }) {
       )}
       {state.error && (
         <div className="alert error" role="alert">
-          {state.error} <span>{uiText("لم تُحذف مسودتك.")}</span>
-          <button onClick={() => void state.flush()} disabled={state.busy}>
+          {state.error} {state.dirty && <span>{uiText("لم تُحذف مسودتك.")}</span>}
+          <button onClick={() => void (state.dirty ? state.flush() : state.reload())} disabled={state.busy || state.loading}>
             {uiText("إعادة المحاولة")}</button>
           <button
             onClick={() => {
@@ -88,8 +90,10 @@ export function MasraweyaSection({ user }: { user: User }) {
       </div>
       <footer className="masraweya-actions">
         <span className={`masraweya-autosave-state ${state.error ? 'failed' : ''}`} role="status">
-          {state.error
-            ? uiText("توجد تعديلات غير محفوظة")
+          {state.loading
+            ? uiText("جارٍ تحميل اليوم…")
+            : state.error
+            ? state.dirty ? uiText("توجد تعديلات غير محفوظة") : state.error
             : state.busy
               ? uiText("جارٍ الحفظ…")
               : state.dirty

@@ -1,6 +1,6 @@
 import { uiText } from '../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Customer, CustomerFilter, Ledger } from '../api.ts';
+import type { Customer, CustomerFilter, Ledger, ConfirmedLedgerWrite } from '../api.ts';
 import { api } from '../api.ts';
 import {
   getSectionAccount,
@@ -14,6 +14,7 @@ import { dashboardErrorText, visibleCustomerCards } from './dashboardModel.ts';
 import type { DashboardNotice } from './dashboardTypes.ts';
 import {
   appendCustomerPage,
+  applyConfirmedLedgerWrite,
   mergeCustomerSnapshots,
   mergeFreshLedger,
   prependOlderLedgerPage,
@@ -37,6 +38,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   const [listSummary, setListSummary] = useState({ totalDebt: 0, activeCards: 0, totalItems: 0, netBalance: 0, pendingReviewCount: 0 });
   const [filter, setFilter] = useState<CustomerFilter>('smart');
   const listRequest = useRef(0);
+  const ledgerRequest = useRef(0);
   const loadedPages = useRef(1);
   const openLedgerId = useRef<string | null>(null);
   const pendingLedgerTimer = useRef<number | null>(null);
@@ -79,7 +81,10 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   );
   const loadLedger = useCallback(
     async (id: string) => {
-      setLedger(await fetchLedger(id));
+      const request = ++ledgerRequest.current;
+      const next = await fetchLedger(id);
+      if (request !== ledgerRequest.current) return;
+      setLedger(current => current?.customer.id === id && current.customer.version > next.customer.version ? current : next);
     },
     [fetchLedger],
   );
@@ -140,6 +145,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     [],
   );
   useEffect(() => {
+    ledgerRequest.current++;
     setLedger(null);
     setCustomers([]);
     setQuery('');
@@ -181,8 +187,22 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     }
   }
 
-  async function refreshOpenLedger() {
-    if (ledger) await Promise.all([refreshCustomer(ledger.customer.id), loadLedger(ledger.customer.id)]);
+  async function refreshOpenLedger(saved?: ConfirmedLedgerWrite) {
+    if (saved && ledger?.customer.id === saved.customerId) {
+      const confirmed = applyConfirmedLedgerWrite(ledger, saved);
+      if (confirmed !== ledger) {
+        setLedger(current => applyConfirmedLedgerWrite(current, saved));
+        // The write is already committed. Summary refresh failure must not invite resubmission.
+        void refreshAfterMutation().catch(() => onNotice({ kind: 'error', text: uiText("تم حفظ المعاملة. تعذر تحديث الإجماليات مؤقتًا؛ أعد تحديث العرض دون تكرار المعاملة.") }));
+        return;
+      }
+    }
+    try {
+      if (ledger) await Promise.all([refreshCustomer(ledger.customer.id), loadLedger(ledger.customer.id)]);
+    } catch (error) {
+      if (!saved) throw error;
+      onNotice({ kind: 'error', text: uiText("تم حفظ المعاملة. تعذر تحديث الإجماليات مؤقتًا؛ أعد تحديث العرض دون تكرار المعاملة.") });
+    }
   }
 
   async function reviewZero(customer: Customer) {
@@ -214,8 +234,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     customers,
     visibleCustomers: visibleCustomerCards(customers, debouncedQuery, filter),
     ledger,
-    openLedgerSnapshot: setLedger,
-    closeLedger: () => setLedger(null),
+    closeLedger: () => { ledgerRequest.current++; setLedger(null); },
     query,
     setQuery,
     filter,

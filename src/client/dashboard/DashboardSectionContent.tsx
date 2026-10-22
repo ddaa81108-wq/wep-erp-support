@@ -1,5 +1,6 @@
 import { uiText } from '../i18n/language.ts';
 import { sectionLoaders } from './sectionLoaders.ts';
+import { SectionSnapshotsProvider } from './sectionSnapshots.tsx';
 import { lazy, Suspense } from 'react';
 import type { User } from '../api.ts';
 import { AdminSectionRouter } from '../admin/AdminSectionRouter.tsx';
@@ -68,8 +69,10 @@ export function DashboardSectionContent({
   }
 
   return (
+    <SectionSnapshotsProvider key={`${user.id}:${user.role}:${user.permissions?.join('|') ?? ''}`}>
     <AdminSectionRouter section={user.role === 'admin' ? activeSection : null}>
       <Suspense fallback={<SectionLoading />}>{content}</Suspense>
     </AdminSectionRouter>
+    </SectionSnapshotsProvider>
   );
 }

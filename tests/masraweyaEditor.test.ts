@@ -156,3 +156,55 @@ test('autosave debounce saves the latest value and preserves blank row positions
   assert.deepEqual(writes, [123]);
   editor.dispose();
 });
+
+test('background refreshes coalesce and cannot overwrite edits or a disposed editor', async () => {
+  const pending = deferred<MasraweyaDay>();
+  let calls = 0;
+  const editor = new MasraweyaEditor({
+    load: async () => ++calls === 1 ? day() : pending.promise,
+    save: async () => day(),
+  });
+  await editor.load();
+  const first = editor.refresh(true);
+  const second = editor.refresh(true);
+  assert.equal(first, second);
+  assert.equal(calls, 2);
+  editor.edit('purchases', '25');
+  pending.resolve(day({ version: 2, purchasesUnits: 99 }));
+  await first;
+  assert.equal(editor.snapshot().purchases, '25');
+  editor.dispose();
+});
+
+test('duplicate initial loads are ignored while a read is pending', async () => {
+  const pending = deferred<MasraweyaDay>();
+  let calls = 0;
+  const editor = new MasraweyaEditor({
+    load: () => { calls++; return pending.promise; },
+    save: async () => day(),
+  });
+  const first = editor.load();
+  await editor.load();
+  assert.equal(calls, 1);
+  pending.resolve(day());
+  await first;
+  assert.equal(editor.snapshot().loading, false);
+  editor.dispose();
+});
+
+test('cleanup allows a remount to load and ignores the previous pending result', async () => {
+  const old = deferred<MasraweyaDay>();
+  let calls = 0;
+  const editor = new MasraweyaEditor({
+    load: () => ++calls === 1 ? old.promise : Promise.resolve(day({ version: 3 })),
+    save: async () => day(),
+  });
+  const abandoned = editor.load();
+  editor.dispose();
+  await editor.load();
+  old.resolve(day({ version: 1 }));
+  await abandoned;
+  assert.equal(editor.snapshot().day?.version, 3);
+  assert.equal(editor.snapshot().loading, false);
+  editor.dispose();
+});

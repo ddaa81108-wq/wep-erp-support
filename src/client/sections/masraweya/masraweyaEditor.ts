@@ -32,6 +32,7 @@ export class MasraweyaEditor {
   private loadSequence = 0;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private flight: Promise<boolean> | null = null;
+  private refreshFlight: Promise<void> | null = null;
   private invalidInput = false;
   private state: State = {
     day: null,
@@ -43,8 +44,9 @@ export class MasraweyaEditor {
     loading: false,
     error: '',
   };
-  constructor(transport: Transport) {
+  constructor(transport: Transport, initial?: MasraweyaDay) {
     this.transport = transport;
+    if (initial) this.hydrate(initial);
   }
   snapshot = () => this.state;
   subscribe = (listener: () => void) => {
@@ -74,6 +76,7 @@ export class MasraweyaEditor {
     });
   }
   async load(date?: string) {
+    if (this.state.loading) return;
     const sequence = ++this.loadSequence;
     this.publish({ loading: true, error: '' });
     try {
@@ -163,16 +166,26 @@ export class MasraweyaEditor {
       this.publish({ loading: false });
       return;
     }
+    this.publish({ loading: false });
     await this.load(date);
   }
-  async refresh(followToday = false) {
+  refresh(followToday = false): Promise<void> {
+    if (this.refreshFlight) return this.refreshFlight;
+    this.refreshFlight = this.refreshOnce(followToday).finally(() => {
+      this.refreshFlight = null;
+    });
+    return this.refreshFlight;
+  }
+  private async refreshOnce(followToday: boolean) {
     if (!this.state.day || this.state.loading || this.state.busy || this.state.dirty) return;
     const revision = this.revision;
+    const loadSequence = this.loadSequence;
     const date = this.state.day.businessDate;
     try {
       const next = await this.transport.load(followToday ? undefined : date);
       if (
         this.revision === revision &&
+        this.loadSequence === loadSequence &&
         !this.state.dirty &&
         !this.state.busy &&
         !this.state.loading &&
@@ -188,5 +201,7 @@ export class MasraweyaEditor {
   dispose() {
     clearTimeout(this.timer);
     ++this.loadSequence;
+    // React development mode may mount the same editor again after cleanup.
+    this.publish({ loading: false });
   }
 }

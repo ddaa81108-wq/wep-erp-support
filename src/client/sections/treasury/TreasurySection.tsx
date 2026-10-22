@@ -62,6 +62,8 @@ export function TreasurySection({ user }: { user: User }) {
     void load();
   }, [load]);
   useRealtimeRefresh({
+    enabled: Boolean(dashboard),
+    initialSnapshotProvided: true,
     topics: [
       'financial.summary.changed', 'customer.changed', 'company.changed', 'libyan-deposit.changed', 'egyptian-deposit.changed', 'collection.changed',
       'treasury.changed',

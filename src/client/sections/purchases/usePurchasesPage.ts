@@ -39,6 +39,8 @@ export function usePurchasesPage() {
     void load(merchant);
   }, [merchant, load]);
   useRealtimeRefresh({
+    enabled: Boolean(page),
+    initialSnapshotProvided: true,
     topics: ['purchases.changed'],
     cursorKey: 'abdo:purchases-last-event',
     onChange: () => {

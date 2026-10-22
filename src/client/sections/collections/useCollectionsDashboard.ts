@@ -21,6 +21,8 @@ export function useCollectionsDashboard() {
   }, []);
   useEffect(() => { void load(); }, [load]);
   useRealtimeRefresh({
+    enabled: Boolean(data),
+    initialSnapshotProvided: true,
     topics: ['collection.changed', 'customer.changed', 'company.changed', 'customer.ledger.changed', 'company.ledger.changed'],
     cursorKey: 'abdo:collections-last-event',
     onChange: () => load(true),

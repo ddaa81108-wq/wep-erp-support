@@ -1,7 +1,7 @@
 import { uiText } from '../../i18n/language.ts';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import type { Ledger, LedgerItem } from '../../api.ts';
+import type { Ledger, LedgerItem, ConfirmedLedgerWrite } from '../../api.ts';
 import { CustomerDetailsForm } from './CustomerDialogs.tsx';
 import { debtSectionText, type DebtSection } from './sectionConfig.ts';
 import { cancelSectionTransaction } from './debtSectionApi.ts';
@@ -24,7 +24,7 @@ export function LedgerWorkspace({
   ledger: Ledger;
   canWrite: boolean;
   onClose: () => void;
-  onRefresh: () => Promise<void>;
+  onRefresh: (saved?: ConfirmedLedgerWrite) => Promise<void>;
   onLoadOlder: () => Promise<void>;
   onNotice: (notice: Notice) => void;
 }) {
@@ -32,9 +32,9 @@ export function LedgerWorkspace({
   const [newDraftKey, setNewDraftKey] = useState(0);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [busyId, setBusyId] = useState('');
-  const finish = async (message: string) => {
+  const finish = async (message: string, saved?: ConfirmedLedgerWrite) => {
     setEditing(null);
-    await onRefresh();
+    await onRefresh(saved);
     setNewDraftKey((value) => value + 1);
     onNotice({ kind: 'success', text: message });
   };

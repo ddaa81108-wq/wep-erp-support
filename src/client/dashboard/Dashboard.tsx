@@ -12,6 +12,7 @@ import { useDashboardNavigation } from './useDashboardNavigation.ts';
 import { DashboardSectionContent } from './DashboardSectionContent.tsx';
 import { useCollectionRouting } from './useCollectionRouting.ts';
 import { useDebtAccounts } from './useDebtAccounts.ts';
+import { preloadSection } from './sectionLoaders.ts';
 import type { DashboardDialog, DashboardNotice } from './dashboardTypes.ts';
 import { DashboardUtilityBar } from '../assistant/DashboardUtilityBar.tsx';
 import type { DebtPageProps } from '../sections/debts/pages/debtPageTypes.ts';
@@ -45,6 +46,18 @@ export function Dashboard({
   const canWrite = user.role === 'admin' || user.permissions?.includes(`${permissionPrefix}.write`) === true;
   const labels = debtSectionText[debtSection];
   const debtAccounts = useDebtAccounts({ activeSection, debtSection, canRead, onNotice: setNotice });
+  useEffect(() => {
+    // Warm two common screens after startup, without fetching financial data.
+    const connection = (navigator as Navigator & {
+      connection?: { saveData?: boolean; effectiveType?: string };
+    }).connection;
+    if (connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType ?? '')) return;
+    const timer = window.setTimeout(() => {
+      for (const section of ['masraweya', 'purchases'] as const)
+        if (user.role === 'admin' || user.permissions?.includes(`${section}.read`)) preloadSection(section);
+    }, 2500);
+    return () => window.clearTimeout(timer);
+  }, [user]);
   const logout = useCallback(async () => {
     if (!(await flushBeforeNavigation())) return;
     try { await api.logout(); } finally { onLogout(); }

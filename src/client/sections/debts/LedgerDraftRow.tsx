@@ -1,7 +1,7 @@
 import { uiText } from '../../i18n/language.ts';
 import { useLayoutEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Check, X } from 'lucide-react';
-import { ApiError, type Ledger, type LedgerItem } from '../../api.ts';
+import { ApiError, type Ledger, type LedgerItem, type ConfirmedLedgerWrite } from '../../api.ts';
 import { addSectionTransaction, editSectionTransaction } from './debtSectionApi.ts';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
 import {
@@ -21,7 +21,7 @@ type Props = {
   ledger: Ledger;
   editing: LedgerItem | null;
   onClose: () => void;
-  onSaved: (message: string) => Promise<void>;
+  onSaved: (message: string, saved?: ConfirmedLedgerWrite) => Promise<void>;
   onConflict: () => Promise<void>;
 };
 
@@ -77,10 +77,11 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       note,
     };
     try {
-      if (editing) await editSectionTransaction(section, ledger.customer.id, editing.id, body);
-      else await addSectionTransaction(section, ledger.customer.id, body);
+      const saved = editing
+        ? await editSectionTransaction(section, ledger.customer.id, editing.id, body)
+        : await addSectionTransaction(section, ledger.customer.id, body);
       if (!editing) localStorage.removeItem(draftKey);
-      await onSaved(editing ? uiText("تم تعديل المعاملة في مكانها.") : uiText("تم اعتماد المعاملة وإضافة سطر جديد فارغ."));
+      await onSaved(editing ? uiText("تم تعديل المعاملة في مكانها.") : uiText("تم اعتماد المعاملة وإضافة سطر جديد فارغ."), { ...saved, customerId: ledger.customer.id });
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === 'VERSION_CONFLICT') await onConflict();
       setError(ledgerErrorText(caught));

@@ -26,6 +26,7 @@ import {
 } from '../src/client/dashboard/dashboardModel.ts';
 import {
   appendCustomerPage,
+  applyConfirmedLedgerWrite,
   mergeCustomerSnapshots,
   mergeFreshLedger,
   prependOlderLedgerPage,
@@ -430,4 +431,31 @@ test('audit log classifies account actions and searches translated financial det
     filterAuditEntries(entries, 'إنشاء حساب', 'all').map((entry) => entry.id),
     [1],
   );
+});
+
+test('committed ledger responses apply additions and corrections once without changing pagination', () => {
+  const initial = ledger('customer', [ledgerItem('one', 1)], 'older');
+  const saved = { customerId: 'customer', transaction: ledgerItem('two', 2), customerVersion: 2, balanceUnits: 200 };
+  const added = applyConfirmedLedgerWrite(initial, saved)!;
+  assert.equal(added.items.length, 2);
+  assert.equal(added.customer.balanceUnits, 200);
+  assert.equal(added.customer.nextSequence, 3);
+  assert.equal(added.nextCursor, 'older');
+  assert.equal(applyConfirmedLedgerWrite(added, saved), added);
+  const corrected = applyConfirmedLedgerWrite(added, { ...saved, transaction: { ...saved.transaction, amountUnits: 150 }, customerVersion: 3, balanceUnits: 250 })!;
+  assert.equal(corrected.items.length, 2);
+  assert.equal(corrected.items[1].amountUnits, 150);
+  assert.equal(corrected.totalItems, 2);
+  assert.equal(corrected.customer.balanceUnits, 250);
+  assert.equal(initial.items.length, 1);
+  assert.equal(mergeFreshLedger(corrected, initial, 'customer'), corrected);
+});
+
+test('committed ledger responses reject other accounts, version gaps and unloaded corrections', () => {
+  const initial = ledger('customer', [ledgerItem('one', 1)]);
+  const saved = { customerId: 'other', transaction: ledgerItem('two', 2), customerVersion: 2, balanceUnits: 200 };
+  assert.equal(applyConfirmedLedgerWrite(initial, saved), initial);
+  assert.equal(applyConfirmedLedgerWrite(initial, { ...saved, customerId: 'customer', customerVersion: 3 }), initial);
+  assert.equal(applyConfirmedLedgerWrite(initial, { ...saved, customerId: 'customer', transaction: ledgerItem('older', 0) }), initial);
+  assert.equal(applyConfirmedLedgerWrite(null, saved), null);
 });

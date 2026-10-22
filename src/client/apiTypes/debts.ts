@@ -1,3 +1,10 @@
+export type ConfirmedLedgerWrite = {
+  customerId: string;
+  transaction: LedgerItem;
+  customerVersion: number;
+  balanceUnits: number;
+};
+
 export type Customer = {
   id: string;
   name: string;

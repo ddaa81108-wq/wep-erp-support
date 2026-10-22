@@ -3,22 +3,26 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, FileText, RefreshCw, ShieldCheck } from 'lucide-react';
 import { api, ApiError, type ReportsDashboard } from '../../api.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
+import { useSectionSnapshots } from '../../dashboard/sectionSnapshots.tsx';
 import { closingText, money, netChange, reportSummary, statusText } from './reportViewModel.ts';
 
 const errorText = (error: unknown) => error instanceof ApiError ? error.message : uiText("تعذر تحميل التقارير.");
 
 export function ReportsSection() {
-  const [data, setData] = useState<ReportsDashboard | null>(null);
+  const snapshots = useSectionSnapshots();
+  const [data, setData] = useState<ReportsDashboard | null>(() => snapshots.get<ReportsDashboard>('reports') ?? null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const latestLoad = useRef(0);
   const load = useCallback(async (quiet = false) => {
     const request = ++latestLoad.current;
+    const generation = snapshots.generation;
     if (!quiet) setBusy(true);
     try {
       const next = await api.reports(90);
       if (request !== latestLoad.current) return;
       setData(next);
+      snapshots.set('reports', next, generation);
       setMessage('');
     } catch (error) {
       if (quiet) throw error;
@@ -26,7 +30,7 @@ export function ReportsSection() {
     } finally {
       if (!quiet) setBusy(false);
     }
-  }, []);
+  }, [snapshots]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     const deadlines = data?.items.filter(item => item.fiveAmClosing?.state === 'pending')
@@ -38,6 +42,8 @@ export function ReportsSection() {
     return () => window.clearTimeout(timer);
   }, [data, load]);
   useRealtimeRefresh({
+    enabled: Boolean(data),
+    initialSnapshotProvided: true,
     topics: [
       'financial.summary.changed', 'customer.changed', 'company.changed', 'libyan-deposit.changed', 'egyptian-deposit.changed', 'collection.changed',
       'treasury.changed', 'customer.ledger.changed', 'company.ledger.changed',

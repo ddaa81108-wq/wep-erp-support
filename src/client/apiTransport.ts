@@ -1,6 +1,7 @@
 import { uiText } from './i18n/language.ts';
 import { isApiFailure, isApiSuccess } from '../shared/httpContracts.ts';
 import { serverErrorText } from './i18n/serverMessages.ts';
+import { PendingReads } from './pendingReads.ts';
 
 export const API_VERSION = '1';
 
@@ -23,22 +24,44 @@ export class ApiError extends Error {
 }
 
 let csrfToken = '';
+const pendingReads = new PendingReads();
 const csrfChannel =
   typeof window === 'undefined' || typeof BroadcastChannel === 'undefined'
     ? null
     : new BroadcastChannel('abdo-erp-session');
 if (csrfChannel) {
   csrfChannel.onmessage = (event: MessageEvent<unknown>) => {
-    if (typeof event.data === 'string') csrfToken = event.data;
+    if (typeof event.data === 'string') {
+      pendingReads.clear();
+      csrfToken = event.data;
+    }
   };
 }
 
 export function rememberCsrf(token: string) {
+  pendingReads.clear();
   csrfToken = token;
   csrfChannel?.postMessage(token);
 }
 
 export async function request<T>(path: string, init: RequestInit = {}) {
+  const method = (init.method ?? 'GET').toUpperCase();
+  const mutation = method !== 'GET' && method !== 'HEAD';
+  if (mutation) {
+    pendingReads.clear();
+    try {
+      return await performRequest<T>(path, init);
+    } finally {
+      pendingReads.clear();
+    }
+  }
+  // Custom options (notably abort signals) must retain their independent lifecycle.
+  if (method === 'GET' && Object.keys(init).length === 0 && !/^\/api\/(auth|me|health)(?:[/?]|$)/.test(path))
+    return pendingReads.run(path, () => performRequest<T>(path, init));
+  return performRequest<T>(path, init);
+}
+
+async function performRequest<T>(path: string, init: RequestInit) {
   const headers = new Headers(init.headers);
   headers.set('Accept', 'application/json');
   headers.set('X-Client-Api-Version', API_VERSION);

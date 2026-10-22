@@ -1,7 +1,7 @@
 import { uiText } from '../i18n/language.ts';
 import { lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import type { Customer, Ledger } from '../api.ts';
+import type { Customer, Ledger, ConfirmedLedgerWrite } from '../api.ts';
 import type { DebtSection } from '../sections/debts/sectionConfig.ts';
 
 const CustomerForm = lazy(() => import('../sections/debts/CustomerDialogs.tsx').then((module) => ({ default: module.CustomerForm })));
@@ -22,7 +22,7 @@ type Props = {
   dialog: 'customer' | 'audit' | 'financial-ledger' | 'system-settings' | null;
   canWrite: boolean;
   onCloseLedger: () => void;
-  onRefreshLedger: () => Promise<void>;
+  onRefreshLedger: (saved?: ConfirmedLedgerWrite) => Promise<void>;
   onLoadOlder: () => Promise<void>;
   onNotice: (notice: Notice) => void;
   onCloseDialog: () => void;

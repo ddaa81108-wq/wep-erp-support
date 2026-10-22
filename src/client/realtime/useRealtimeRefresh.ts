@@ -30,6 +30,7 @@ export function useRealtimeRefresh({
     const subscribedTopics = topicKey.split('|').filter(Boolean);
     let stopped = false;
     let polling = false;
+    let lastRecovery = Date.now();
     const cursor = () => Math.max(0, Number(sessionStorage.getItem(cursorKey)) || 0);
     const remember = (sequence: number) => {
       if (sequence > cursor()) sessionStorage.setItem(cursorKey, String(sequence));
@@ -127,7 +128,13 @@ export function useRealtimeRefresh({
         void recover();
       }
     };
-    const pollTimer = window.setInterval(() => void recover(), fallbackIntervalMs);
+    const pollTimer = window.setInterval(() => {
+      // Keep polling as a fallback and a periodic safety check for silent gaps.
+      // Reconnect and visibility handlers still reconcile immediately.
+      if (source.readyState === EventSource.OPEN && Date.now() - lastRecovery < 60_000) return;
+      lastRecovery = Date.now();
+      void recover();
+    }, fallbackIntervalMs);
     window.addEventListener('online', resume);
     window.addEventListener('focus', resume);
     document.addEventListener('visibilitychange', resume);

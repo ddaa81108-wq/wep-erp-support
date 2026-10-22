@@ -1,5 +1,7 @@
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
+  'تم حفظ المعاملة. تعذر تحديث الإجماليات مؤقتًا؛ أعد تحديث العرض دون تكرار المعاملة.':
+    'The transaction was saved. Totals could not be refreshed temporarily; refresh the view without submitting the transaction again.',
   'دفع جزئي|compact': 'Partial',
   'دفع كلي|compact': 'Full',
   'صافي المركز المالي لم يتغير مقارنة باليوم السابق.':
