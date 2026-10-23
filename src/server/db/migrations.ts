@@ -15,6 +15,7 @@ import { masraweyaAutomaticMigrations } from './migrationsMasraweyaAutomatic.ts'
 import { collectionRejectionMigrations } from './migrationsCollectionRejection.ts';
 import { zeroReviewMigrations } from './migrationsZeroReview.ts';
 import { collectionInstallmentMigrations } from './migrationsCollectionInstallments.ts';
+import { unlinkedCurrencyMigrations } from './migrationsUnlinkedCurrency.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -34,4 +35,5 @@ export const migrations: Migration[] = [
   ...reportClosingMigrations,
   ...securityMigrations,
   ...collectionInstallmentMigrations,
+  ...unlinkedCurrencyMigrations,
 ];

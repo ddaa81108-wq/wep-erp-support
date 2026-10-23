@@ -1,5 +1,9 @@
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
+  'عملة الاستلام: دينار ليبي فقط — الربط بحسابات الدينار دون تحويل.':'Receipt currency: Libyan dinar only — link to LYD accounts without conversion.',
+  'لا يمكن ربط الاستلام إلا بحساب بالدينار الليبي، دون تحويل.':'This receipt can only be linked to an LYD account, without conversion.',
+  'استلام قديم مرتبط بعملة مختلفة؛ يلزم مراجعة الإدارة، ولم يتم تعديل الرصيد تلقائيًا.':'A historical receipt is linked to a different currency. Administrative review is required; no balance was changed automatically.',
+  'ابحث عن العميل في حسابات الدينار الليبي':'Search for the customer in LYD accounts',
   'تعذر قراءة سجل الطلبات المعلقة على هذا الجهاز. راجع الدعم قبل إرسال تحصيل جديد.': 'Unable to read pending requests on this device. Contact support before submitting a new collection.',
   'توجد محاولة سابقة لم يتأكد ردها. أعد التحقق منها قبل تغيير المبلغ أو نوع التحصيل.': 'A previous attempt has not been acknowledged. Verify it before changing the amount or collection type.',
   'تعذر حفظ مفتاح الطلب على هذا الجهاز. لم يتم إرسال تحصيل جديد.': 'Unable to save the request key on this device. No new collection was sent.',

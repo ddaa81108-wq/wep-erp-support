@@ -95,7 +95,8 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     WHERE c.organization_id=? ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'}`).get(...params) as Record<string, unknown>;
   const unlinkedScope = actor.role === 'admin' ? '' : 'AND r.collector_user_id=?';
   const unlinkedReceipts = db.prepare(`SELECT r.id,r.customer_name AS customerName,
-    r.amount_units AS amountUnits,r.status,r.submitted_at AS submittedAt,
+    r.amount_units AS amountUnits,r.currency,r.status,r.submitted_at AS submittedAt,
+    EXISTS(SELECT 1 FROM debt_transactions t WHERE t.id=r.approved_transaction_id AND t.currency<>r.currency) AS currencyMismatch,
     r.business_date AS businessDate,r.batch_id AS batchId,
     r.linked_customer_id AS linkedCustomerId,r.entry_type AS entryType,
     r.decided_at AS decidedAt,r.decision_note AS decisionNote,
@@ -161,16 +162,17 @@ export function createUnlinkedCollectionReceipt(
   correlationId: string,
 ) {
   if (actor.role === 'admin') throw forbidden('collections.employee_receipt');
+  if(input.currency!==undefined&&input.currency!=='LYD')throw badRequest('UNLINKED_RECEIPT_CURRENCY_INVALID','الاستلام غير المرتبط بالدينار الليبي فقط، ولا يقبل تحويل العملة.');
   const requestId = validateRequestId(input.requestId);
   const { name, normalized } = normalizePartyName(input.customerName);
   const amountUnits = asPositiveWholeUnits(input.amountUnits, 'amountUnits');
   return inImmediateTransaction(db, () => {
-    const replay = db.prepare(`SELECT id,status,amount_units AS amountUnits
+    const replay = db.prepare(`SELECT id,status,currency,amount_units AS amountUnits
       FROM collection_unlinked_receipts WHERE collector_user_id=? AND request_id=?`).get(
       actor.id,
       requestId,
     ) as Record<string, unknown> | undefined;
-    if (replay) return { id: String(replay.id), status: String(replay.status), amountUnits: Number(replay.amountUnits), replayed: true, eventSequences: [] };
+    if (replay) return { id: String(replay.id), status: String(replay.status), currency:'LYD' as const, amountUnits: Number(replay.amountUnits), replayed: true, eventSequences: [] };
     const batch = openCollectionBatch(db, actor.organizationId);
     warnDuplicate(input, () => Boolean(db.prepare(`SELECT 1 FROM collection_unlinked_receipts
       WHERE organization_id=? AND collector_user_id=? AND batch_id=? AND normalized_name=?
@@ -180,16 +182,16 @@ export function createUnlinkedCollectionReceipt(
     const submittedAt = nowIso();
     db.prepare(`INSERT INTO collection_unlinked_receipts(
       id,organization_id,collector_user_id,customer_name,normalized_name,amount_units,
-      request_id,status,submitted_at,business_date,batch_id
-    ) VALUES(?,?,?,?,?,?,?,'pending',?,?,?)`).run(
+      request_id,status,submitted_at,business_date,batch_id,currency
+    ) VALUES(?,?,?,?,?,?,?,'pending',?,?,?,'LYD')`).run(
       id,actor.organizationId,actor.id,name,normalized,amountUnits,requestId,
       submittedAt,String(batch.business_date),String(batch.id),
     );
     audit(db,actor.id,actor.organizationId,'collection.unlinked.submit',id,correlationId,{
-      subjectName:name,subjectSection:'collections',amountUnits,
+      subjectName:name,subjectSection:'collections',amountUnits,currency:'LYD',
     });
     const eventSequence=emitCollectionEvent(db,id,actor.id,actor.organizationId,'unlinked_submitted',{amountUnits});
-    return {id,status:'pending',amountUnits,eventSequences:[eventSequence]};
+    return {id,status:'pending',amountUnits,currency:'LYD' as const,eventSequences:[eventSequence]};
   });
 }
 
@@ -201,10 +203,10 @@ export function collectionLinkCandidates(db: AppDatabase, actor: AuthenticatedUs
   if(!tokens.length)return {items:[]};
   const ftsQuery=tokens.map((token)=>`"${token.replaceAll('"','""')}"*`).join(' OR ');
   const items=db.prepare(`SELECT c.id,c.name,c.current_balance_units AS balanceUnits,
-    c.section_key AS sectionKey
+    c.section_key AS sectionKey,'LYD' AS currency
     FROM customer_name_search JOIN customers c ON c.id=customer_name_search.customer_id
     WHERE customer_name_search MATCH ? AND customer_name_search.organization_id=?
-      AND c.section_key IN ('customer_debts','company_debts','libyan_deposits','egyptian_deposits')
+      AND c.section_key IN ('customer_debts','company_debts','libyan_deposits')
       AND c.deleted_at IS NULL
     ORDER BY c.normalized_name=? DESC,bm25(customer_name_search),c.financial_updated_at DESC
     LIMIT 12`).all(ftsQuery,actor.organizationId,normalized);
@@ -236,6 +238,8 @@ export function decideUnlinkedCollectionReceipt(
       const eventSequence=emitCollectionEvent(db,receiptId,actor.id,actor.organizationId,'unlinked_rejected');
       return {id:receiptId,status:'rejected',eventSequences:[eventSequence]};
     }
+    if(row.currency!=='LYD')throw conflict('UNLINKED_RECEIPT_CURRENCY_INVALID','عملة الاستلام غير صالحة؛ يلزم مراجعتها قبل الاعتماد.');
+    if(input.currency!==undefined&&input.currency!=='LYD')throw conflict('COLLECTION_CURRENCY_MISMATCH','عملة الاستلام دينار ليبي؛ لا يمكن ربطه بحساب بعملة مختلفة أو تحويله تلقائيًا.');
     let customerId=typeof input.customerId==='string'?input.customerId.trim():'';
     const newAccountKind=input.newAccountKind;
     const entryType=input.entryType;
@@ -260,6 +264,7 @@ export function decideUnlinkedCollectionReceipt(
       customerId,actor.organizationId,
     ) as Record<string,unknown>|undefined;
     if(!customer)throw notFound('customer');
+    if(customer.section_key==='egyptian_deposits')throw conflict('COLLECTION_CURRENCY_MISMATCH','عملة الاستلام دينار ليبي؛ لا يمكن ربطه بالأمانات المصرية أو تحويله تلقائيًا.');
     const kinds={customer_debts:'customer',company_debts:'company',libyan_deposits:'depositLyd',egyptian_deposits:'depositEgp'} as const;
     const sectionKey=String(customer.section_key) as keyof typeof kinds;
     const collector:AuthenticatedUser={
@@ -280,7 +285,7 @@ export function decideUnlinkedCollectionReceipt(
       decided_by_user_id=?,decided_at=?,decision_note=?,approved_transaction_id=?
       WHERE id=? AND status='pending'`).run(customerId,entryType,actor.id,decidedAt,note,body.transaction.id,receiptId);
     audit(db,actor.id,actor.organizationId,'collection.unlinked.approve',receiptId,correlationId,{
-      customerId,subjectName:String(customer.name),subjectSection:sectionKey,entryType,amountUnits,
+      customerId,subjectName:String(customer.name),subjectSection:sectionKey,entryType,amountUnits,currency:'LYD',
       transactionId:body.transaction.id,collectorId:row.collector_user_id,
     });
     const eventSequence=emitCollectionEvent(db,receiptId,actor.id,actor.organizationId,'unlinked_approved',{customerId});

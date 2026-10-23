@@ -44,6 +44,8 @@ export type UnlinkedCollectionReceipt = {
   customerName: string;
   collectorName: string;
   amountUnits: number;
+  currency: 'LYD';
+  currencyMismatch: number;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt: string;
   businessDate: string;
@@ -59,6 +61,7 @@ export type CollectionLinkCandidate = {
   id: string;
   name: string;
   balanceUnits: number;
+  currency: 'LYD';
   sectionKey: 'customer_debts' | 'company_debts' | 'libyan_deposits' | 'egyptian_deposits';
 };
 

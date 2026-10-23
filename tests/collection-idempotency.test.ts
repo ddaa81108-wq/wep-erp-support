@@ -10,6 +10,7 @@ import { submitCollection, decideCollection, closeCollectionDay, markCollectionC
 import { HttpError } from '../src/server/http/errors.ts';
 import { createApp, listen } from '../src/server/app.ts';
 import { loadConfig } from '../src/server/config.ts';
+import { SCHEMA_VERSION } from '../src/server/config.ts';
 import { createSession } from '../src/server/security/sessions.ts';
 import { readPendingCollections, writePendingCollections } from '../src/client/employee/collections/pendingCollectionRequests.ts';
 
@@ -70,10 +71,11 @@ test('schema 50 upgrades pending receipts to independent installments without de
   try {
     const body={mode:'partial',amountUnits:15,requestId:'pre-upgrade-pending-key'};
     const first=submitCollection(db,collector,assignments[0],body,'test');
-    db.exec(`DROP INDEX idx_pending_collection_assignment;
+    db.exec(`ALTER TABLE collection_unlinked_receipts DROP COLUMN currency;
+      DROP INDEX idx_pending_collection_assignment;
       DROP INDEX uq_pending_full_collection_submission;
       CREATE UNIQUE INDEX uq_pending_collection_submission ON collection_submissions(assignment_id) WHERE status='pending';
-      DELETE FROM schema_migrations WHERE version=51;`);
+      DELETE FROM schema_migrations WHERE version>=51;`);
     db.close(); closed=true;
     const upgraded=openDatabase(path);
     try {
@@ -81,7 +83,7 @@ test('schema 50 upgrades pending receipts to independent installments without de
       const second=submitCollection(upgraded,collector,assignments[0],{...body,requestId:'post-upgrade-pending-key'},'test');
       assert.notEqual(second.id,first.id);
       assert.equal(upgraded.prepare('SELECT COUNT(*) n FROM collection_submissions').get()!.n,2);
-      assert.equal(upgraded.prepare('SELECT MAX(version) version FROM schema_migrations').get()!.version,51);
+      assert.equal(upgraded.prepare('SELECT MAX(version) version FROM schema_migrations').get()!.version,Number(SCHEMA_VERSION));
     } finally {upgraded.close();}
   } finally {if(!closed)db.close();rmSync(root,{recursive:true,force:true});}
 });

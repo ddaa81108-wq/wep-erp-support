@@ -146,6 +146,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
             <div>
               <h2>{uiText("إنشاء عميل مستقل")}</h2>
               <p>{uiText("سجّل الاسم والقيمة فقط. لن تتغير أي أرصدة حتى تربطه الإدارة بكارت أصلي وتعتمده.")}</p>
+              <p className="muted">{uiText('عملة الاستلام: دينار ليبي فقط — الربط بحسابات الدينار دون تحويل.')}</p>
             </div>
           </header>
           <form ref={bindCreate} onInput={changeCreate} onChange={changeCreate} onSubmit={createUnlinked}>

@@ -387,10 +387,13 @@ export function reconcileFinancials(db: AppDatabase) {
             customerId: text(row.scope).match(/^[^:]+:(.+):transactions:create$/)?.[1] ?? '',
           });
       }
+      const hasReceiptCurrency = read('PRAGMA table_info(collection_unlinked_receipts)').some(
+        (column) => column.name === 'currency',
+      );
       const approved = read(
-        `SELECT s.id,s.customer_id,s.amount_units,s.approved_transaction_id,'payment' entry_type,'collection-' prefix
+        `SELECT s.id,s.customer_id,s.amount_units,s.approved_transaction_id,'payment' entry_type,'collection-' prefix,'LYD' currency
         FROM collection_submissions s JOIN customers c ON c.id=s.customer_id WHERE c.organization_id=? AND s.status='approved'
-        UNION ALL SELECT id,linked_customer_id,amount_units,approved_transaction_id,entry_type,'unlinked-collection-' prefix
+        UNION ALL SELECT id,linked_customer_id,amount_units,approved_transaction_id,entry_type,'unlinked-collection-' prefix,${hasReceiptCurrency ? 'currency' : 'NULL'} currency
         FROM collection_unlinked_receipts WHERE organization_id=? AND status='approved'`,
         org,
         org,
@@ -406,6 +409,9 @@ export function reconcileFinancials(db: AppDatabase) {
         const original = posting.transaction;
         structural(org, id, 'receipt.transaction_id', text(receipt.approved_transaction_id), original.id);
         structural(org, id, 'receipt.type', text(receipt.entry_type), original.type);
+        if (receipt.currency !== null)
+          structural(org, id, 'receipt.currency', text(receipt.currency), original.currency);
+        else warn({ code: 'RECEIPT_CURRENCY_UNAVAILABLE', organizationId: org, entityId: id });
         structural(org, id, 'receipt.customer', text(receipt.customer_id), posting.customerId);
         const originalAmount = original.amountUnits;
         if (typeof originalAmount === 'number' && Number.isSafeInteger(originalAmount))
@@ -432,6 +438,8 @@ export function reconcileFinancials(db: AppDatabase) {
         structural(org, id, 'collection_posting.customer', posting.customerId, current.customer_id);
         structural(org, id, 'collection_posting.currency', text(original.currency), current.currency);
         const unlinked = key.startsWith('unlinked-collection-');
+        if (unlinked && original.currency !== 'LYD')
+          warn({ code: 'UNLINKED_COLLECTION_CURRENCY_POLICY_REVIEW', organizationId: org, entityId: id });
         const receiptId = key.slice(unlinked ? 'unlinked-collection-'.length : 'collection-'.length);
         const approval = read(
           'SELECT details_json FROM audit_log WHERE organization_id=? AND action=? AND entity_id=? ORDER BY id LIMIT 1',

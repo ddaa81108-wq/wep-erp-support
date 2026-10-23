@@ -63,7 +63,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
     setError('');
     try {
       const result = await api.collectionLinkCandidates(query.trim());
-      setCandidates(result.items);
+      setCandidates(result.items.filter(candidate=>candidate.currency==='LYD'&&candidate.sectionKey!=='egyptian_deposits'));
     } catch (caught) {
       setError(collectionError(caught));
     } finally {
@@ -74,6 +74,10 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
   const approve = async () => {
     if (!linkingReceipt || (linkMode === 'existing' && !selectedCustomerId)) {
       setError(uiText("اختر الكارت الأصلي أولًا أو أنشئ حسابًا جديدًا."));
+      return;
+    }
+    if(linkingReceipt.currency!=='LYD'||(linkMode==='existing'&&!candidates.some(candidate=>candidate.id===selectedCustomerId&&candidate.currency==='LYD'&&candidate.sectionKey!=='egyptian_deposits'))){
+      setError(uiText('لا يمكن ربط الاستلام إلا بحساب بالدينار الليبي، دون تحويل.'));
       return;
     }
     const completed = await run(`unlinked-${linkingReceipt.id}`, () =>
@@ -94,6 +98,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
       <section className="collection-panel admin-collection-panel">
         <h2>{uiText("استلامات بلا كارت موجه")}</h2>
         <p className="muted">{uiText("لا تؤثر على أي حساب حتى تربطها الإدارة بكارت أصلي وتعتمدها.")}</p>
+        <p className="muted">{uiText('عملة الاستلام: دينار ليبي فقط — الربط بحسابات الدينار دون تحويل.')}</p>
         <div className="admin-collection-grid">
           {receipts.map((receipt) => (
             <article
@@ -108,6 +113,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
                 <b>{collectionMoney.format(receipt.amountUnits)} {uiText(" د.ل")}</b>
               </header>
               <div className="admin-card-history">
+                {Boolean(receipt.currencyMismatch)&&<p className="alert error">{uiText('استلام قديم مرتبط بعملة مختلفة؛ يلزم مراجعة الإدارة، ولم يتم تعديل الرصيد تلقائيًا.')}</p>}
                 <article>
                   <div>
                     <strong>
@@ -168,6 +174,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
             <header>
               <div>
                 <h3>{uiText("ربط استلام بكارت أصلي")}</h3>
+                <p>{uiText('عملة الاستلام: دينار ليبي فقط — الربط بحسابات الدينار دون تحويل.')}</p>
                 <p>
                   {linkingReceipt.customerName} — {collectionMoney.format(linkingReceipt.amountUnits)} {uiText(" د.ل")}</p>
               </div>
@@ -184,7 +191,7 @@ export function UnlinkedReceiptsPanel({ receipts, busy, setBusy, setError, load 
             {linkMode === 'existing' ? <>
             <div className="collection-candidate-search">
               <label>
-                {uiText("ابحث عن العميل في كل الأقسام")}<input
+                {uiText('ابحث عن العميل في حسابات الدينار الليبي')}<input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={(event) => {

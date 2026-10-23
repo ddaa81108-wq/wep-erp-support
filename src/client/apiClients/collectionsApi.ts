@@ -43,8 +43,8 @@ export const collectionsApi = {
       { method: 'POST', body: JSON.stringify({ mode, amountUnits, requestId }) },
     ),
   createUnlinkedCollectionReceipt: (customerName: string, amountUnits: number, requestId: string) =>
-    request<{id:string;status:'pending';amountUnits:number}>('/api/collections/unlinked-receipts',{
-      method:'POST',body:JSON.stringify({customerName,amountUnits,requestId}),
+    request<{id:string;status:'pending';amountUnits:number;currency:'LYD'}>('/api/collections/unlinked-receipts',{
+      method:'POST',body:JSON.stringify({customerName,amountUnits,requestId,currency:'LYD'}),
     }),
   collectionLinkCandidates: (query:string) =>
     request<{items:CollectionLinkCandidate[]}>(`/api/collections/link-candidates?q=${encodeURIComponent(query)}`),

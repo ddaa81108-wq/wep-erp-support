@@ -28,6 +28,7 @@ test('emergency backup preserves all tables and rejects corrupted restore packag
     const legacyPath = join(root, 'schema47.sqlite');
     copyFileSync(path, legacyPath);
     const legacy = new DatabaseSync(legacyPath);
+    legacy.exec('ALTER TABLE collection_unlinked_receipts DROP COLUMN currency;');
     legacy.exec(`DROP INDEX idx_pending_collection_assignment;
       DROP INDEX uq_pending_full_collection_submission;
       CREATE UNIQUE INDEX uq_pending_collection_submission ON collection_submissions(assignment_id) WHERE status='pending';`);
