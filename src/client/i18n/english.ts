@@ -1,5 +1,8 @@
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
+  'الباقي المرحّل من اليوم السابق': 'Balance carried forward from the previous day',
+  'الرصيد السابق للمعاملات المعروضة': 'Balance before the displayed transactions',
+  'الرصيد التراكمي بعد المعاملة': 'Running balance after this transaction',
   'توجد بيانات غير محفوظة. هل تريد المغادرة دون اعتمادها؟ اضغط إلغاء للرجوع للمراجعة.':
     'There are unsaved changes. Leave without submitting them? Choose Cancel to return and review.',
   'تنبيه معاملة مكررة': 'Possible duplicate transaction',

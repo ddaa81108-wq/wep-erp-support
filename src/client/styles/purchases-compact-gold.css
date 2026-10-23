@@ -50,3 +50,39 @@
   .purchases-page .purchase-workbar .purchase-dock-day { padding-inline:6px; }
 }
 
+:root[data-theme] .purchases-page .purchase-register .purchase-day-opening {
+  align-items: center;
+  padding-block: 5px;
+  margin-block: 3px 6px;
+  border-block: 1px solid #9d8345;
+  background: var(--paper);
+  color: var(--ink);
+}
+:root[data-theme] .purchases-page .purchase-register .purchase-day-opening .purchase-carry-label {
+  grid-column: 1 / 8;
+  justify-self: end;
+  padding-inline: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+:root[data-theme] .purchases-page .purchase-register .purchase-carry-value {
+  grid-column: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(#ffeaa1, #d1a840);
+  color: #211a08;
+  font: 800 14px Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
+  padding-inline: 5px;
+}
+:root[data-theme] .purchases-page .purchase-register .purchase-row > .purchase-running-balance,
+:root[data-theme] .purchases-page .purchase-register .purchase-inline-editor > .purchase-running-balance {
+  background: #ffe7a3;
+  color: #211a08;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}

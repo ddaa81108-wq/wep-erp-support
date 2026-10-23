@@ -3,11 +3,15 @@ import { Check, Pencil, Trash2 } from 'lucide-react';
 import type { PurchaseEntry, PurchaseMerchantKey } from '../../api.ts';
 import { PurchaseInlineEditor } from './PurchaseInlineEditor.tsx';
 import { purchaseNumber } from './purchaseEditorModel.ts';
+import { PurchaseCarryRow } from './PurchaseCarryRow.tsx';
 
 export function PurchaseEntryGroup({
   entry,
   showSeparator,
   showClosing,
+  balanceBeforeUnits,
+  runningBalanceUnits,
+  partialOpening,
   editing,
   busy,
   canWrite,
@@ -25,6 +29,9 @@ export function PurchaseEntryGroup({
   entry: PurchaseEntry;
   showSeparator: boolean;
   showClosing: boolean;
+  balanceBeforeUnits: number | null;
+  runningBalanceUnits: number | null;
+  partialOpening: boolean;
   editing: boolean;
   busy: boolean;
   canWrite: boolean;
@@ -54,8 +61,9 @@ export function PurchaseEntryGroup({
           )}
         </div>
       )}
+      {showSeparator && <PurchaseCarryRow balance={balanceBeforeUnits} partial={partialOpening} />}
       {historicalEditing || editing ? (
-        <PurchaseInlineEditor entry={entry} dayVersion={entry.dayVersion} busy={busy}
+        <PurchaseInlineEditor entry={entry} dayVersion={entry.dayVersion} balanceBeforeUnits={balanceBeforeUnits} busy={busy}
           markDirty={onMarkDirty} cancel={onCancelEditing} saved={onSaved} merchant={merchant}
           setBusy={onBusyChange} setMessage={onMessage} />
       ) : (
@@ -70,7 +78,7 @@ export function PurchaseEntryGroup({
           <span data-label={uiText("السعر")} dir="ltr">{entry.exchangeRate}</span>
           <span data-label={uiText("الناتج")} dir="ltr">{purchaseNumber.format(entry.resultUnits)}</span>
           <span data-label={uiText("المسدد")} dir="ltr">{purchaseNumber.format(entry.paidUnits)}</span>
-          <span data-label={uiText("الباقي")} dir="ltr">{purchaseNumber.format(entry.remainingUnits)}</span>
+          <span className="purchase-running-balance" data-label={uiText("الباقي")} title={uiText('الرصيد التراكمي بعد المعاملة')} dir="ltr">{runningBalanceUnits === null ? '—' : purchaseNumber.format(runningBalanceUnits)}</span>
           <span data-label={uiText("مستهلك فودافون")} dir="ltr">{purchaseNumber.format(entry.vodafoneConsumedUnits)}</span>
           <span className="purchase-actions">
             {entry.dayStatus === 'finalized' && !entry.correctionOpen && (

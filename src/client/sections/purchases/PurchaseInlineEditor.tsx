@@ -3,10 +3,12 @@ import { Check, X } from 'lucide-react';
 import type { PurchaseEntry, PurchaseMerchantKey } from '../../api.ts';
 import { PURCHASE_TYPES, purchaseNumber } from './purchaseEditorModel.ts';
 import { usePurchaseEditor } from './usePurchaseEditor.ts';
+import { purchasePreviewBalance } from './purchaseRunningBalance.ts';
 
 type Props = {
   entry?: PurchaseEntry;
   dayVersion: number;
+  balanceBeforeUnits: number | null;
   busy: boolean;
   merchant: PurchaseMerchantKey;
   markDirty: () => void;
@@ -19,6 +21,7 @@ type Props = {
 export function PurchaseInlineEditor({
   entry,
   dayVersion,
+  balanceBeforeUnits,
   busy,
   merchant,
   markDirty,
@@ -37,6 +40,7 @@ export function PurchaseInlineEditor({
     setMessage,
   });
 
+  const runningBalance = purchasePreviewBalance(balanceBeforeUnits, remaining);
   return (
     <div className="purchase-grid purchase-inline-editor">
       <span className="purchase-sequence">{entry ? entry.sequence : uiText("جديد")}</span>
@@ -111,8 +115,8 @@ export function PurchaseInlineEditor({
           onKeyDown={keys}
         />
       </span>
-      <span className="calculated" dir="ltr">
-        {purchaseNumber.format(remaining)}
+      <span className="calculated purchase-running-balance" dir="ltr" title={uiText('الرصيد التراكمي بعد المعاملة')}>
+        {runningBalance === null ? '—' : purchaseNumber.format(runningBalance)}
       </span>
       <span>
         <input
