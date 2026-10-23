@@ -7,7 +7,7 @@ import { badRequest, conflict, forbidden, notFound } from '../http/errors.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
 import { addCustomerTransaction, createCustomer } from './customers.ts';
 import { asPositiveWholeUnits, normalizePartyName } from './customerMoney.ts';
-import { validateRequestId } from './customerTransactionSupport.ts';
+import { validateRequestId, readIdempotent, rememberIdempotent } from './customerTransactionSupport.ts';
 import { isValidCalendarDate } from './dates.ts';
 
 const MAX_ASSIGNMENT_CARDS = 500;
@@ -67,6 +67,7 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     u.display_name AS assigneeName,
     c.current_balance_units AS balanceUnits,
     EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending') AS hasPending,
+    EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending' AND s.mode='full') AS hasPendingFull,
     (SELECT s.mode FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestMode,
     (SELECT s.status FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestStatus,
     (SELECT s.cash_received_at FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestCashReceivedAt,
@@ -85,7 +86,7 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     s.cash_received_at AS cashReceivedAt, c.name AS customerName, c.phone,
     u.display_name AS collectorName FROM collection_submissions s
     JOIN customers c ON c.id=s.customer_id JOIN users u ON u.id=s.collector_user_id
-    WHERE c.organization_id=? ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'} ORDER BY s.submitted_at DESC LIMIT 200`).all(...params);
+    WHERE c.organization_id=? ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'} ORDER BY s.submitted_at DESC,s.rowid DESC LIMIT 200`).all(...params);
   const baseMetrics = db.prepare(`SELECT COALESCE(SUM(CASE WHEN status='approved' THEN amount_units ELSE 0 END),0) AS collectedUnits,
     SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) AS pendingCount,
     SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END) AS executedCount,
@@ -343,9 +344,18 @@ export function assignCustomers(db: AppDatabase, actor: AuthenticatedUser, input
 }
 
 export function submitCollection(db: AppDatabase, actor: AuthenticatedUser, assignmentId: string, input: Record<string, unknown>, correlationId: string) {
+  const requestId = validateRequestId(input.requestId);
   const mode = input.mode;
   if (mode !== 'full' && mode !== 'partial') throw badRequest('INVALID_MODE', 'نوع الاستلام غير صالح.');
+  const submittedAmount = mode === 'partial' || input.amountUnits !== undefined
+    ? asPositiveWholeUnits(input.amountUnits, 'amountUnits') : undefined;
+  const fingerprintInput = { assignmentId, mode, ...(submittedAmount === undefined ? {} : { amountUnits: submittedAmount }) };
+  const scope = `collections:submissions:${actor.organizationId}`;
   return inImmediateTransaction(db, () => {
+    // Keep the original acknowledgement even after approval/rejection or batch cleanup.
+    // Authentication/permissions still apply at the route; the key is actor + tenant scoped.
+    const replay = readIdempotent(db, actor.id, scope, requestId, fingerprintInput);
+    if (replay) return { ...replay.body as { id: string; status: string; amountUnits: number }, replayed: true, eventSequences: [] as number[] };
     const row = db.prepare(`SELECT a.*, c.current_balance_units AS balance,
         c.name AS customer_name,c.section_key
       FROM debt_assignments a JOIN customers c ON c.id=a.customer_id
@@ -357,7 +367,9 @@ export function submitCollection(db: AppDatabase, actor: AuthenticatedUser, assi
     if (mode === 'full' && currentDebt <= 0) throw conflict('NO_POSITIVE_DEBT', 'لا يوجد دين موجب للاستلام الكلي.');
     const amount = asPositiveWholeUnits(mode === 'full' ? currentDebt : input.amountUnits, 'amountUnits');
     if (mode === 'full' && input.amountUnits !== undefined && Number(input.amountUnits) !== currentDebt) throw conflict('FULL_AMOUNT_CHANGED', 'الاستلام الكلي يجب أن يساوي الدين الحالي بالضبط.');
-    if (db.prepare("SELECT 1 FROM collection_submissions WHERE assignment_id=? AND status='pending'").get(assignmentId)) {
+    // Distinct partial receipts may await review together. A full receipt must not
+    // overlap another pending receipt, whose amount is not posted to the balance yet.
+    if (db.prepare("SELECT 1 FROM collection_submissions WHERE assignment_id=? AND status='pending' AND (?='full' OR mode='full')").get(assignmentId,mode)) {
       throw conflict('PENDING_SUBMISSION_EXISTS', 'يوجد استلام معلّق لهذا الكارت وينتظر مراجعة الإدارة.');
     }
     warnDuplicate(input, () => Boolean(db.prepare(`SELECT 1 FROM collection_submissions
@@ -376,7 +388,9 @@ export function submitCollection(db: AppDatabase, actor: AuthenticatedUser, assi
       amountUnits: amount,
     });
     const eventSequence = emitCollectionEvent(db, assignmentId, actor.id, actor.organizationId, 'submitted', { submissionId: id });
-    return { id, status: 'pending', amountUnits: amount, eventSequences: [eventSequence] };
+    const body = { id, status: 'pending', amountUnits: amount };
+    rememberIdempotent(db, actor.id, scope, requestId, { status: 201, body }, fingerprintInput);
+    return { ...body, replayed: false, eventSequences: [eventSequence] };
   });
 }
 
@@ -395,12 +409,13 @@ export function decideCollection(db: AppDatabase, actor: AuthenticatedUser, subm
     const decidedAt = nowIso(); const note = typeof input.note === 'string' ? input.note.trim().slice(0, 500) : '';
     if (decision === 'reject') {
       db.prepare("UPDATE collection_submissions SET status='rejected',decided_by_user_id=?,decided_at=?,decision_note=? WHERE id=?").run(actor.id, decidedAt, note, submissionId);
-      db.prepare("UPDATE debt_assignments SET status='cancelled',cancelled_at=? WHERE id=? AND status='active'")
+      const cancelled = db.prepare(`UPDATE debt_assignments SET status='cancelled',cancelled_at=? WHERE id=? AND status='active'
+        AND NOT EXISTS(SELECT 1 FROM collection_submissions WHERE assignment_id=debt_assignments.id AND status='pending')`)
         .run(decidedAt, String(row.assignment_id));
       audit(db, actor.id, actor.organizationId, 'collection.reject', submissionId, correlationId, { note, assignmentId: row.assignment_id });
       const collectionEvent = emitCollectionEvent(db, submissionId, actor.id, actor.organizationId, 'rejected');
-      const assignmentEvent = emitDebtAssignmentEvent(db, String(row.customer_id), actor.id, actor.organizationId, 'unassigned', String(row.section_key));
-      return { id: submissionId, status: 'rejected', eventSequences: [collectionEvent, assignmentEvent] };
+      const assignmentEvents = cancelled.changes ? [emitDebtAssignmentEvent(db, String(row.customer_id), actor.id, actor.organizationId, 'unassigned', String(row.section_key))] : [];
+      return { id: submissionId, status: 'rejected', eventSequences: [collectionEvent, ...assignmentEvents] };
     }
     const transactionKind = String(row.section_key) === 'company_debts' ? 'company' : 'customer';
     const collectorPermission = transactionKind === 'company' ? 'companies.write' : 'debts.write';

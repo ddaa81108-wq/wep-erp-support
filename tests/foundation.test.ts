@@ -2322,7 +2322,7 @@ test('collector overpayment stays pending until admin approval then becomes cust
   }
   const forbiddenReceipt = await fetch(`${base}/api/collections/assignments/${assignmentId}/submissions`, {
     method: 'POST', headers: otherHeaders,
-    body: JSON.stringify({ mode: 'partial', amountUnits: 100 }),
+    body: JSON.stringify({ requestId: 'foundation-submission-1', mode: 'partial', amountUnits: 100 }),
   });
   assert.equal(forbiddenReceipt.status, 403);
   assert.equal(Number(database.prepare('SELECT COUNT(*) AS count FROM collection_submissions WHERE assignment_id=?').get(assignmentId)!.count), 0);
@@ -2353,7 +2353,7 @@ test('collector overpayment stays pending until admin approval then becomes cust
   const submitted = await fetch(`${base}/api/collections/assignments/${assignmentId}/submissions`, {
     method: 'POST',
     headers: employeeHeaders,
-    body: JSON.stringify({ mode: 'partial', amountUnits: 2000 }),
+    body: JSON.stringify({ requestId: 'foundation-submission-2', mode: 'partial', amountUnits: 2000 }),
   });
   assert.equal(submitted.status, 201);
   const submittedBody = await json(submitted);
@@ -2466,7 +2466,7 @@ test('collector overpayment stays pending until admin approval then becomes cust
   const companySubmitted = await json(
     await fetch(
       `${base}/api/collections/assignments/${companyAssignment.data.assignmentIds[0]}/submissions`,
-      { method: 'POST', headers, body: JSON.stringify({ mode: 'partial', amountUnits: 200 }) },
+      { method: 'POST', headers, body: JSON.stringify({ requestId: 'foundation-submission-3', mode: 'partial', amountUnits: 200 }) },
     ),
   );
   const companyApproved = await fetch(
@@ -2603,21 +2603,21 @@ test('collection cards and full receipt use the calculated customer balance', as
   const unsafePartial = await fetch(`${base}/api/collections/assignments/${assignmentId}/submissions`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ mode: 'partial', amountUnits: Number.MAX_SAFE_INTEGER }),
+    body: JSON.stringify({ requestId: 'foundation-submission-4', mode: 'partial', amountUnits: Number.MAX_SAFE_INTEGER }),
   });
   assert.equal(unsafePartial.status, 400);
   const submitted = await json(
     await fetch(`${base}/api/collections/assignments/${assignmentId}/submissions`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ mode: 'full' }),
+      body: JSON.stringify({ requestId: 'foundation-submission-5', mode: 'full' }),
     }),
   );
   assert.equal(submitted.data.amountUnits, 400);
   const duplicatePending = await fetch(`${base}/api/collections/assignments/${assignmentId}/submissions`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ mode: 'full' }),
+    body: JSON.stringify({ requestId: 'foundation-submission-6', mode: 'full' }),
   });
   assert.equal(duplicatePending.status, 409);
 });

@@ -58,7 +58,7 @@ try {
   const collectorCsrf=(await collectorLogin.json()).data.csrfToken;
   const collectorId=String((database.prepare("SELECT id FROM users WHERE username='collector'").get() as {id:string}).id);
   const submit=async (id:string,mode:string,amountUnits:number)=>{
-    const response=await collector.request.post(base+'/api/collections/assignments/'+id+'/submissions',{headers:{'X-Client-Api-Version':'1','X-CSRF-Token':collectorCsrf},data:{mode,amountUnits}});
+    const response=await collector.request.post(base+'/api/collections/assignments/'+id+'/submissions',{headers:{'X-Client-Api-Version':'1','X-CSRF-Token':collectorCsrf},data:{mode,amountUnits,requestId:crypto.randomUUID()}});
     assert.ok(response.ok(),await response.text());return (await response.json()).data;
   };
   const names=['جديد أزرق','سداد جزئي أصفر','مسدد أسود','نقدية مسلمة أحمر','أمانة أخضر','استلام مرفوض'];

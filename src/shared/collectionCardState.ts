@@ -20,7 +20,7 @@ export function hasAdministrativeMovement(card: CollectionCardState) {
 }
 
 export function collectionCardTone(card: CollectionCardState) {
-  if (card.latestStatus === 'rejected' && !hasAdministrativeMovement(card)) return 'collection-rejected';
+  if (card.latestStatus === 'rejected' && !card.hasPending && !hasAdministrativeMovement(card)) return 'collection-rejected';
   if (card.balanceUnits < 0) return 'collection-green';
   if (card.balanceUnits === 0) {
     return card.latestCashReceivedAt && card.latestCashReceivedAt >= card.externalFinancialUpdatedAt

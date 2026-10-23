@@ -1,5 +1,11 @@
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
+  'تعذر قراءة سجل الطلبات المعلقة على هذا الجهاز. راجع الدعم قبل إرسال تحصيل جديد.': 'Unable to read pending requests on this device. Contact support before submitting a new collection.',
+  'توجد محاولة سابقة لم يتأكد ردها. أعد التحقق منها قبل تغيير المبلغ أو نوع التحصيل.': 'A previous attempt has not been acknowledged. Verify it before changing the amount or collection type.',
+  'تعذر حفظ مفتاح الطلب على هذا الجهاز. لم يتم إرسال تحصيل جديد.': 'Unable to save the request key on this device. No new collection was sent.',
+  'تحصيلات تحتاج تأكيد نتيجة الإرسال': 'Collections awaiting submission acknowledgement',
+  'أعد التحقق بنفس الطلب؛ لن يُنشأ استلام آخر إذا كان محفوظًا من قبل.': 'Verify using the same request. An already saved collection will not be created again.',
+  'إعادة التحقق من الاستلام السابق': 'Verify previous collection',
   'الباقي المرحّل من اليوم السابق': 'Balance carried forward from the previous day',
   'الرصيد السابق للمعاملات المعروضة': 'Balance before the displayed transactions',
   'الرصيد التراكمي بعد المعاملة': 'Running balance after this transaction',

@@ -5,5 +5,5 @@ import { EmployeeCollectionsSection } from '../../employee/collections/EmployeeC
 export function CollectionsSection({ user }: { user: User }) {
   return user.role === 'admin'
     ? <AdminCollectionsSection />
-    : <EmployeeCollectionsSection />;
+    : <EmployeeCollectionsSection key={user.id} userId={user.id} />;
 }

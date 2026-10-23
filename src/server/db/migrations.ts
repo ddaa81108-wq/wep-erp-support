@@ -14,6 +14,7 @@ import { reliabilityMigrations } from './migrationsReliability.ts';
 import { masraweyaAutomaticMigrations } from './migrationsMasraweyaAutomatic.ts';
 import { collectionRejectionMigrations } from './migrationsCollectionRejection.ts';
 import { zeroReviewMigrations } from './migrationsZeroReview.ts';
+import { collectionInstallmentMigrations } from './migrationsCollectionInstallments.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -32,4 +33,5 @@ export const migrations: Migration[] = [
   ...webPushMigrations,
   ...reportClosingMigrations,
   ...securityMigrations,
+  ...collectionInstallmentMigrations,
 ];

@@ -3,7 +3,8 @@ import { useUnsavedForm } from '../../dashboard/useUnsavedForm.ts';
 import { OutstandingCollectionCash } from '../../sections/collections/OutstandingCollectionCash.tsx';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Phone } from 'lucide-react';
-import { api } from '../../api.ts';
+import { api, ApiError } from '../../api.ts';
+import { readPendingCollections, writePendingCollections, type PendingCollectionRequest } from './pendingCollectionRequests.ts';
 import {
   assignmentTone,
   collectionMoney,
@@ -24,7 +25,7 @@ function PartialReceiptForm({ busy, submit }: { busy: boolean; submit: (amount: 
   </form>;
 }
 
-export function EmployeeCollectionsSection() {
+export function EmployeeCollectionsSection({ userId }: { userId: string }) {
   const { data, error, busy, setError, setBusy, load, run } = useCollectionsDashboard();
   const [creating, setCreating] = useState(false);
   const { bindForm: bindCreate, trackChanges: changeCreate, markSaved: savedCreate, confirmLeave: leaveCreate } = useUnsavedForm(busy === 'unlinked-create');
@@ -35,12 +36,55 @@ export function EmployeeCollectionsSection() {
     createPanel.current?.querySelector('input')?.focus({ preventScroll: true });
   }, [creating]);
   const [payrollOpen, setPayrollOpen] = useState(false);
+  const [pendingRequests, setPendingRequests] = useState<PendingCollectionRequest[]>([]);
+  const submitting = useRef(false);
+  useEffect(() => {
+    try { setPendingRequests(readPendingCollections(localStorage, userId)); }
+    catch { setError(uiText('تعذر قراءة سجل الطلبات المعلقة على هذا الجهاز. راجع الدعم قبل إرسال تحصيل جديد.')); }
+  }, [userId, setError]);
+  function keepRequests(requests: PendingCollectionRequest[]) {
+    writePendingCollections(localStorage, userId, requests);
+    setPendingRequests(requests);
+  }
+  async function sendPending(request: PendingCollectionRequest, recovering = true) {
+    if (submitting.current) return false;
+    submitting.current = true;
+    try {
+      return await run(request.assignmentId, async () => {
+        try {
+          await api.submitCollection(request.assignmentId, request.mode, request.amountUnits, request.requestId);
+          keepRequests(readPendingCollections(localStorage, userId).filter(item => item.requestId !== request.requestId));
+        } catch (caught) {
+          // Network/5xx/invalid responses may hide an accepted write: retain the exact payload.
+          if (!recovering && caught instanceof ApiError && [400, 401, 403, 404, 409].includes(caught.status)
+            && !['REQUEST_ID_REUSED', 'LEGACY_REQUEST_REVIEW_REQUIRED', 'INVALID_SERVER_RESPONSE', 'REQUEST_FAILED'].includes(caught.code)) {
+            keepRequests(readPendingCollections(localStorage, userId).filter(item => item.requestId !== request.requestId));
+          }
+          throw caught;
+        }
+      });
+    } finally { submitting.current = false; }
+  }
   async function submit(id: string, mode: 'full' | 'partial', amount: number) {
     if (!Number.isSafeInteger(amount) || amount <= 0) {
       setError(uiText("اكتب قيمة صحيحة أكبر من صفر."));
       return false;
     }
-    return run(id, () => api.submitCollection(id, mode, amount));
+    if (submitting.current) return false;
+    try {
+      const requests = readPendingCollections(localStorage, userId);
+      const previous = requests.find(item => item.assignmentId === id);
+      if (previous && (previous.mode !== mode || previous.amountUnits !== amount)) {
+        setError(uiText('توجد محاولة سابقة لم يتأكد ردها. أعد التحقق منها قبل تغيير المبلغ أو نوع التحصيل.'));
+        return false;
+      }
+      const request = previous ?? { assignmentId: id, mode, amountUnits: amount, requestId: crypto.randomUUID() };
+      if (!previous) keepRequests([...requests, request]);
+      return await sendPending(request, Boolean(previous));
+    } catch {
+      setError(uiText('تعذر حفظ مفتاح الطلب على هذا الجهاز. لم يتم إرسال تحصيل جديد.'));
+      return false;
+    }
   }
   async function createUnlinked(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,6 +132,14 @@ export function EmployeeCollectionsSection() {
       <CollectionsOverview data={data} description={uiText("الكروت الموجهة إليك للاستلام")} onPayroll={() => { if (leaveCreate()) setPayrollOpen(true); }} creating={creating} onToggleCreate={() => { if (!creating || leaveCreate()) setCreating((value) => !value); }} />
       <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} />
       {error && <div className="alert error">{error}</div>}
+      {pendingRequests.length > 0 && <section className="collection-panel pending-collection-recovery">
+        <h2>{uiText('تحصيلات تحتاج تأكيد نتيجة الإرسال')}</h2>
+        <p>{uiText('أعد التحقق بنفس الطلب؛ لن يُنشأ استلام آخر إذا كان محفوظًا من قبل.')}</p>
+        {pendingRequests.map(request => <button key={request.requestId} disabled={Boolean(busy)}
+          onClick={() => void sendPending(request)}>
+          {uiText('إعادة التحقق من الاستلام السابق')} — {collectionMoney.format(request.amountUnits)} {uiText('د.ل')}
+        </button>)}
+      </section>}
       {creating && (
         <section id="collection-create-form" ref={createPanel} className="collection-panel unlinked-create-panel">
           <header>
@@ -193,7 +245,7 @@ export function EmployeeCollectionsSection() {
                       onClick={() => void submit(assignment.id, 'full', assignment.balanceUnits)}
                     >
                       {uiText("استلام كلي")}</button>
-                    {inactive || Boolean(assignment.hasPending) ? (
+                    {inactive || Boolean(assignment.hasPendingFull) ? (
                       <button disabled>{uiText("استلام جزئي")}</button>
                     ) : (
                       <details className="partial-collection-details">

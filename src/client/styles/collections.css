@@ -244,6 +244,10 @@
 .partial-collection-form input {
   width: 100%;
   min-width: 0;
+  /* Focus magnification must not move Save between pointer-down and click. */
+  height: 44px;
+  box-sizing: border-box;
+  line-height: 1;
   padding: 6px 7px;
   border: 1px solid #ffffff55;
   border-radius: 5px;

@@ -7,6 +7,7 @@ export type CollectionAssignment = {
   phone: string | null;
   balanceUnits: number;
   hasPending: number;
+  hasPendingFull: number;
   assignedAt: string;
   businessDate: string;
   batchId: string;

@@ -37,10 +37,10 @@ export const collectionsApi = {
       method: 'POST',
       body: JSON.stringify({ customerIds, assigneeUserId, section }),
     }),
-  submitCollection: (assignmentId: string, mode: 'full' | 'partial', amountUnits?: number) =>
-    request<{ id: string; status: 'pending'; amountUnits: number }>(
+  submitCollection: (assignmentId: string, mode: 'full' | 'partial', amountUnits: number | undefined, requestId: string) =>
+    request<{ id: string; status: 'pending'; amountUnits: number; replayed: boolean }>(
       `/api/collections/assignments/${encodeURIComponent(assignmentId)}/submissions`,
-      { method: 'POST', body: JSON.stringify({ mode, amountUnits }) },
+      { method: 'POST', body: JSON.stringify({ mode, amountUnits, requestId }) },
     ),
   createUnlinkedCollectionReceipt: (customerName: string, amountUnits: number, requestId: string) =>
     request<{id:string;status:'pending';amountUnits:number}>('/api/collections/unlinked-receipts',{
