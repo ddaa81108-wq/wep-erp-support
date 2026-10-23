@@ -1,64 +1,58 @@
-# جرد المطابقة الوظيفية
+# جرد المطابقة الوظيفية — 23 أكتوبر 2026
 
-خط الأساس: `origin/main` عند `ed602b37` كما هو موضح في `SOURCE_BASELINE.md`.
+مرجع المراجعة: `dc4861c65a81c4c4eff3331da9462c5f1766028c`، مخطط قاعدة البيانات 52. يصف هذا الملف ERP المحلي الحالي، وليس شهادة اعتماد للإنتاج أو مطابقة Android. يبقى `SOURCE_BASELINE.md` مرجع المصدر القديم؛ أسماء ملفاته لا تثبت وجود تنفيذ محلي.
 
-## دلالات الحالة
+## دلالات الحالة وحدود الأدلة
 
-- **مختبر**: منفذ محليًا وله اختبار آلي نجح.
-- **منفذ غير مكتمل التحقق**: يوجد كود، لكن قبول الواجهة/الأداء/التكامل لم يكتمل.
-- **موجود في المصدر/مجرود**: عُرف ملفه ومساره، ولم يُنفذ محليًا.
-- **غير منفذ**: لا يوجد بديل محلي بعد.
+- **منفّذ وله اختبارات:** كود محلي مع اختبارات محددة. نتائج تشغيل هذه المراجعة في `docs/QUALITY_VERIFICATION_2026-10-23.ar.md`.
+- **منفّذ؛ قبول يدوي مطلوب:** المسار موجود، ولم نعد فحص واجهته أو ملفه المصدّر في هذه المراجعة.
+- **غير مثبت كميزة مستقلة:** لم يظهر مقابل محلي أثناء الجرد؛ هذه حالة نطاق وليست عيب تشغيل أو تكليفًا بتنفيذه.
 
-وجود صف هنا لا يعني اكتماله. دليل الاختبار المحدد هو معيار الحالة.
+تشغيل التغطية يشمل `tests/*.test.ts`؛ اختبارات المتصفح المستقلة `tests/*-ui.ts` لا تعمل ضمنه. ذكر ملف متصفح هنا لا يعني إعادة تشغيله في هذه المراجعة. نجاح الاختبارات ونسبة التغطية لا يثبتان اكتمال كل الوظائف أو خلو المنظومة من الأخطاء.
 
-## الهيكل العام وERP
+## الدخول والعرض والأدوات
 
-| الصفحة/المسار | مرجع المصدر | الأدوار والعناصر الأساسية | القراءة/الكتابة والأثر | المقابل المحلي | اختبار القبول | الحالة |
-|---|---|---|---|---|---|---|
-| الدخول والجلسة | `src/components/LoginScreen.tsx`, `src/App.tsx`, `src/firebase.ts` | كل مستخدم؛ username/password، جلسة، تفعيل | Auth ومستخدم وصلاحيات | users/sessions وsetup/login/logout + واجهة RTL | تجزئة، دخول حقيقي، استعادة جلسة وتدوير CSRF | **مختبر API وواجهة** |
-| القائمة والصلاحيات | `src/App.tsx`, `src/utils/permissions.ts` | admin/employee؛ صلاحيات الأقسام | قراءة profile ومنع أقسام | user_permissions + واجهة إدارة + تحقق endpoint | موظف قراءة مرفوض من الكتابة المباشرة وتفعيل فوري | **مختبر لمسار العملاء** |
-| الثيم/البحث/الحاسبة | `src/App.tsx`, `GlobalSearch.tsx`, `GlobalCalculator.tsx` | بحسب الدخول | قراءة أقسام؛ الحاسبة بلا قيد | الثيمان وبحث العملاء منفذان | 390/1440 والثيمان | **مختبر جزئيًا**؛ البحث العام والحاسبة غير منفذين |
-| الملاحظات والتذكيرات | `src/App.tsx`, نوع `NoteReminder` | مستخدمون مصرحون | CRUD + attribution | — | تنبيه وتزامن | **مجرود، غير منفذ** |
-| الإشعارات | `NotificationInbox.tsx`, `notificationAudience.ts`, `webPush.ts` | توجيه بحسب الدور | Firestore/FCM؛ انتقال للسجل | event_log/SSE كأساس فقط | وصول للطرف الصحيح وإعادة اتصال | **منفذ غير مكتمل التحقق**؛ الصندوق غير منفذ |
-| شرط الاتصال | `FirebaseConnectionGate.tsx`, `syncHealth.ts` | الجميع | فحص خارجي قبل العرض والطلبات | فحص خادمي لعنوانين + `/api/health` بلا تنبيه مرئي | نجاح أحد الفحصين وفشلهما | **مختبر** |
-| استيراد/تصدير Excel والصور/PDF | `ExcelImporter.tsx`, `erpSpreadsheetExport.ts`, `ImageExporter.tsx`, `LedgerPdfModal.tsx` | صلاحيات مستقلة | قراءة/كتابة حسب الوحدة | — | عربية/RTL/طباعة وصورة/PDF | **مجرود، غير منفذ** |
-| استوديو الكروت | `card-generator.html`, `src/card-studio`, `public/card-studio` | الإدارة/صلاحية الكروت | قوالب وخلفيات وخطوط وتصدير | — | دون CDN وبلا قص | **مجرود، غير منفذ** |
+| الوظيفة | التنفيذ المحلي ودليل الاختبار | الحالة والحدود |
+|---|---|---|
+| الدخول والجلسة وCSRF والصلاحيات | `src/server/security/sessions.ts`، `src/server/routes/accountRoutes.ts`؛ `tests/foundation.test.ts`، `tests/http-contracts.test.ts` | منفّذ وله اختبارات لتدوير CSRF والصلاحيات ورفض الطلبات |
+| Google والتحقق بخطوتين | `src/server/modules/accounts/googleAuth.ts`، `src/server/security/mfa.ts`، `src/client/sections/settings/AccountSecurityManager.tsx`؛ `tests/securityHardening.test.ts`، `tests/review-hardening.test.ts`، `tests/foundation.test.ts` | منفّذ وله اختبارات؛ لا يعني إجراء دخول Google خارجي فعلي الآن |
+| العربية والإنجليزية | `src/client/i18n/`؛ `tests/language.test.ts`؛ متصفح مستقل `tests/languages-ui.ts` | منفّذ وله اختبارات؛ لا ندّعي مراجعة لغوية بشرية لكل شاشة |
+| الثيمان ووضوح الكتابة | `src/client/assistant/DashboardUtilityBar.tsx`، `src/client/components/Readability.tsx`؛ متصفح مستقل `tests/readability-ui.ts` | منفّذ؛ قبول العرض مطلوب عند تغييره |
+| البحث الموحد في الحسابات | `src/client/assistant/GlobalAccountSearch.tsx`؛ مسارات البحث في `tests/foundation.test.ts`؛ متصفح مستقل `tests/search-focus-ui.ts` | منفّذ؛ يصحح وصف البحث العام بأنه مفقود؛ نطاقه الحسابات المسموح بها، وليس كل حقل بكل قسم |
+| صندوق الإشعارات وWeb Push | `src/client/assistant/NotificationCenter.tsx`، `src/server/domain/notifications.ts`، `src/server/routes/browserPushRoutes.ts`؛ `tests/notifications.test.ts`، `tests/browser-push.test.ts`، `tests/browser-push-worker.test.ts` | منفّذ وله اختبارات؛ يصحح وصف الصندوق بأنه غير منفّذ؛ التسليم الحقيقي يعتمد أيضًا على إذن الجهاز وخدمة Push |
+| الاتصال والقراءات والتحديث اللحظي | `src/client/assistant/SyncStatus.tsx`، `notificationRealtime.ts`؛ `tests/apiTransportReads.test.ts`، `tests/pendingReads.test.ts`، `tests/foundation.test.ts`؛ متصفح مستقل `tests/realtime-ui.ts` | منفّذ وله اختبارات؛ التغطية ليست اختبار استقرار الإنترنت الفعلي |
+| الحاسبة العامة والملاحظات والتذكيرات واستوديو الكروت | لم يظهر مقابل مستقل للميزات القديمة في جرد `src/client` و`src/server` | غير مثبت كميزة مستقلة؛ ليست عيوب تشغيل مؤكدة |
 
-## دفاتر ERP ومسارات العمل
+## الأقسام والحسابات المالية
 
-| الصفحة/المسار | مرجع المصدر | الحقول/الأزرار والأدوار | الأثر المحاسبي | المقابل المحلي | اختبار القبول | الحالة |
-|---|---|---|---|---|---|---|
-| إنشاء حساب عميل دائم | `CustomerDebtsModule.tsx`, `customerAccounts.ts`, `types.ts` | admin/موظف مخول؛ الاسم والهاتف والمبلغ | هوية واحدة ورصيد مشتق وتسلسل دائم | customers/customer_cycles + واجهة إنشاء وبحث ومرشحات وتثبيت | إنشاء فعلي، رفض تكرار الاسم/الهاتف وفتح السجل الموجود | **مختبر API وواجهة** |
-| دين العميل | الملفات السابقة + `financialCalculations.ts` | direct/multiply/divide، عامل، تاريخ، بيان | يزيد دفتر الدورة، version، audit | debt_transactions + نموذج واجهة، Math.floor مطابق | 10.9×3=32، idempotency، تعارض، متصفح | **مختبر API وواجهة** |
-| سداد جزئي/كلي | الملفات السابقة | partial/full، مرجع، attribution | ينقص رصيد الكارت وإجمالي القسم فقط؛ لا يكتب في الأموال النشطة | debt_transactions + إجمالي القسم + واجهة | سداد كلي/جزئي، idempotency، وتحديث الخزينة من الإجمالي | **مختبر API وواجهة** |
-| قسم ديون العملاء والسجل الموحد | `CustomerDebtsModule.tsx`, `LedgerPdfModal.tsx` | بطاقات مصغرة باسم العميل والدين، إجماليات وفلاتر وبحث، سجل دائم، تعديل في نفس الصف وإلغاء موثق | كل التاريخ في تسلسل مستمر؛ الدين أحمر والسداد أخضر والرصيد بعد كل حركة | لوحة كاملة للكمبيوتر وبطاقات للهاتف، صف إدخال دائم، رأس ثابت وتنقل بلوحة المفاتيح | إنشاء/تعديل في المكان/إلغاء/استمرار التسلسل واستعادة بعد reload | **مختبر API وواجهة**؛ الطباعة غير منفذة |
-| العرض الذكي للحسابات الصفرية | قرار التصميم المحلي المعتمد | إخفاء بعد 30 يومًا، تثبيت، بحث ومرشح الكل | لا حذف ولا أرشيف ولا تغيير في الرصيد | inactive_since/is_pinned ومرشحات الواجهة | إخفاء زمني وإظهار بالتثبيت | **مختبر API وواجهة** |
-| تنفيذ البريد/اليدوي/بطاقة/حساب/بنك | `WorkExecutionModule.tsx`, `workExecution.ts`, `workExecutionService.ts` | منشئ/منفذ/إدارة؛ حالات وعمولة | عمولة وسياسة تنفيذ | — | عزل منشئ/منفذ وإدارة فقط ترى العمولة | **مجرود، غير منفذ** |
-| قسم ديون الشركات | `CompanyDebtsPage.tsx` | admin/موظف مخول؛ شركة وسجل موحد وتوجيه | إجمالي ديون لنا يدخل كارت الخزينة المجمع | customers/debt_transactions مع section_key مستقل | العزل والصلاحية والإجمالي والتوجيه | **مختبر** |
-| الأمانات | `DebtAccountsView.tsx`, `deposits.ts` | مخول؛ LYD/EGP، دخول وخروج وسعر تحويل | الليبية التزام، والمصرية مصدر قيمة مصرية مجمعة | حسابات معزولة بالقسم + section_exchange_rates | الرصيدين وعلاقة الخزينة وحماية الكروت الثابتة | **مختبر** |
-| المصراوية | `MasraweyaSection.tsx`, `masraweya.ts` | مخول؛ يوم، سابق، مشتريات، عمولة، متبقٍ | تسلسل يومي وترحيل يدوي وباقٍ مرتبط بالأمانات المصرية | masraweya_days/entries + كارت نظام ثابت | انتقال يوم، صورة الجدول، والربط التلقائي | **مختبر** |
-| المشتريات | `PurchasesSection.tsx`, `purchases.ts` | مخول؛ البيان/سمسم، ضرب/قسمة، سعر، مسدد، مستهلك فودافون | دفتر يومي وترحيل وتصحيح، وباقي فودافون مرتبط بالأمانات المصرية | purchase_merchants/days/entries + كارت نظام ثابت | تحرير مباشر، ترحيل، تصحيح، وربط تلقائي | **مختبر** |
-| الخزينة | `TreasurySection.tsx`, `treasury.ts` | مخول؛ كروت إجمالية ودخول/خروج للأموال النشطة | تقرأ إجماليات الأقسام؛ الأموال النشطة من دفترها الإداري فقط | treasury_cash_accounts/entries + مجاميع الأقسام | منع الربط المباشر بالعملاء، idempotency، والتحويل المصري | **مختبر** |
-| التقارير المالية | `FinancialReportsModule.tsx`, `financialReports.ts` | إدارة/مخول؛ أسعار/لقطات/تصدير | موجودات والتزامات وصافي بعد تحويل | — | تاريخي وعملتان بلا جمع مباشر | **مجرود، غير منفذ** |
-| سلة المهملات | `TrashCanModule.tsx` | إدارة/صلاحية؛ استعادة/نهائي | سياسات حسب الكيان | deleted_at موجود كبنية فقط | مزامنة قديمة لا تعيد المحذوف | **غير منفذ** |
-| الإعدادات وإدارة الموظفين | `UsersManager.tsx`, `users.ts` | الإدارة فقط؛ تفعيل وصلاحية كاملة لكل قسم | يؤثر فورًا ويلغي الجلسة عند التعطيل/إعادة كلمة المرور | users/permissions/user_section_access + API وواجهة | منع القسم غير المصرح وإتاحة كاملة للقسم المصرح | **مختبر** |
-| سجل التدقيق والأستاذ | `AuditLogManager.tsx`, `FinancialLedgerManager.tsx` | الإدارة؛ قراءة وبحث ومرشحات | مراقبة من نفذ ومتى، وسجل مالي موحد للقراءة | audit_log + financial_ledger_entries | عزل المؤسسة وعدم تعديل السجل من الواجهة | **مختبر** |
-| النسخ والاستعادة | سكربتات `backup-database` و`restore-database` و`restore-drill` | الإدارة التشغيلية | manifest/checksum وفحص SQLite قبل الاستبدال | ملفات محلية خارج الواجهة | نسخة سليمة ورفض العبث/النقص وتمرين استعادة | **مختبر تشغيليًا** |
-| مركز التشخيص | `syncIncidents.ts`, `SettingsModule.tsx` وأخطاء المزامنة | الإدارة؛ سبب/وقت/نسخ/correlation | لا بيانات حساسة | correlationId وaudit schema كأساس | تمييز صلاحية/إصدار/تخزين/تحقق | **منفذ جزئيًا بلا شاشة أو تصدير** |
+| الوظيفة | التنفيذ المحلي ودليل الاختبار | الحالة والحدود |
+|---|---|---|
+| العملاء والشركات والأمانات LYD وEGP | `src/server/domain/customerAccountCommands.ts`، `customerTransactions.ts`، `customerQueries.ts`؛ `tests/foundation.test.ts`، `tests/account-lifecycle-isolation.test.ts`، `tests/sectionSnapshots.test.ts` | منفّذ وله اختبارات للأرصدة والصفحات والعزل؛ الحسابات المصرية المرتبطة تقرأ مصادرها المخصصة |
+| الدين والسداد والتعارض وإعادة الطلب | `src/server/domain/customerTransactionSupport.ts`، `customerTransactions.ts`؛ `tests/reliability.test.ts`، `tests/financial-invariants.test.ts`، `tests/decimal-factors.test.ts` | منفّذ وله اختبارات؛ سياسة التقريب الحالية لم تتغير |
+| مراجعة الحسابات الصفرية | `tests/customer-zero-review.test.ts`؛ متصفح مستقل `tests/customer-zero-review-ui.ts` | منفّذ وله اختبارات؛ إخفاء العرض لا يحذف الدفتر |
+| المشتريات والترحيل والتصحيح والباقي المتحرك | `src/server/domain/purchaseEntryCommands.ts`، `purchaseDayCommands.ts`، `purchaseSupport.ts`؛ `tests/purchase-running-balance.test.ts`، `tests/foundation.test.ts`؛ متصفح مستقل `tests/purchase-running-ui.ts` | منفّذ وله اختبارات؛ الباقي يبدأ بالمرحل ويتأثر بالمعاملات؛ اليوم المرحّل لا يعدّل دون فتح التصحيح |
+| المصراوية والربط بالمصدر المصري | `src/server/domain/masraweya.ts`، `linkedAccounts.ts`؛ `tests/masraweyaAccess.test.ts`، `tests/masraweyaEditor.test.ts`، `tests/masraweyaCorrection.test.ts` | منفّذ وله اختبارات؛ قيود تواريخ خاصة بالقسم |
+| الخزينة والتحويل | `src/server/domain/treasury.ts`، `treasuryQueries.ts`؛ `tests/foundation.test.ts`، `tests/financial-invariants.test.ts` | منفّذ وله اختبارات؛ دفتر الأموال النشطة مستقل ولا تساوي حركته بالضرورة مجموع التحصيلات المعتمدة |
+| التقارير وصافي الخامسة صباحًا | `src/client/sections/reports/ReportsSection.tsx`، `src/server/domain/reports/reports.ts`، `fiveAmClosing.ts`؛ `tests/report-commit.test.ts`، `tests/report-closing.test.ts` | منفّذ وله اختبارات؛ يصحح وصف التقارير بأنها مفقودة؛ صافي الخامسة لقطة ثابتة وليس قفل فترة عامًّا |
+| التحصيل المرتبط واعتماده والأقساط المتعددة | `src/server/domain/collections.ts`، `src/client/employee/collections/pendingCollectionRequests.ts`؛ `tests/collection-idempotency.test.ts`، `tests/foundation.test.ts`؛ متصفح مستقل `tests/collection-idempotency-ui.ts` | منفّذ وله اختبارات؛ إعادة الطلب المرتبط تعيد النتيجة، والدفعات الجزئية المستقلة مسموحة |
+| الاستلام غير المرتبط | `src/server/domain/collections.ts`، `src/server/db/migrationsUnlinkedCurrency.ts`، `src/client/admin/collections/UnlinkedReceiptsPanel.tsx`؛ `tests/unlinked-collections.test.ts`، `tests/unlinked-currency.test.ts` | منفّذ وله اختبارات؛ LYD فقط بقرار العمل، ورفض الربط بحساب EGP خادميًا؛ المخالفة القديمة تظهر للمراجعة دون تعديل رصيد؛ عقد إعادة الطلب لكل مسار موضح في `API.md` |
+| الرواتب وتنبيه التشابه | `src/server/domain/collectionPayroll.ts`، `duplicateWarning.ts`؛ `tests/payroll.test.ts`، `tests/duplicateWarning.test.ts` | منفّذ وله اختبارات؛ تنبيه التشابه مختلف عن ضمان إعادة نفس الطلب |
+| المطابقة المالية | `src/server/domain/financialReconciliation.ts`، `scripts/reconcile-financials.ts`؛ `tests/financial-reconciliation.test.ts` | أداة قراءة فقط منفّذة ومختبرة؛ لا صفحة مستقلة؛ الحدود في `docs/FINANCIAL_RECONCILIATION.ar.md` |
 
-## Abdo Cash
+## الإدارة والتصدير والاستعادة
 
-| الصفحة/المسار | مرجع المصدر | الأدوار والعناصر | القراءة/الكتابة | المقابل المحلي | اختبار القبول | الحالة |
-|---|---|---|---|---|---|---|
-| بوابة الدخول وطلب الحساب | `apps/abdo-cash-powerpay/src/App.tsx`, `transferService.ts` | عميل/شركة/مالك؛ password/Google/OTP حاليًا | profile واعتماد/تعطيل | دخول محلي مشترك كأساس | إنشاء/تعليق/اعتماد/تعطيل | **مجرود؛ API دخول عام فقط** |
-| مدخل موظف ERP | `ErpEmployeeLogin.tsx`, `ErpEmployeeWorkspace.tsx`, `erpEmployeeAuth.ts` | موظف بحسب صلاحيات ERP | حساب ERP ومراقبة profile | جلسة محلية مشتركة مخطط لها | تغير الصلاحية في جلسة مفتوحة | **مجرود، غير منفذ UI** |
-| الرئيسية | `App.tsx` | الملف الفعال | ملخص وتنقل | — | هاتف 390px | **مجرود، غير منفذ** |
-| فودافون كاش/إنشاء الطلب | `App.tsx`, `transferService.ts`, `types.ts` | عميل/شركة مرسلة | رقم، EGP/LYD، سعر مثبت، توجيه | — | السعر لا يتغير بعد الطلب | **مجرود، غير منفذ** |
-| تنفيذ/رفض/إلغاء وإيصال | الملفات السابقة | منفذ/إدارة/مالك | حالات وسبب ومرجع مقنع | — | عزل المنفذ وعدم إنشاء قيد ERP | **مجرود، غير منفذ** |
-| التقارير والسجل المباشر | `App.tsx` | بحسب صلاحيات الرؤية | قراءة طلبات ومجاميع | — | بيانات مصرح بها فقط | **مجرود، غير منفذ** |
-| طلبات الحسابات ودليل الحسابات | `App.tsx`, `transferService.ts` | إدارة/مالك | اعتماد ونوع وسعر وصلاحيات | — | فصل الإدارة عن المستخدم | **مجرود، غير منفذ** |
-| الأمان والصلاحيات | `App.tsx`, `types.ts`, Firestore rules | مالك/إدارة | صلاحيات إنشاء/تنفيذ/رؤية/إدارة | — | رفض API مباشر | **مجرود، غير منفذ** |
+| الوظيفة | التنفيذ المحلي ودليل الاختبار | الحالة والحدود |
+|---|---|---|
+| الموظفون والإعدادات والتدقيق والأستاذ | `src/client/sections/settings/`، `src/server/routes/userManagementRoutes.ts`؛ `tests/foundation.test.ts`، `tests/auditRegressions.test.ts`، `tests/section-contracts.test.ts` | منفّذ وله اختبارات؛ لا ندّعي إثباتًا تشفيريًا ضد إعادة كتابة قاعدة البيانات كاملة |
+| مركز التشغيل ومراقبة قاعدة البيانات | `src/client/sections/settings/OperationsCenterManager.tsx`، `src/client/database-monitor/`، `src/server/domain/operationsCenter.ts`؛ `tests/database-monitor.test.ts`، `tests/database-activity.test.ts` | منفّذ وله اختبارات؛ يصحح وصفه بأنه بلا شاشة؛ مؤشرات النسخ الخارجية والتدريب غير المتحققة ليست نجاحًا مثبتًا |
+| النسخ التلقائي والطارئ والاستعادة | `src/client/sections/settings/BackupCenterManager.tsx`، `src/server/domain/emergencyBackup.ts`، `scripts/backup-database.mjs`، `scripts/restore-drill.mjs`؛ `tests/emergencyBackup.test.ts`، `tests/restoreWorker.test.ts`، `tests/securityHardening.test.ts` | منفّذ وله اختبارات؛ توجد واجهة وليست سكربتات فقط؛ تدريب الاستعادة التجريبي نجح على مخطط 52، ولا يثبت وجود نسخة ومفاتيح خارج الجهاز |
+| كشف استلامات PDF وصورة جدول المصراوية | `src/client/admin/collections/AdminCollectionsSection.tsx`، `src/client/sections/masraweya/masraweyaCapture.ts` | منفّذ في الكود؛ قبول يدوي مطلوب؛ ليس تصديرًا شاملًا لكل الأقسام |
+| استيراد Excel والتصدير الشامل وطباعة السجل الموحد | لم يظهر تنفيذ شامل مقابل أثناء الجرد؛ مكتبة PDF وحدها لا تثبت اكتمال هذه الوظائف | غير مثبت كميزة شاملة؛ لا يصح وصف كل التصدير بأنه مفقود |
+| سلة مهملات وظيفية ومسار تنفيذ البريد/اليدوي/بطاقة/حساب/بنك القديم | `deleted_at` وحده ليس سلة استعادة؛ لم يظهر مقابل مستقل لمسار التنفيذ القديم | خارج التنفيذ المرصود؛ السياسات الجديدة قرار منتج |
 
-## معايير القبول العامة
+## حدود الاعتماد
 
-تم اختبار HTTPS وLAN والخدمتين والمثبت والاستعادة، كما اختُبرت الواجهة على الكمبيوتر والهاتف. أُجري اختبار 6000 كارت و1000 عملية، لكن ما زالت اختبارات المليون حركة و3 أجهزة فعلية متزامنة والقياسات الطويلة p95 والتقارير الشاملة خارج القبول النهائي. لا توجد علامة اكتمال عامة للمشروع في هذه المرحلة.
+- **قفل فترة موحد لكل الأقسام غير مطلوب بقرار المستخدم.** غيابه ليس عيبًا أو بند إصلاح؛ تبقى قواعد الأقسام ولقطات التقارير كما هي.
+- بوابة Abdo Cash القديمة ومشروع Android المستقل خارج اعتماد هذه المراجعة. لا يُخلطان بتحصيل ERP أو المصراوية؛ لكل منهما عقد واختبارات منفصلة.
+- لم تنشر هذه المراجعة إصدارًا ولم تغيّر الحسابات أو الواجهة أو البيانات الحقيقية. لم يُعد اختبار حمل طويل أو أجهزة فعلية متعددة أو تعطل جهاز كامل.
+- نتائج القياس وحدوده في `docs/QUALITY_VERIFICATION_2026-10-23.ar.md`؛ التقارير التاريخية ليست دليل نجاح تلقائيًا للكوميت الحالي.
