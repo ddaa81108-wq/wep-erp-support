@@ -87,7 +87,7 @@ try {
   const reportPage = await reportsContext.newPage();
   await reportPage.goto(base + '/erp');
   await reportPage.getByRole('button', { name: 'التقارير الذكية', exact: true }).click();
-  await reportPage.locator('.reports-page').waitFor();
+  await reportPage.locator('.financial-overview').waitFor();
   const account = await mutate('/api/customers', {
     name: 'عميل المزامنة',
     openingBalance: 100,
@@ -97,7 +97,7 @@ try {
   const active = page.locator('.active-cards-count strong');
   await expect(total).toContainText('100', { timeout: 7000 });
   await expect(active).toHaveText('1');
-  await expect(reportPage.locator('[data-label="ديون لنا"]').first()).toContainText('100', { timeout: 7000 });
+  await expect(reportPage.getByTestId('report-receivables')).toContainText('100', { timeout: 7000 });
   await page.locator('.customer-card-main').filter({ hasText: 'عميل المزامنة' }).click();
   await page.getByLabel('قيمة المعاملة', { exact: true }).fill('7');
   await page.getByLabel('ملاحظة المعاملة', { exact: true }).fill('مسودة لا تمسح');
@@ -111,7 +111,7 @@ try {
   await expect(total).toContainText('125', { timeout: 7000 });
   await expect(page.getByLabel('قيمة المعاملة', { exact: true })).toHaveValue('7');
   await expect(page.getByLabel('ملاحظة المعاملة', { exact: true })).toHaveValue('مسودة لا تمسح');
-  await expect(reportPage.locator('[data-label="ديون لنا"]').first()).toContainText('125', { timeout: 7000 });
+  await expect(reportPage.getByTestId('report-receivables')).toContainText('125', { timeout: 7000 });
   page.once('dialog', dialog => void dialog.accept());
   await page.locator('.ledger-panel > header .icon-button').click();
   const search = page.locator('.dashboard-search input');
@@ -212,11 +212,11 @@ try {
     requestId: 'live-egyptian-deposit',
   });
   await mutate('/api/egyptian-deposits/exchange-rate', { egpPerLyd: 5 }, 'PATCH');
-  await expect(reportPage.locator('[data-label="المصري بالليبي"]').first()).toContainText('20', {
+  await expect(reportPage.locator('.report-exchange')).toContainText('20', {
     timeout: 7000,
   });
   await mutate('/api/egyptian-deposits/exchange-rate', { egpPerLyd: 4 }, 'PATCH');
-  await expect(reportPage.locator('[data-label="المصري بالليبي"]').first()).toContainText('25', {
+  await expect(reportPage.locator('.report-exchange')).toContainText('25', {
     timeout: 7000,
   });
   mkdirSync(resolve('artifacts', 'realtime'), { recursive: true });

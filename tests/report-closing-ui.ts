@@ -60,6 +60,8 @@ try {
   await page.getByLabel('كلمة المرور', { exact: true }).fill('Closing Preview 123!');
   await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click();
   await page.locator('.sidebar').getByRole('button', { name: 'التقارير الذكية', exact: true }).click();
+  // The previous report remains available for comparing its historical presentation.
+  await page.getByRole('button', { name: 'مقارنة بالتقرير السابق', exact: true }).click();
   await page.getByRole('columnheader', { name: 'صافي الإقفال — 5 صباحًا', exact: true }).waitFor();
   const cells = page.locator('.report-closing');
   assert.equal(await cells.count(), 5);

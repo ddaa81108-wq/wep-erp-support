@@ -1,5 +1,7 @@
+import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
+  ...reportEnglish,
   'عملة الاستلام: دينار ليبي فقط — الربط بحسابات الدينار دون تحويل.':'Receipt currency: Libyan dinar only — link to LYD accounts without conversion.',
   'لا يمكن ربط الاستلام إلا بحساب بالدينار الليبي، دون تحويل.':'This receipt can only be linked to an LYD account, without conversion.',
   'استلام قديم مرتبط بعملة مختلفة؛ يلزم مراجعة الإدارة، ولم يتم تعديل الرصيد تلقائيًا.':'A historical receipt is linked to a different currency. Administrative review is required; no balance was changed automatically.',

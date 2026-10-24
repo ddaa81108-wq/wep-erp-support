@@ -828,6 +828,7 @@ try {
   await page.setViewportSize({ width: 1440, height: 950 });
   await page.getByRole('button', { name: 'إغلاق' }).click();
   await page.getByRole('button', { name: 'التقارير الذكية' }).click();
+  await page.getByRole('button', { name: 'مقارنة بالتقرير السابق', exact: true }).click();
   await page.getByRole('heading', { name: 'التقارير الذكية' }).waitFor();
   await page.getByText('سجل يومي تلقائي من إجماليات الخزينة', { exact: true }).waitFor();
   await page
@@ -906,7 +907,7 @@ try {
     ['أمانات ليبية', 'أمانات ليبية', 'libyan-deposits'],
     ['قسم ديون الشركات', 'قسم ديون الشركات', 'companies'],
     ['قسم ديون العملاء', 'قسم ديون العملاء', 'customers'],
-    ['التقارير الذكية', 'التقارير الذكية', 'reports-after-navigation'],
+    ['التقارير الذكية', 'موقفك المالي، بوضوح', 'reports-after-navigation'],
   ] as const;
   for (const [navigationLabel, headingLabel, screenshotName] of mobileSections) {
     await page.getByRole('button', { name: 'فتح القائمة الرئيسية' }).click();
