@@ -10,7 +10,7 @@ import { captureFiveAmClosing, fiveAmDeadline } from '../../src/server/domain/re
 import { currentBusinessDate } from '../../src/server/domain/reports/businessDates.ts';
 
 /** Entirely synthetic, in-memory accounts for local review and browser acceptance. */
-export function reportOverviewFixture() {
+export function reportOverviewFixture(historyDays = 3) {
   const fixture = collectionFixture();
   const { db, admin, collector, assignments, ids } = fixture;
   for (const [index, name] of ['عميل تحصيل تجريبي', 'شركة تجريبية للتحصيل', 'حساب اختبار مستقل'].entries())
@@ -29,11 +29,14 @@ export function reportOverviewFixture() {
   createPurchaseEntry(db, admin, 'al_bayan', { requestId: 'overview-demo-purchase', expectedDayVersion: purchase.day.version,
     itemCode: 'custom', itemLabel: 'بضاعة تجريبية', egpValueUnits: 15600, calculationMode: 'divide', exchangeRate: '5.2', paidUnits: 1000, vodafoneConsumedUnits: 0 }, 'preview');
   const today = currentBusinessDate();
-  for (let index = 3; index >= 1; index--) {
+  for (let index = historyDays; index >= 1; index--) {
     const day = new Date(Date.parse(`${today}T12:00:00Z`) - index * 86_400_000).toISOString().slice(0, 10);
     addTreasuryCashEntry(db, admin, { requestId: `overview-demo-cash-${index}`, expectedVersion: treasuryDashboard(db, admin.organizationId).cashVersion,
-      direction: 'in', amountUnits: index === 3 ? 12000 : 4000 }, 'preview');
+      direction: 'in', amountUnits: index === historyDays ? 12000 : 4000 }, 'preview');
     const due = fiveAmDeadline(day);
+    // Synthetic historical operation time for the demonstration journal only.
+    db.prepare("UPDATE audit_log SET created_at=? WHERE id=(SELECT MAX(id) FROM audit_log WHERE organization_id=?)")
+      .run(new Date(due.getTime() - 1000).toISOString(), admin.organizationId);
     captureFiveAmClosing(db, admin.organizationId, due.getTime() - 1000, due);
   }
   addTreasuryCashEntry(db, admin, { requestId: 'overview-demo-cash-out', expectedVersion: treasuryDashboard(db, admin.organizationId).cashVersion,

@@ -5,16 +5,18 @@ import type { ReportSource } from '../../../shared/reportOverview.ts';
 import { ReportActivityPanel, ReportDetails, reportTime } from './ReportDetails.tsx';
 import { money } from './reportViewModel.ts';
 import { useReportOverview } from './useReportOverview.ts';
+import type { User } from '../../api.ts';
+import { ReportClosingPanel } from './ReportClosingPanel.tsx';
 
 const Legacy = lazy(() => import('./LegacyReportsSection.tsx').then(module => ({ default: module.ReportsSection })));
-export function ReportsSection() {
+export function ReportsSection({ user }: { user: User }) {
   const [legacy, setLegacy] = useState(false);
   return <><div className="report-preview-switch"><span>{uiText('التقارير الجديدة')}</span>
     <button onClick={() => setLegacy(value => !value)}>{uiText(legacy ? 'العودة للوحة الجديدة' : 'مقارنة بالتقرير السابق')}</button></div>
-    {legacy ? <Suspense fallback={<p>{uiText('جارٍ إعداد التقرير…')}</p>}><Legacy /></Suspense> : <FinancialOverview />}</>;
+    {legacy ? <Suspense fallback={<p>{uiText('جارٍ إعداد التقرير…')}</p>}><Legacy /></Suspense> : <FinancialOverview canViewJournal={user.role === 'admin'} />}</>;
 }
 
-function FinancialOverview() {
+function FinancialOverview({ canViewJournal }: { canViewJournal: boolean }) {
   const { data, busy, message, load } = useReportOverview();
   const [selected, setSelected] = useState<ReportSource | null>(null);
   if (!data) return <section className="financial-overview" dir={direction}>
@@ -24,7 +26,6 @@ function FinancialOverview() {
   const { position, daily, attention } = data;
   const pending = attention.pendingCount + attention.outstandingCount + attention.currencyMismatchCount;
   const netLabel = position.netUnits === null ? 'صافي غير مكتمل' : position.netUnits > 0 ? 'صافي المركز — لنا' : position.netUnits < 0 ? 'صافي المركز — علينا' : 'صافي المركز — متوازن';
-  const closingState = data.latestClosing.state;
   const dailyCards = [
     ['ديون وأرصدة افتتاحية أُضيفت اليوم', daily.debtsUnits], ['تسديدات العملاء والشركات', daily.paymentsUnits],
     ['مشتريات اليوم بالدينار', daily.purchasesUnits], ['تسديدات المشتريات', daily.purchasePaymentsUnits],
@@ -38,6 +39,9 @@ function FinancialOverview() {
         <button disabled={busy} aria-label={uiText('تحديث بيانات التقرير الآن')} onClick={() => void load().catch(() => undefined)}><RefreshCw size={16} /></button></div></header>
     {message && <div className="report-reading-error" role="alert">{message}</div>}
     <div className="report-read-only"><LockKeyhole size={14} /><span>{uiText('للقراءة فقط — لا يضيف معاملات ولا يعدّل أرصدة ولا يقفل الأقسام.')}</span></div>
+    <div className="report-overview-layout">
+    <ReportClosingPanel data={data} canViewJournal={canViewJournal} />
+    <div className="report-overview-side">
     <section className="report-position-grid" aria-label={uiText('موقفك الآن')}>
       <article className={`report-position-card report-position-net ${position.netUnits !== null && position.netUnits < 0 ? 'is-negative' : ''}`}>
         <span>{uiText(netLabel)}</span><strong data-testid="report-net" dir="ltr">{position.netUnits === null ? '—' : money(Math.abs(position.netUnits))}</strong>
@@ -71,16 +75,7 @@ function FinancialOverview() {
       {attention.currencyMismatchCount > 0 && <div className="report-attention-item"><strong>{attention.currencyMismatchCount} {uiText('ربط قديم بعملة مخالفة يحتاج مراجعة')}</strong><p>{uiText('لا يجري التقرير تحويلًا أو إصلاحًا تلقائيًا للرصيد.')}</p></div>}
       {!pending && position.netUnits !== null && <div className="report-no-attention"><CircleCheck size={25} /><strong>{uiText('لا توجد بنود معلقة مسجلة')}</strong><p>{uiText('هذا ليس بديلًا عن فحص المطابقة المالية الشامل.')}</p></div>}
     </aside></div>
-    <section className="report-block report-closings"><div className="report-block-head"><div><h2>{uiText('صافي الخامسة صباحًا')}</h2><p>{uiText('لقطات ثابتة بتوقيت ليبيا ليوم العمل السابق؛ لا تقفل أي قسم.')}</p></div>
-      <span className="report-date">{data.latestClosing.businessDate}</span></div>
-      <div className="report-closing-state" data-testid="latest-report-closing">{closingState === 'recorded' ? <>{uiText('الصافي المسجّل:')} <b dir="ltr">{money(data.latestClosing.netUnits)}</b></>
-        : uiText(closingState === 'pending' ? 'بانتظار موعد الخامسة صباحًا.' : closingState === 'missed' ? 'لم تُسجّل اللقطة في موعدها؛ لن نختلق رقمًا بأثر رجعي.' : 'اللقطة غير مكتملة؛ سعر التحويل كان مفقودًا.')}</div>
-      {data.closings.length > 0 ? <div className="report-closing-list">{data.closings.map(closing => <details key={closing.businessDate}>
-        <summary><span>{closing.businessDate}</span><strong dir="ltr">{money(closing.netUnits)}</strong><small>{uiText('الفرق عن آخر لقطة محفوظة:')} <b dir="ltr">{closing.changeUnits === null ? '—' : `${closing.changeUnits > 0 ? '+' : ''}${money(closing.changeUnits)}`}</b></small></summary>
-        <p>{uiText('وقت التسجيل:')} {reportTime(closing.capturedAt, 'Africa/Tripoli')}</p>
-        {closing.reasons.length ? closing.reasons.map(reason => <p key={reason.label}>{uiText(reason.label)}: <b dir="ltr">{money(reason.changeUnits)}</b></p>) : <p>{uiText('لا توجد مقارنة مكتملة أو لم تتغير مكونات الصافي.')}</p>}
-      </details>)}</div> : <p className="report-empty">{uiText('لا توجد لقطات خامسة صباحًا محفوظة بعد.')}</p>}
-    </section>
+    </div></div>
     <ReportActivityPanel updatedAt={data.generatedAt} timezone={data.timezone} />
     {selected && <ReportDetails key={selected.key} source={data.sources.find(source => source.key === selected.key)!} updatedAt={data.generatedAt} onClose={() => setSelected(null)} />}
   </section>;

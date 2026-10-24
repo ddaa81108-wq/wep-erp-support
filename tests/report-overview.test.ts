@@ -160,6 +160,9 @@ test('linked EGP is counted once and fixed 5 AM comparisons retain their recorde
     assert.equal(report.position.netUnits, treasuryDashboard(db, admin.organizationId).netUnits);
     assert.equal(report.closings.length, 3);
     assert.equal(report.closings[0].changeUnits, 4000);
+    assert.equal(report.closings[0].cashUnits, 20000);
+    assert.equal(report.closings[0].cashChangeUnits, 4000);
+    assert.equal(report.position.cashUnits, 18000, 'Current cash differs from the immutable 5 AM cash snapshot');
     assert.equal(report.closings[0].reasons.reduce((value, reason) => value + (reason.changeUnits ?? 0), 0), 4000);
     const fixed = report.closings;
     addTreasuryCashEntry(db, admin, { requestId: 'overview-after-fixed-closing', expectedVersion: treasuryDashboard(db, admin.organizationId).cashVersion,

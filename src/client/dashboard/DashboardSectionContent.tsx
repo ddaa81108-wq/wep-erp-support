@@ -65,7 +65,7 @@ export function DashboardSectionContent({
   } else if (activeSection === 'treasury') {
     content = <TreasurySection user={user} />;
   } else if (activeSection === 'reports') {
-    content = <ReportsSection />;
+    content = <ReportsSection user={user} />;
   }
 
   return (

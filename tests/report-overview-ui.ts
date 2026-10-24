@@ -9,7 +9,7 @@ import { createSession } from '../src/server/security/sessions.ts';
 import { createApp, listen } from '../src/server/app.ts';
 import { loadConfig, API_VERSION } from '../src/server/config.ts';
 
-const { db, admin, customerId } = reportOverviewFixture();
+const { db, admin, customerId } = reportOverviewFixture(25);
 const server = createApp(db, loadConfig({ databasePath: ':memory:', publicOrigin: '', internetRequired: false, secureCookie: false }));
 const browser = await chromium.launch({ headless: true });
 const output = resolve('artifacts/report-overview');
@@ -31,6 +31,20 @@ try {
   const initial = reportOverview(db, admin.organizationId);
   const formatted = (value: number) => new Intl.NumberFormat('en-US').format(value);
   await expect(page.getByTestId('report-net')).toContainText(formatted(initial.position.netUnits!));
+  const latest = initial.closings.find(item => item.businessDate === initial.latestClosing.businessDate)!;
+  await expect(page.getByTestId('report-closing-net')).toContainText(formatted(initial.latestClosing.netUnits!));
+  await expect(page.getByTestId('report-closing-cash')).toHaveCount(0);
+  await expect(page.locator('.closing-visible-history th')).toHaveText(['يوم العمل', 'صافي 05:00', 'الفرق', 'تفاصيل']);
+  await expect(page.locator('.closing-visible-history [data-testid="closing-history-row"]')).toHaveCount(20);
+  await expect(page.locator('.closing-visible-history [data-testid="closing-history-row"]').last()).toBeVisible();
+  await page.getByRole('button', { name: `تفاصيل لقطة ${latest.businessDate}`, exact: true }).click();
+  await expect(page.getByRole('dialog')).toContainText('سجل العمليات بين اللقطتين');
+  await expect(page.locator('.closing-journal-summary')).not.toContainText('نقد الخزينة');
+  await expect(page.locator('.closing-audit-list')).toContainText('دخول نقدية للخزينة');
+  await page.getByRole('button', { name: 'إغلاق', exact: true }).click();
+  await page.getByText('إظهار الأقدم من 20 لقطة', { exact: true }).click();
+  await expect(page.locator('.report-closing-archive [data-testid="closing-history-row"]')).toHaveCount(5);
+  await page.getByText('إظهار الأقدم من 20 لقطة', { exact: true }).click();
   await expect(page.locator('.report-source')).toHaveCount(6);
   await page.getByText('فتح تفاصيل المعاملات', { exact: true }).click();
   await expect(page.locator('.report-activity-table')).toBeVisible();
@@ -52,6 +66,8 @@ try {
   assert.equal(liveWrite.status(), 201, await liveWrite.text());
   await writer.close();
   await expect(page.getByTestId('report-net')).toContainText(formatted(initial.position.netUnits! + 50), { timeout: 20_000 });
+  await expect(page.getByTestId('report-closing-net')).toContainText(formatted(initial.latestClosing.netUnits!));
+  await expect(page.getByTestId('report-closing-cash')).toHaveCount(0);
   const currentNet = await page.getByTestId('report-net').textContent();
   await page.route('**/api/reports/overview', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ ok: false, error: { code: 'TEST_REFRESH_FAILURE', message: 'Preview refresh unavailable' } }) }));
   await page.getByRole('button', { name: 'تحديث بيانات التقرير الآن', exact: true }).click();

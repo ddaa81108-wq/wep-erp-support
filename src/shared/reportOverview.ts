@@ -14,6 +14,9 @@ export type ReportClosing = {
   capturedAt: string;
   netUnits: number | null;
   changeUnits: number | null;
+  cashUnits: number | null;
+  cashChangeUnits: number | null;
+  previousBusinessDate: string | null;
   reasons: { label: string; changeUnits: number | null }[];
 };
 export type ReportOverview = {
@@ -48,7 +51,16 @@ export type ReportOverview = {
     currencyMismatchCount: number;
   };
   closings: ReportClosing[];
+  closingsHasMore: boolean;
   latestClosing: { state: 'recorded' | 'missing_rate' | 'pending' | 'missed'; businessDate: string; scheduledAt: string; netUnits: number | null };
+};
+export type ReportClosingHistory = { items: ReportClosing[]; hasMore: boolean; nextBefore: string | null };
+export type ReportClosingJournal = {
+  businessDate: string; previousBusinessDate: string | null; from: string; to: string;
+  boundary: 'sequence' | 'time'; page: number; hasMore: boolean;
+  items: { id: number; action: string; name: string; actorName: string; createdAt: string;
+    currency: 'LYD' | 'EGP' | null; amountUnits: number | null; paidUnits: number | null;
+    previousUnits: number | null; nextUnits: number | null; reference: string; description: string }[];
 };
 export type ReportActivity = {
   items: {

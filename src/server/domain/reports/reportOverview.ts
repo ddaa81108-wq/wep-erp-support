@@ -4,7 +4,8 @@ import { badRequest } from '../../http/errors.ts';
 import { egyptianConversion, safeUnits } from '../treasurySupport.ts';
 import { businessDayRange, currentBusinessDate, organizationTimezone } from './businessDates.ts';
 import { readFiveAmClosing } from './fiveAmClosing.ts';
-import { componentReasons, type PositionSnapshot } from './reportModel.ts';
+import { readClosingPage } from './reportClosingHistory.ts';
+import { readReportSnapshot as readSnapshot } from './reportReadSupport.ts';
 
 const sections: Record<string, ReportSourceKey> = {
   customer_debts: 'customers', company_debts: 'companies', libyan_deposits: 'libyan', egyptian_deposits: 'egyptian',
@@ -27,19 +28,6 @@ function sourceMoney(row: Row): Row {
   if (row.source_kind !== 'debt_transaction' || row.source_amount === null || row.source_amount === undefined) return row;
   const amount = BigInt(String(row.source_amount)) * BigInt(String(row.source_rate)) / 1_000_000n;
   return { ...row, amount_units: amount, effect_units: row.entry_kind === 'payment' ? -amount : amount };
-}
-/** One consistent, deferred read snapshot. No migrations, cache writes or source initialization. */
-function readSnapshot<T>(db: AppDatabase, read: () => T): T {
-  const nested = db.isTransaction;
-  if (!nested) db.exec('BEGIN');
-  try {
-    const result = read();
-    if (!nested) db.exec('COMMIT');
-    return result;
-  } catch (error) {
-    if (!nested) db.exec('ROLLBACK');
-    throw error;
-  }
 }
 function day(db: AppDatabase, organizationId: string, now: Date) {
   const timezone = organizationTimezone(db, organizationId);
@@ -99,16 +87,7 @@ export function reportOverview(db: AppDatabase, organizationId: string, now = ne
     const outstandingRows = pending.filter(row => row.status === 'approved' && row.cash_received_at === null);
     const mismatch = db.prepare(`SELECT COUNT(*) n FROM collection_unlinked_receipts r
       JOIN debt_transactions t ON t.id=r.approved_transaction_id WHERE r.organization_id=? AND t.currency<>r.currency`).get(organizationId) as { n: number };
-    const closingRows = db.prepare(`SELECT business_date,captured_at,snapshot_json FROM daily_financial_closings
-      WHERE organization_id=? ORDER BY business_date DESC LIMIT 15`).all(organizationId) as Row[];
-    const closings = closingRows.slice(0, 14).map((row, index) => {
-      const current = JSON.parse(String(row.snapshot_json)) as PositionSnapshot;
-      const previous = closingRows[index + 1] ? JSON.parse(String(closingRows[index + 1].snapshot_json)) as PositionSnapshot : null;
-      const changeUnits = current.netUnits === null || previous?.netUnits === null || !previous ? null
-        : safeUnits(BigInt(current.netUnits) - BigInt(previous.netUnits), 'فرق اللقطات');
-      return { businessDate: String(row.business_date), capturedAt: String(row.captured_at), netUnits: current.netUnits,
-        changeUnits, reasons: componentReasons(current, previous) };
-    });
+    const history = readClosingPage(db, organizationId);
     const closingDate = currentBusinessDate(now, 'Africa/Tripoli');
     const yesterday = new Date(Date.parse(`${closingDate}T12:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
     const latestClosing = readFiveAmClosing(db, organizationId, yesterday, now);
@@ -123,7 +102,8 @@ export function reportOverview(db: AppDatabase, organizationId: string, now = ne
       },
       attention: { pendingCount: pendingRows.length, pendingUnits: sum(pendingRows, 'amount_units'),
         outstandingCount: outstandingRows.length, outstandingUnits: sum(outstandingRows, 'amount_units'), currencyMismatchCount: mismatch.n },
-      closings, latestClosing: { state: latestClosing.state, businessDate: yesterday, scheduledAt: latestClosing.scheduledAt, netUnits: latestClosing.netUnits },
+      closings: history.items, closingsHasMore: history.hasMore,
+      latestClosing: { state: latestClosing.state, businessDate: yesterday, scheduledAt: latestClosing.scheduledAt, netUnits: latestClosing.netUnits },
     };
   });
 }

@@ -32,7 +32,9 @@ export function captureFiveAmClosing(
   )
     return false;
   const treasury = treasuryDashboard(database, organizationId);
-  const snapshot: PositionSnapshot = {
+  const auditCursor = Number((database.prepare('SELECT COALESCE(MAX(id),0) id FROM audit_log WHERE organization_id=?').get(organizationId) as { id: number }).id);
+  const snapshot: PositionSnapshot & { auditCursor: number } = {
+    auditCursor,
     receivablesUnits: treasury.receivablesUnits,
     liabilitiesUnits: treasury.liabilitiesUnits,
     activeCashUnits: treasury.activeCashUnits,
