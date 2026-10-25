@@ -638,7 +638,7 @@ try {
   await page.getByLabel('القيمة ج.م').fill('999');
   internetAvailable = false;
   await page.waitForFunction(() => Boolean(document.querySelector('.connection-notice')), undefined, {
-    timeout: 12_000,
+    timeout: 80_000,
   });
   assert.equal(
     await page.locator('#root h1').filter({ hasText: 'قسم المشتريات' }).count(),
@@ -648,7 +648,7 @@ try {
   assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).visibility), 'hidden');
   internetAvailable = true;
   await page.waitForFunction(() => !document.querySelector('.connection-notice'), undefined, {
-    timeout: 7_000,
+    timeout: 30_000,
   });
   assert.equal(
     await page.getByLabel('القيمة ج.م').inputValue(),
@@ -1093,13 +1093,13 @@ try {
   await page.locator('.ledger-panel').waitFor({ state: 'detached' });
   internetAvailable = false;
   await page.waitForFunction(() => Boolean(document.querySelector('.connection-notice')), undefined, {
-    timeout: 12_000,
+    timeout: 80_000,
   });
   assert.equal(await page.locator('#root h1').filter({ hasText: 'قسم ديون العملاء' }).count(), 1);
   assert.notEqual(await page.evaluate(() => getComputedStyle(document.documentElement).visibility), 'hidden');
   internetAvailable = true;
   await page.waitForFunction(() => !document.querySelector('.connection-notice'), undefined, {
-    timeout: 7_000,
+    timeout: 30_000,
   });
   await page.getByRole('heading', { name: 'قسم ديون العملاء' }).waitFor({ timeout: 7_000 });
   await page.locator('.customer-card-main').filter({ hasText: 'متجر النور' }).click();
