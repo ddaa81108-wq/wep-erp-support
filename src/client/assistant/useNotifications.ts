@@ -1,7 +1,8 @@
 import { uiText, displayLocale } from '../i18n/language.ts';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, type NotificationItem, type NotificationPreferences } from '../api.ts';
 import { useRealtimeRefresh } from '../realtime/useRealtimeRefresh.ts';
+import { RefreshQueue } from '../realtime/queuedRefresh.ts';
 import { notificationSentence } from './notificationModel.ts';
 import {
   NOTIFICATION_REALTIME_TOPICS,
@@ -71,15 +72,13 @@ export function useNotifications(enabled: boolean) {
   const newestId = useRef(0);
   const preferencesRef = useRef(preferences);
   const announcementTimer = useRef<number | null>(null);
-  const loadingRequest = useRef(false);
 
   useEffect(() => {
     preferencesRef.current = preferences;
   }, [preferences]);
 
-  const load = useCallback(async () => {
-    if (!enabled || loadingRequest.current) return;
-    loadingRequest.current = true;
+  const refresh = useCallback(async () => {
+    if (!enabled) return;
     try {
       const result = await api.notifications();
       const latestId = result.items[0]?.id ?? 0;
@@ -105,16 +104,18 @@ export function useNotifications(enabled: boolean) {
       initialized.current = true;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : uiText("تعذر تحديث الإشعارات."));
+      throw caught;
     } finally {
-      loadingRequest.current = false;
       setLoading(false);
     }
   }, [enabled]);
+  const queue = useMemo(() => new RefreshQueue(), []);
+  const load = useCallback(() => queue.run(refresh), [queue, refresh]);
 
   useEffect(() => {
     if (!enabled) return;
     void Promise.all([
-      load(),
+      load().catch(() => undefined),
       api.notificationPreferences().then(value => {
         setPreferences(value);
         setPreferencesReady(true);
@@ -136,15 +137,17 @@ export function useNotifications(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
     const recover = () => {
-      if (document.visibilityState === 'visible') void load();
+      if (document.visibilityState === 'visible') void load().catch(() => undefined);
     };
-    const timer = window.setInterval(recover, NOTIFICATION_SAFETY_POLL_INTERVAL_MS);
+    // A safety poll is not an invalidation. Slow reads must not create an
+    // endless trailing-read chain; actual live events still queue fresh data.
+    const timer = window.setInterval(() => { if (!queue.busy) recover(); }, NOTIFICATION_SAFETY_POLL_INTERVAL_MS);
     document.addEventListener('visibilitychange', recover);
     return () => {
       window.clearInterval(timer);
       document.removeEventListener('visibilitychange', recover);
     };
-  }, [enabled, load]);
+  }, [enabled, load, queue]);
 
   useEffect(() => () => {
     if (announcementTimer.current) window.clearTimeout(announcementTimer.current);

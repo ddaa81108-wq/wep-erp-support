@@ -42,7 +42,7 @@ export function useMasraweyaDay(canWrite: boolean) {
   }, [editor]);
   useEffect(() => {
     const refresh = () => {
-      void editor.refresh(followToday);
+      void editor.refresh(followToday).catch(() => undefined);
     };
     // SSE delivers changes; retain an authoritative check for business-day rollover.
     const timer = window.setInterval(refresh, 60_000);
@@ -57,7 +57,13 @@ export function useMasraweyaDay(canWrite: boolean) {
     cursorKey: 'abdo:masraweya-last-event',
     enabled: Boolean(state.day) && validated,
     initialSnapshotProvided: true,
-    onChange: () => editor.refresh(followToday),
+    onChange: async () => {
+      const before = editor.snapshot();
+      if (before.dirty || before.busy || before.loading) throw new Error('Live refresh awaits the current draft');
+      await editor.refresh(followToday);
+      const after = editor.snapshot();
+      if (after.dirty || after.busy || after.loading) throw new Error('Live refresh superseded by typing');
+    },
   });
   return {
     ...state,

@@ -35,6 +35,9 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
   const draftKey = `abdo-ledger-draft:${section}:${ledger.customer.id}`;
   const restored = editing ? null : savedDraft(draftKey);
   const [wasRestored] = useState(Boolean(restored));
+  // Background rows may update while editing. An existing edit must still
+  // validate the account version on which that edit originally started.
+  const [editingVersion] = useState(ledger.customer.version);
   const [kind, setKind] = useState<LedgerDraftKind>(editing ? ledgerItemKind(editing) : restored?.kind ?? (section === 'libyan-deposits' ? 'partial' : 'debt'));
   const [mode, setMode] = useState<LedgerCalculationMode>(editing?.calculationMode ?? restored?.mode ?? 'direct');
   const [value, setValue] = useState(editing ? String(editing.inputValue) : restored?.value ?? '');
@@ -72,7 +75,7 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
     setError('');
     const body = {
       requestId: crypto.randomUUID(),
-      expectedVersion: ledger.customer.version,
+      expectedVersion: editing ? editingVersion : ledger.customer.version,
       type: kind === 'debt' ? ('debt' as const) : ('payment' as const),
       paymentMode:
         kind === 'full' ? ('full' as const) : kind === 'partial' ? ('partial' as const) : undefined,
@@ -91,7 +94,9 @@ export function LedgerDraftRow({ section, ledger, editing, onClose, onSaved, onC
       await onSaved(editing ? uiText("تم تعديل المعاملة في مكانها.") : uiText("تم اعتماد المعاملة وإضافة سطر جديد فارغ."), { ...saved, customerId: ledger.customer.id });
     } catch (caught) {
       if (caught instanceof ApiError && caught.code === 'VERSION_CONFLICT') await onConflict();
-      setError(ledgerErrorText(caught));
+      setError(editing && caught instanceof ApiError && caught.code === 'VERSION_CONFLICT'
+        ? uiText('تغيّر الحساب أثناء تعديلك. ألغِ التعديل وافتحه مجددًا لمراجعة أحدث البيانات؛ مسودتك لم تُحفظ.')
+        : ledgerErrorText(caught));
     } finally {
       submitting.current = false;
       setBusy(false);

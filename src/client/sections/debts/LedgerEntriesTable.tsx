@@ -91,7 +91,7 @@ export function LedgerEntriesTable({
       {canWrite && (
         <LedgerDraftRow
           section={section}
-          key={`new-${ledger.customer.nextSequence}-${newDraftKey}`}
+          key={`new-${ledger.customer.id}-${newDraftKey}`}
           ledger={ledger}
           editing={null}
           onClose={onResetDraft}

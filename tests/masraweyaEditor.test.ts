@@ -176,6 +176,23 @@ test('background refreshes coalesce and cannot overwrite edits or a disposed edi
   editor.dispose();
 });
 
+test('failed background reads remain retryable instead of acknowledging stale day data', async () => {
+  let calls = 0;
+  const editor = new MasraweyaEditor({
+    load: async () => {
+      if (++calls === 2) throw new Error('Transient refresh failure');
+      return day({ version: calls });
+    },
+    save: async () => day(),
+  });
+  await editor.load();
+  await assert.rejects(editor.refresh(), /Transient refresh failure/);
+  assert.equal(editor.snapshot().day?.version, 1);
+  await editor.refresh();
+  assert.equal(editor.snapshot().day?.version, 3);
+  editor.dispose();
+});
+
 test('duplicate initial loads are ignored while a read is pending', async () => {
   const pending = deferred<MasraweyaDay>();
   let calls = 0;

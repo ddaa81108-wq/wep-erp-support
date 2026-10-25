@@ -26,6 +26,10 @@ export class ApiError extends Error {
 
 let csrfToken = '';
 const pendingReads = new PendingReads();
+/** A remote commit invalidates reads that began before its live event. */
+export function invalidatePendingReads() {
+  pendingReads.clear();
+}
 const csrfChannel =
   typeof window === 'undefined' || typeof BroadcastChannel === 'undefined'
     ? null

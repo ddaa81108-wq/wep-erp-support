@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { api, type LiveChange } from '../api.ts';
+import { invalidatePendingReads } from '../apiTransport.ts';
 
 type Options = {
   topics: readonly string[];
@@ -52,7 +53,10 @@ export function useRealtimeRefresh({
       resync = false;
       const checkpoint = latest;
       try {
-        if (changes.length || full) await callback.current(changes, full);
+        if (changes.length || full) {
+          invalidatePendingReads();
+          await callback.current(changes, full);
+        }
         if (!stopped) remember(checkpoint);
       } catch {
         // Do not acknowledge failed refreshes; retry with an authoritative snapshot.
@@ -62,7 +66,7 @@ export function useRealtimeRefresh({
         if (!stopped && (pending.size || resync)) schedule(resync ? 1000 : 100);
       }
     };
-    const schedule = (delay = 100) => {
+    const schedule = (delay = 50) => {
       if (!stopped && timer === null && !running) timer = window.setTimeout(() => void flush(), delay);
     };
     const fullResync = () => {
@@ -128,6 +132,9 @@ export function useRealtimeRefresh({
         void recover();
       }
     };
+    // Native SSE reconnects can take seconds; bridge the gap immediately with
+    // the same authorized change feed, without replaying financial writes.
+    source.addEventListener('error', () => { void recover(); });
     const pollTimer = window.setInterval(() => {
       // Keep polling as a fallback and a periodic safety check for silent gaps.
       // Reconnect and visibility handlers still reconcile immediately.

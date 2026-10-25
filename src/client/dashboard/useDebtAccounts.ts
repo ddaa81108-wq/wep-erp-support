@@ -42,7 +42,6 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   const ledgerRequest = useRef(0);
   const loadedPages = useRef(1);
   const openLedgerId = useRef<string | null>(null);
-  const pendingLedgerTimer = useRef<number | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
@@ -107,45 +106,24 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     [fetchCustomer, mergeCustomer, refreshAfterMutation],
   );
 
-  const refreshLedgerWhenIdle = useCallback(
-    (id: string) => {
-      if (pendingLedgerTimer.current !== null) window.clearTimeout(pendingLedgerTimer.current);
-      const attempt = async () => {
-        if (openLedgerId.current !== id) {
-          pendingLedgerTimer.current = null;
-          return;
-        }
-        const active = document.activeElement;
-        const isEditing =
-          active instanceof HTMLElement &&
-          Boolean(active.closest('.ledger-panel')) &&
-          /^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName);
-        if (isEditing) {
-          pendingLedgerTimer.current = window.setTimeout(() => void attempt(), 600);
-          return;
-        }
-        try {
-          const next = await fetchLedger(id);
-          setLedger((current) => mergeFreshLedger(current, next, id));
-        } catch (error) {
-          onNotice({ kind: 'error', text: dashboardErrorText(error) });
-        }
-        pendingLedgerTimer.current = null;
-      };
-      pendingLedgerTimer.current = window.setTimeout(() => void attempt(), 250);
+  const refreshLedger = useCallback(
+    async (id: string) => {
+      if (openLedgerId.current !== id) return;
+      await Promise.all([
+        fetchLedger(id).then(next => setLedger(current => mergeFreshLedger(current, next, id))),
+        fetchCustomer(id).then(snapshot => setCustomers(current => {
+          const previous = current.find(customer => customer.id === id);
+          return previous && previous.version <= snapshot.version
+            ? mergeCustomerSnapshots(current, [snapshot]) : current;
+        })),
+      ]);
     },
-    [fetchLedger, onNotice],
+    [fetchLedger, fetchCustomer],
   );
 
   useEffect(() => {
     openLedgerId.current = ledger?.customer.id ?? null;
   }, [ledger?.customer.id]);
-  useEffect(
-    () => () => {
-      if (pendingLedgerTimer.current !== null) window.clearTimeout(pendingLedgerTimer.current);
-    },
-    [],
-  );
   useEffect(() => {
     ledgerRequest.current++;
     setLedger(null);
@@ -175,7 +153,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   }, [activeSection, canRead, loadCustomers, onNotice]);
 
   useDebtRealtime({ activeSection, canRead, debtSection, openLedgerId,
-    loadCustomers: refreshList, refreshLedgerWhenIdle });
+    loadCustomers: refreshList, refreshLedger });
 
   async function loadMoreCustomers() {
     if (!nextCursor || loadingMore) return;

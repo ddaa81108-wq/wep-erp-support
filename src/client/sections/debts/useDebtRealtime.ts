@@ -7,7 +7,7 @@ type Props = {
   debtSection: DebtSection;
   openLedgerId: { current: string | null };
   loadCustomers: () => Promise<void>;
-  refreshLedgerWhenIdle: (id: string) => void;
+  refreshLedger: (id: string) => Promise<void>;
 };
 const prefixes = {
   customers: 'customer',
@@ -22,7 +22,7 @@ export function useDebtRealtime({
   debtSection,
   openLedgerId,
   loadCustomers,
-  refreshLedgerWhenIdle,
+  refreshLedger,
 }: Props) {
   const prefix = prefixes[debtSection];
   useRealtimeRefresh({
@@ -33,10 +33,10 @@ export function useDebtRealtime({
     initialSnapshotProvided: true,
     onChange: async (changes, fullResync) => {
       // The list response owns the section-wide totals and active-card definition.
-      await loadCustomers();
       const id = openLedgerId.current;
-      if (id && (fullResync || changes.some((change) => change.aggregateId === id)))
-        refreshLedgerWhenIdle(id);
+      const changed = id && (fullResync || changes.some((change) => change.aggregateId === id));
+      // A slow multi-page account list must not hold back the open ledger.
+      await Promise.all([loadCustomers(), changed ? refreshLedger(id) : Promise.resolve()]);
     },
   });
 }

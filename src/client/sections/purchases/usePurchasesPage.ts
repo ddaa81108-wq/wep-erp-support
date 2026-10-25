@@ -13,6 +13,8 @@ export function usePurchasesPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const dirty = useRef(false);
+  const currentDayId = useRef<string | null>(null);
+  const dirtyEntryIds = useRef(new Set<string>());
   const deleteRequestIds = useRef(new Map<string, string>());
   const finalizeRequestId = useRef<string | null>(null);
 
@@ -23,10 +25,18 @@ export function usePurchasesPage() {
     try {
       const next = await api.purchases(key);
       if (request !== latestLoad.current) return;
-      if (background && dirty.current) throw new Error('Refresh deferred while editing');
+      // Same-day saved rows and totals can update independently of editor state.
+      // A remote day rollover must not remount and discard an unsaved draft.
+      if (background && dirty.current && currentDayId.current !== next.day.id)
+        throw new Error('Day rollover deferred while a purchase draft is being edited');
+      if (background && [...dirtyEntryIds.current].some(id => {
+        const entry = next.entries.find(item => item.id === id);
+        return !entry || entry.dayStatus === 'finalized' && !entry.correctionOpen;
+      })) throw new Error('An edited purchase row was removed or locked remotely');
       setPage(next);
       setEntries(next.entries);
-      dirty.current = false;
+      currentDayId.current = next.day.id;
+      if (!background) { dirty.current = false; dirtyEntryIds.current.clear(); }
     } catch (error) {
       if (quiet) throw error;
       setMessage(purchaseErrorText(error));
@@ -44,19 +54,18 @@ export function usePurchasesPage() {
     initialSnapshotProvided: true,
     topics: ['purchases.changed'],
     cursorKey: 'abdo:purchases-last-event',
-    onChange: () => {
-      if (dirty.current) throw new Error('Refresh deferred while a purchase draft is being edited');
-      return load(merchant, true, true);
-    },
+    onChange: () => load(merchant, true, true),
   });
 
-  function markDirty() {
+  function markDirty(entryId?: string) {
     dirty.current = true;
+    if (entryId) dirtyEntryIds.current.add(entryId);
   }
 
   function cancelEditing() {
     setEditingId(null);
     dirty.current = false;
+    dirtyEntryIds.current.clear();
   }
 
   async function remove(entry: PurchaseEntry) {

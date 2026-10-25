@@ -60,7 +60,7 @@ export function PurchaseRegister({ purchases, canWrite, canFinalize }: PurchaseR
       <PurchaseRegisterHeader />
       {entries.map((entry, index) => {
         return (
-          <PurchaseEntryGroup key={`${entry.id}-${entry.version}-${entry.dayVersion}`}
+          <PurchaseEntryGroup key={entry.id}
             entry={entry} showSeparator={index === 0 || entries[index - 1].dayNumber !== entry.dayNumber}
             showClosing={entry.dayStatus === 'finalized' && entries[index + 1]?.dayId !== entry.dayId}
             balanceBeforeUnits={runningBalances.get(entry.id)?.before ?? null}
@@ -71,7 +71,7 @@ export function PurchaseRegister({ purchases, canWrite, canFinalize }: PurchaseR
               if (editingId && editingId !== entry.id && !(await flushBeforeNavigation())) return;
               setEditingId(entry.id);
             }} onRemove={() => void remove(entry)}
-            onToggleCorrection={(open) => void toggleCorrection(entry, open)} onMarkDirty={markDirty}
+            onToggleCorrection={(open) => void toggleCorrection(entry, open)} onMarkDirty={() => markDirty(entry.id)}
             onCancelEditing={cancelEditing} onSaved={async () => { setEditingId(null); await load(merchant, true); }}
             onBusyChange={setBusy} onMessage={setMessage} />
         );

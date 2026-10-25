@@ -43,7 +43,7 @@ export class EventHub {
     }
     response.writeHead(200, {
       'Content-Type': 'text/event-stream; charset=utf-8',
-      'Cache-Control': 'no-store',
+      'Cache-Control': 'no-store, no-transform',
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no',
     });
@@ -171,10 +171,8 @@ export class EventHub {
   private writeRow(response: ServerResponse, row: Record<string, unknown>) {
     if (response.destroyed || response.writableEnded) return;
     if (response.writableLength > MAX_BUFFERED_BYTES) { response.destroy(); return; }
-    response.write(`id: ${Number(row.sequence)}\n`);
-    response.write(`event: ${String(row.topic)}\n`);
     response.write(
-      `data: ${JSON.stringify({
+      `id: ${Number(row.sequence)}\nevent: ${String(row.topic)}\ndata: ${JSON.stringify({
         sequence: Number(row.sequence),
         aggregateId: row.aggregate_id ? String(row.aggregate_id) : null,
         payload: JSON.parse(String(row.payload_json)),

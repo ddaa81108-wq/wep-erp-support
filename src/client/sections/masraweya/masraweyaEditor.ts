@@ -181,21 +181,18 @@ export class MasraweyaEditor {
     const revision = this.revision;
     const loadSequence = this.loadSequence;
     const date = this.state.day.businessDate;
-    try {
-      const next = await this.transport.load(followToday ? undefined : date);
-      if (
-        this.revision === revision &&
-        this.loadSequence === loadSequence &&
-        !this.state.dirty &&
-        !this.state.busy &&
-        !this.state.loading &&
-        this.state.day?.businessDate === date
-      ) {
-        if (next.version !== this.state.day.version || next.businessDate !== date) this.hydrate(next);
-        else this.publish({ day: next });
-      }
-    } catch {
-      /* Keep saved data visible; writes report their own errors. */
+    // Rejected reads remain visible to the live consumer so it can retry.
+    const next = await this.transport.load(followToday ? undefined : date);
+    if (
+      this.revision === revision &&
+      this.loadSequence === loadSequence &&
+      !this.state.dirty &&
+      !this.state.busy &&
+      !this.state.loading &&
+      this.state.day?.businessDate === date
+    ) {
+      if (next.version !== this.state.day.version || next.businessDate !== date) this.hydrate(next);
+      else this.publish({ day: next });
     }
   }
   dispose() {

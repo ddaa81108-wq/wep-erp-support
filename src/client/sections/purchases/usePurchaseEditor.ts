@@ -40,6 +40,7 @@ export function usePurchaseEditor({
   const saving = useRef(false);
   const [busy, setSavingBusy] = useState(false);
   const requestId = useRef(crypto.randomUUID());
+  const [editingVersion] = useState(() => entry ? { entry: entry.version, day: dayVersion } : null);
   const [baseline, setBaseline] = useState(() => JSON.stringify(draft));
   const signature = JSON.stringify(draft);
   const { confirmLeave, markSaved } = useUnsavedDraft(signature !== baseline, busy, signature);
@@ -71,8 +72,8 @@ export function usePurchaseEditor({
     setSavingBusy(true);
     setBusy(true);
     try {
-      const body = purchaseEntryInput(draft, requestId.current, dayVersion);
-      if (entry) await api.updatePurchase(merchant, entry.id, { ...body, expectedVersion: entry.version });
+      const body = purchaseEntryInput(draft, requestId.current, editingVersion?.day ?? dayVersion);
+      if (entry) await api.updatePurchase(merchant, entry.id, { ...body, expectedVersion: editingVersion?.entry ?? entry.version });
       else await api.createPurchase(merchant, body);
       markSaved(JSON.stringify(blankPurchaseDraft()));
       setBaseline(JSON.stringify(blankPurchaseDraft()));
