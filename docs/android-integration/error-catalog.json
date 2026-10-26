@@ -1,0 +1,1627 @@
+{
+  "note": "Source-indexed literal errors; dynamic/composed errors are also possible. See OpenAPI examples and HttpError envelope.",
+  "errors": [
+    {
+      "codeOrEntity": "PASSWORD_CHANGE_REQUIRED",
+      "httpStatus": 403,
+      "source": "src/server/app.ts",
+      "line": 118
+    },
+    {
+      "codeOrEntity": "ACTIVITY_UNAVAILABLE",
+      "httpStatus": 503,
+      "source": "src/server/app.ts",
+      "line": 128
+    },
+    {
+      "codeOrEntity": "INVALID_ACTIVITY_DAY",
+      "httpStatus": 400,
+      "source": "src/server/app.ts",
+      "line": 131
+    },
+    {
+      "codeOrEntity": "events.read",
+      "httpStatus": 403,
+      "source": "src/server/app.ts",
+      "line": 153,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "events.read",
+      "httpStatus": 403,
+      "source": "src/server/app.ts",
+      "line": 175,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "ROUTE_NOT_FOUND",
+      "httpStatus": 404,
+      "source": "src/server/app.ts",
+      "line": 285
+    },
+    {
+      "codeOrEntity": "INVALID_PAGE_CURSOR",
+      "httpStatus": 400,
+      "source": "src/server/domain/audit.ts",
+      "line": 8
+    },
+    {
+      "codeOrEntity": "notifications.read",
+      "httpStatus": 403,
+      "source": "src/server/domain/browserPush.ts",
+      "line": 29,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "INVALID_PUSH_ENDPOINT",
+      "httpStatus": 400,
+      "source": "src/server/domain/browserPush.ts",
+      "line": 37
+    },
+    {
+      "codeOrEntity": "INVALID_PUSH_ENDPOINT",
+      "httpStatus": 400,
+      "source": "src/server/domain/browserPush.ts",
+      "line": 54
+    },
+    {
+      "codeOrEntity": "INVALID_PUSH_KEYS",
+      "httpStatus": 400,
+      "source": "src/server/domain/browserPush.ts",
+      "line": 59
+    },
+    {
+      "codeOrEntity": "INVALID_PUSH_KEYS",
+      "httpStatus": 400,
+      "source": "src/server/domain/browserPush.ts",
+      "line": 65
+    },
+    {
+      "codeOrEntity": "PUSH_DEVICE_LIMIT",
+      "httpStatus": 409,
+      "source": "src/server/domain/browserPush.ts",
+      "line": 87
+    },
+    {
+      "codeOrEntity": "PUSH_NOT_SUBSCRIBED",
+      "httpStatus": 400,
+      "source": "src/server/domain/browserPush.ts",
+      "line": 120
+    },
+    {
+      "codeOrEntity": "PUSH_TEST_LIMIT",
+      "httpStatus": 409,
+      "source": "src/server/domain/browserPush.ts",
+      "line": 122
+    },
+    {
+      "codeOrEntity": "collections.payroll.manage",
+      "httpStatus": 403,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 26,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "collection_employee",
+      "httpStatus": 404,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 36,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "INVALID_PAYROLL_KIND",
+      "httpStatus": 400,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 158
+    },
+    {
+      "codeOrEntity": "INVALID_PAYROLL_AMOUNT",
+      "httpStatus": 400,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 161
+    },
+    {
+      "codeOrEntity": "PAYROLL_REASON_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 163
+    },
+    {
+      "codeOrEntity": "IDEMPOTENCY_KEY_REUSED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 173
+    },
+    {
+      "codeOrEntity": "INVALID_BASE_SALARY",
+      "httpStatus": 400,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 216
+    },
+    {
+      "codeOrEntity": "collections.payroll.confirm",
+      "httpStatus": 403,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 241,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "payroll_entry",
+      "httpStatus": 404,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 246,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "collections.payroll.confirm",
+      "httpStatus": 403,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 247,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "PAYROLL_ALREADY_CONFIRMED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collectionPayroll.ts",
+      "line": 253
+    },
+    {
+      "codeOrEntity": "INVALID_BUSINESS_DATE",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 23
+    },
+    {
+      "codeOrEntity": "collections.employee_receipt",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 162,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "collections.review",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 196,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "collections.review",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 220,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "INVALID_DECISION",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 222
+    },
+    {
+      "codeOrEntity": "unlinked_collection_receipt",
+      "httpStatus": 404,
+      "source": "src/server/domain/collections.ts",
+      "line": 227,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "SUBMISSION_ALREADY_DECIDED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 228
+    },
+    {
+      "codeOrEntity": "UNLINKED_RECEIPT_LINK_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 242
+    },
+    {
+      "codeOrEntity": "UNLINKED_RECEIPT_LINK_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 247
+    },
+    {
+      "codeOrEntity": "customer",
+      "httpStatus": 404,
+      "source": "src/server/domain/collections.ts",
+      "line": 261,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "collections.review",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 293,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "unlinked_collection_receipt",
+      "httpStatus": 404,
+      "source": "src/server/domain/collections.ts",
+      "line": 297,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "SUBMISSION_NOT_APPROVED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 298
+    },
+    {
+      "codeOrEntity": "collections.review",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 310,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "INVALID_ASSIGNMENT",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 316
+    },
+    {
+      "codeOrEntity": "INVALID_ASSIGNMENT",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 319
+    },
+    {
+      "codeOrEntity": "ASSIGNMENT_LIMIT_EXCEEDED",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 321
+    },
+    {
+      "codeOrEntity": "INVALID_ASSIGNEE",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 327
+    },
+    {
+      "codeOrEntity": "ASSIGNMENT_REQUIRES_POSITIVE_DEBT",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 332
+    },
+    {
+      "codeOrEntity": "CUSTOMER_ALREADY_ASSIGNED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 333
+    },
+    {
+      "codeOrEntity": "INVALID_MODE",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 347
+    },
+    {
+      "codeOrEntity": "assignment",
+      "httpStatus": 404,
+      "source": "src/server/domain/collections.ts",
+      "line": 353,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "ASSIGNMENT_CLOSED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 354
+    },
+    {
+      "codeOrEntity": "collections.write",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 355,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "NO_POSITIVE_DEBT",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 357
+    },
+    {
+      "codeOrEntity": "FULL_AMOUNT_CHANGED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 359
+    },
+    {
+      "codeOrEntity": "PENDING_SUBMISSION_EXISTS",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 361
+    },
+    {
+      "codeOrEntity": "collections.review",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 384,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "INVALID_DECISION",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 385
+    },
+    {
+      "codeOrEntity": "submission",
+      "httpStatus": 404,
+      "source": "src/server/domain/collections.ts",
+      "line": 394,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "SUBMISSION_ALREADY_DECIDED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 394
+    },
+    {
+      "codeOrEntity": "collections.review",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 420,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "submission",
+      "httpStatus": 404,
+      "source": "src/server/domain/collections.ts",
+      "line": 426,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "SUBMISSION_NOT_APPROVED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 426
+    },
+    {
+      "codeOrEntity": "collections.review",
+      "httpStatus": 403,
+      "source": "src/server/domain/collections.ts",
+      "line": 436,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "INVALID_BATCH",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 438
+    },
+    {
+      "codeOrEntity": "CONFIRMATION_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/collections.ts",
+      "line": 439
+    },
+    {
+      "codeOrEntity": "collection_batch",
+      "httpStatus": 404,
+      "source": "src/server/domain/collections.ts",
+      "line": 442,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "COLLECTION_DAY_NOT_SETTLED",
+      "httpStatus": 409,
+      "source": "src/server/domain/collections.ts",
+      "line": 455
+    },
+    {
+      "codeOrEntity": "CUSTOMER_ALREADY_EXISTS",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerAccountCommands.ts",
+      "line": 200
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerAccountCommands.ts",
+      "line": 221
+    },
+    {
+      "codeOrEntity": "INVALID_PIN_STATE",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerAccountCommands.ts",
+      "line": 263
+    },
+    {
+      "codeOrEntity": "BALANCE_OUT_OF_RANGE",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerAccountRepository.ts",
+      "line": 60
+    },
+    {
+      "codeOrEntity": "INVALID_AMOUNT",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerMoney.ts",
+      "line": 11
+    },
+    {
+      "codeOrEntity": "INVALID_CALCULATION_MODE",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerMoney.ts",
+      "line": 27
+    },
+    {
+      "codeOrEntity": "INVALID_CALCULATION_FACTOR",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerMoney.ts",
+      "line": 31
+    },
+    {
+      "codeOrEntity": "INVALID_CALCULATION_RESULT",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerMoney.ts",
+      "line": 36
+    },
+    {
+      "codeOrEntity": "CUSTOMER_NAME_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerMoney.ts",
+      "line": 49
+    },
+    {
+      "codeOrEntity": "INVALID_CUSTOMER_NAME",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerMoney.ts",
+      "line": 53
+    },
+    {
+      "codeOrEntity": "INVALID_TRANSACTION_DATE",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerMoney.ts",
+      "line": 70
+    },
+    {
+      "codeOrEntity": "INVALID_LEDGER_CURSOR",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerQueries.ts",
+      "line": 285
+    },
+    {
+      "codeOrEntity": "transaction",
+      "httpStatus": 404,
+      "source": "src/server/domain/customerTransactions.ts",
+      "line": 142,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "TRANSACTION_NOT_EDITABLE",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerTransactions.ts",
+      "line": 144
+    },
+    {
+      "codeOrEntity": "transaction",
+      "httpStatus": 404,
+      "source": "src/server/domain/customerTransactions.ts",
+      "line": 280,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "TRANSACTION_NOT_CANCELLABLE",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerTransactions.ts",
+      "line": 282
+    },
+    {
+      "codeOrEntity": "BALANCE_OUT_OF_RANGE",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 26
+    },
+    {
+      "codeOrEntity": "REQUEST_ID_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 44
+    },
+    {
+      "codeOrEntity": "LEGACY_REQUEST_REVIEW_REQUIRED",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 71
+    },
+    {
+      "codeOrEntity": "REQUEST_ID_REUSED",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 74
+    },
+    {
+      "codeOrEntity": "customer",
+      "httpStatus": 404,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 113,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "INVALID_OPENING_BALANCE",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 153
+    },
+    {
+      "codeOrEntity": "SYSTEM_LINK_ACCOUNT_PROTECTED",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 164
+    },
+    {
+      "codeOrEntity": "EXPECTED_VERSION_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 199
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 202
+    },
+    {
+      "codeOrEntity": "INVALID_TRANSACTION_TYPE",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 216
+    },
+    {
+      "codeOrEntity": "FULL_PAYMENT_NOT_ALLOWED",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 224
+    },
+    {
+      "codeOrEntity": "BALANCE_OUT_OF_RANGE",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 327
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerTransactionSupport.ts",
+      "line": 343
+    },
+    {
+      "codeOrEntity": "customers.zero_review",
+      "httpStatus": 403,
+      "source": "src/server/domain/customerZeroReview.ts",
+      "line": 19,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "INVALID_REVIEW_VERSION",
+      "httpStatus": 400,
+      "source": "src/server/domain/customerZeroReview.ts",
+      "line": 22
+    },
+    {
+      "codeOrEntity": "customer",
+      "httpStatus": 404,
+      "source": "src/server/domain/customerZeroReview.ts",
+      "line": 28,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "ZERO_REVIEW_CHANGED",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerZeroReview.ts",
+      "line": 30
+    },
+    {
+      "codeOrEntity": "ZERO_REVIEW_NOT_PENDING",
+      "httpStatus": 409,
+      "source": "src/server/domain/customerZeroReview.ts",
+      "line": 36
+    },
+    {
+      "codeOrEntity": "DUPLICATE_SAME_WORKDAY",
+      "httpStatus": 409,
+      "source": "src/server/domain/duplicateWarning.ts",
+      "line": 7
+    },
+    {
+      "codeOrEntity": "BACKUP_BUSY",
+      "httpStatus": 409,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 14
+    },
+    {
+      "codeOrEntity": "RESTORE_CONFIRMATION",
+      "httpStatus": 400,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 32
+    },
+    {
+      "codeOrEntity": "BACKUP_DECRYPT_FAILED",
+      "httpStatus": 400,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 55
+    },
+    {
+      "codeOrEntity": "backup.owner",
+      "httpStatus": 403,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 74,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "backup.single-organization",
+      "httpStatus": 403,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 77,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "BACKUP_TOO_LARGE",
+      "httpStatus": 400,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 112
+    },
+    {
+      "codeOrEntity": "RESTORE_NOT_CONFIGURED",
+      "httpStatus": 409,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 134
+    },
+    {
+      "codeOrEntity": "RESTORE_CONFIRMATION",
+      "httpStatus": 400,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 136
+    },
+    {
+      "codeOrEntity": "INVALID_BACKUP",
+      "httpStatus": 400,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 145
+    },
+    {
+      "codeOrEntity": "INVALID_BACKUP",
+      "httpStatus": 400,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 153
+    },
+    {
+      "codeOrEntity": "RESTORE_RECOVERY_REQUIRED",
+      "httpStatus": 409,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 157
+    },
+    {
+      "codeOrEntity": "RESTORE_PENDING",
+      "httpStatus": 409,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 162
+    },
+    {
+      "codeOrEntity": "RESTORE_VALIDATION_FAILED",
+      "httpStatus": 400,
+      "source": "src/server/domain/emergencyBackup.ts",
+      "line": 199
+    },
+    {
+      "codeOrEntity": "INVALID_PAGE_CURSOR",
+      "httpStatus": 400,
+      "source": "src/server/domain/financialLedger.ts",
+      "line": 25
+    },
+    {
+      "codeOrEntity": "INVALID_LEDGER_SECTION",
+      "httpStatus": 400,
+      "source": "src/server/domain/financialLedger.ts",
+      "line": 44
+    },
+    {
+      "codeOrEntity": "INVALID_LEDGER_CURRENCY",
+      "httpStatus": 400,
+      "source": "src/server/domain/financialLedger.ts",
+      "line": 47
+    },
+    {
+      "codeOrEntity": "INVALID_LEDGER_QUERY",
+      "httpStatus": 400,
+      "source": "src/server/domain/financialLedger.ts",
+      "line": 49
+    },
+    {
+      "codeOrEntity": "INVALID_MASRAWEYA_VALUE",
+      "httpStatus": 400,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 12
+    },
+    {
+      "codeOrEntity": "INVALID_MASRAWEYA_VALUE",
+      "httpStatus": 400,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 15
+    },
+    {
+      "codeOrEntity": "MASRAWEYA_TOTAL_OUT_OF_RANGE",
+      "httpStatus": 400,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 20
+    },
+    {
+      "codeOrEntity": "masraweya.write",
+      "httpStatus": 403,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 88,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "MASRAWEYA_DATE_LOCKED",
+      "httpStatus": 409,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 92
+    },
+    {
+      "codeOrEntity": "INVALID_MASRAWEYA_ROWS",
+      "httpStatus": 400,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 99
+    },
+    {
+      "codeOrEntity": "INVALID_MASRAWEYA_ROW",
+      "httpStatus": 400,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 103
+    },
+    {
+      "codeOrEntity": "MASRAWEYA_OPENING_AUTOMATIC",
+      "httpStatus": 409,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 122
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/masraweya.ts",
+      "line": 144
+    },
+    {
+      "codeOrEntity": "INVALID_BUSINESS_DATE",
+      "httpStatus": 400,
+      "source": "src/server/domain/masraweyaCalendar.ts",
+      "line": 11
+    },
+    {
+      "codeOrEntity": "INVALID_PAGE_CURSOR",
+      "httpStatus": 400,
+      "source": "src/server/domain/notifications.ts",
+      "line": 32
+    },
+    {
+      "codeOrEntity": "INVALID_NOTIFICATION",
+      "httpStatus": 400,
+      "source": "src/server/domain/notifications.ts",
+      "line": 57
+    },
+    {
+      "codeOrEntity": "notification",
+      "httpStatus": 404,
+      "source": "src/server/domain/notifications.ts",
+      "line": 60,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "INVALID_NOTIFICATION_PREFERENCES",
+      "httpStatus": 400,
+      "source": "src/server/domain/notifications.ts",
+      "line": 78
+    },
+    {
+      "codeOrEntity": "session",
+      "httpStatus": 404,
+      "source": "src/server/domain/operationsCenter.ts",
+      "line": 78,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "organization_settings",
+      "httpStatus": 404,
+      "source": "src/server/domain/organizationSettings.ts",
+      "line": 22,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "INVALID_SYSTEM_NAME",
+      "httpStatus": 400,
+      "source": "src/server/domain/organizationSettings.ts",
+      "line": 34
+    },
+    {
+      "codeOrEntity": "INVALID_TIMEZONE",
+      "httpStatus": 400,
+      "source": "src/server/domain/organizationSettings.ts",
+      "line": 38
+    },
+    {
+      "codeOrEntity": "EXPECTED_VERSION_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/organizationSettings.ts",
+      "line": 42
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/organizationSettings.ts",
+      "line": 62
+    },
+    {
+      "codeOrEntity": "INVALID_PAGE_LIMIT",
+      "httpStatus": 400,
+      "source": "src/server/domain/pagination.ts",
+      "line": 6
+    },
+    {
+      "codeOrEntity": "OPENING_BALANCE_LOCKED",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 34
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 37
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 72
+    },
+    {
+      "codeOrEntity": "EMPTY_PURCHASE_DAY",
+      "httpStatus": 400,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 76
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 85
+    },
+    {
+      "codeOrEntity": "purchase_day",
+      "httpStatus": 404,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 116,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "PURCHASE_DAY_NOT_FINALIZED",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 118
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 121
+    },
+    {
+      "codeOrEntity": "ANOTHER_PURCHASE_DAY_OPEN",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 130
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseDayCommands.ts",
+      "line": 141
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseEntryCommands.ts",
+      "line": 41
+    },
+    {
+      "codeOrEntity": "purchase_entry",
+      "httpStatus": 404,
+      "source": "src/server/domain/purchaseEntryCommands.ts",
+      "line": 123,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "PURCHASE_DAY_FINALIZED",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseEntryCommands.ts",
+      "line": 125
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseEntryCommands.ts",
+      "line": 129
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseEntryCommands.ts",
+      "line": 151
+    },
+    {
+      "codeOrEntity": "purchase_entry",
+      "httpStatus": 404,
+      "source": "src/server/domain/purchaseEntryCommands.ts",
+      "line": 197,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "PURCHASE_DAY_FINALIZED",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseEntryCommands.ts",
+      "line": 199
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseEntryCommands.ts",
+      "line": 203
+    },
+    {
+      "codeOrEntity": "INVALID_PURCHASE_VALUE",
+      "httpStatus": 400,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 21
+    },
+    {
+      "codeOrEntity": "PURCHASE_TOTAL_OUT_OF_RANGE",
+      "httpStatus": 400,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 27
+    },
+    {
+      "codeOrEntity": "purchase_merchant",
+      "httpStatus": 404,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 32,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "INVALID_REQUEST_ID",
+      "httpStatus": 400,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 37
+    },
+    {
+      "codeOrEntity": "INVALID_EXCHANGE_RATE",
+      "httpStatus": 400,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 51
+    },
+    {
+      "codeOrEntity": "INVALID_EXCHANGE_RATE",
+      "httpStatus": 400,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 55
+    },
+    {
+      "codeOrEntity": "INVALID_PURCHASE_OPERATION",
+      "httpStatus": 400,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 61
+    },
+    {
+      "codeOrEntity": "INVALID_PURCHASE_ITEM",
+      "httpStatus": 400,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 80
+    },
+    {
+      "codeOrEntity": "purchase_day",
+      "httpStatus": 404,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 179,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "PURCHASE_DAY_FINALIZED",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 181
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 183
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 212
+    },
+    {
+      "codeOrEntity": "REQUEST_ID_REUSED",
+      "httpStatus": 409,
+      "source": "src/server/domain/purchaseSupport.ts",
+      "line": 328
+    },
+    {
+      "codeOrEntity": "REQUEST_ID_REUSED",
+      "httpStatus": 409,
+      "source": "src/server/domain/treasury.ts",
+      "line": 31
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/treasury.ts",
+      "line": 37
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/treasury.ts",
+      "line": 81
+    },
+    {
+      "codeOrEntity": "INVALID_PAGE_CURSOR",
+      "httpStatus": 400,
+      "source": "src/server/domain/treasuryQueries.ts",
+      "line": 51
+    },
+    {
+      "codeOrEntity": "TREASURY_TOTAL_OUT_OF_RANGE",
+      "httpStatus": 400,
+      "source": "src/server/domain/treasurySupport.ts",
+      "line": 9
+    },
+    {
+      "codeOrEntity": "INVALID_REQUEST_ID",
+      "httpStatus": 400,
+      "source": "src/server/domain/treasurySupport.ts",
+      "line": 104
+    },
+    {
+      "codeOrEntity": "INVALID_CASH_DIRECTION",
+      "httpStatus": 400,
+      "source": "src/server/domain/treasurySupport.ts",
+      "line": 111
+    },
+    {
+      "codeOrEntity": "INVALID_CASH_AMOUNT",
+      "httpStatus": 400,
+      "source": "src/server/domain/treasurySupport.ts",
+      "line": 115
+    },
+    {
+      "codeOrEntity": "EXPECTED_VERSION_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/treasurySupport.ts",
+      "line": 119
+    },
+    {
+      "codeOrEntity": "INVALID_PERMISSIONS",
+      "httpStatus": 400,
+      "source": "src/server/domain/userAccess.ts",
+      "line": 21
+    },
+    {
+      "codeOrEntity": "INVALID_PERMISSIONS",
+      "httpStatus": 400,
+      "source": "src/server/domain/userAccess.ts",
+      "line": 25
+    },
+    {
+      "codeOrEntity": "INVALID_SECTION_ACCESS",
+      "httpStatus": 400,
+      "source": "src/server/domain/userAccess.ts",
+      "line": 41
+    },
+    {
+      "codeOrEntity": "INVALID_FIELD",
+      "httpStatus": 400,
+      "source": "src/server/domain/users.ts",
+      "line": 15
+    },
+    {
+      "codeOrEntity": "INVALID_FIELD",
+      "httpStatus": 400,
+      "source": "src/server/domain/users.ts",
+      "line": 18
+    },
+    {
+      "codeOrEntity": "INVALID_FIELD",
+      "httpStatus": 400,
+      "source": "src/server/domain/users.ts",
+      "line": 24
+    },
+    {
+      "codeOrEntity": "PASSWORD_POLICY",
+      "httpStatus": 400,
+      "source": "src/server/domain/users.ts",
+      "line": 29
+    },
+    {
+      "codeOrEntity": "INVALID_ACCOUNT_ROLE",
+      "httpStatus": 400,
+      "source": "src/server/domain/users.ts",
+      "line": 36
+    },
+    {
+      "codeOrEntity": "INVALID_EMAIL",
+      "httpStatus": 400,
+      "source": "src/server/domain/users.ts",
+      "line": 43
+    },
+    {
+      "codeOrEntity": "INVALID_EMAIL",
+      "httpStatus": 400,
+      "source": "src/server/domain/users.ts",
+      "line": 46
+    },
+    {
+      "codeOrEntity": "owner.admin.create",
+      "httpStatus": 403,
+      "source": "src/server/domain/users.ts",
+      "line": 63,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "USERNAME_EXISTS",
+      "httpStatus": 409,
+      "source": "src/server/domain/users.ts",
+      "line": 71
+    },
+    {
+      "codeOrEntity": "EMAIL_EXISTS",
+      "httpStatus": 409,
+      "source": "src/server/domain/users.ts",
+      "line": 73
+    },
+    {
+      "codeOrEntity": "user",
+      "httpStatus": 404,
+      "source": "src/server/domain/users.ts",
+      "line": 144,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "OWNER_ACCOUNT_PROTECTED",
+      "httpStatus": 409,
+      "source": "src/server/domain/users.ts",
+      "line": 148
+    },
+    {
+      "codeOrEntity": "owner.admin.update",
+      "httpStatus": 403,
+      "source": "src/server/domain/users.ts",
+      "line": 151,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "EXPECTED_VERSION_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/domain/users.ts",
+      "line": 155
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/users.ts",
+      "line": 157
+    },
+    {
+      "codeOrEntity": "EMAIL_EXISTS",
+      "httpStatus": 409,
+      "source": "src/server/domain/users.ts",
+      "line": 163
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/domain/users.ts",
+      "line": 191
+    },
+    {
+      "codeOrEntity": "EVENT_STREAM_LIMIT",
+      "httpStatus": 429,
+      "source": "src/server/events.ts",
+      "line": 42
+    },
+    {
+      "codeOrEntity": "AUTH_REQUIRED",
+      "httpStatus": 401,
+      "source": "src/server/http/errors.ts",
+      "line": 19
+    },
+    {
+      "codeOrEntity": "PERMISSION_DENIED",
+      "httpStatus": 403,
+      "source": "src/server/http/errors.ts",
+      "line": 22
+    },
+    {
+      "codeOrEntity": "NOT_FOUND",
+      "httpStatus": 404,
+      "source": "src/server/http/errors.ts",
+      "line": 25
+    },
+    {
+      "codeOrEntity": "REQUEST_BODY_TOO_LARGE",
+      "httpStatus": 413,
+      "source": "src/server/http/errors.ts",
+      "line": 31
+    },
+    {
+      "codeOrEntity": "INVALID_EVENT_CURSOR",
+      "httpStatus": 400,
+      "source": "src/server/http/fields.ts",
+      "line": 8
+    },
+    {
+      "codeOrEntity": "INVALID_FIELD",
+      "httpStatus": 400,
+      "source": "src/server/http/fields.ts",
+      "line": 15
+    },
+    {
+      "codeOrEntity": "INVALID_FIELD",
+      "httpStatus": 400,
+      "source": "src/server/http/fields.ts",
+      "line": 19
+    },
+    {
+      "codeOrEntity": "INVALID_FIELD",
+      "httpStatus": 400,
+      "source": "src/server/http/fields.ts",
+      "line": 26
+    },
+    {
+      "codeOrEntity": "PASSWORD_POLICY",
+      "httpStatus": 400,
+      "source": "src/server/http/fields.ts",
+      "line": 36
+    },
+    {
+      "codeOrEntity": "CSRF_REJECTED",
+      "httpStatus": 403,
+      "source": "src/server/http/guards.ts",
+      "line": 21
+    },
+    {
+      "codeOrEntity": "CLIENT_VERSION_MISMATCH",
+      "httpStatus": 409,
+      "source": "src/server/http/guards.ts",
+      "line": 25
+    },
+    {
+      "codeOrEntity": "CONTENT_TYPE_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/http/io.ts",
+      "line": 9
+    },
+    {
+      "codeOrEntity": "INVALID_JSON",
+      "httpStatus": 400,
+      "source": "src/server/http/io.ts",
+      "line": 28
+    },
+    {
+      "codeOrEntity": "INVALID_ORIGIN",
+      "httpStatus": 400,
+      "source": "src/server/http/io.ts",
+      "line": 52
+    },
+    {
+      "codeOrEntity": "ORIGIN_MISMATCH",
+      "httpStatus": 400,
+      "source": "src/server/http/io.ts",
+      "line": 55
+    },
+    {
+      "codeOrEntity": "INVALID_PATH_SEGMENT",
+      "httpStatus": 400,
+      "source": "src/server/http/web.ts",
+      "line": 43
+    },
+    {
+      "codeOrEntity": "INVALID_SECTION_ACCESS",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/accountRequests.ts",
+      "line": 30
+    },
+    {
+      "codeOrEntity": "INVALID_DECISION",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/accountRequests.ts",
+      "line": 51
+    },
+    {
+      "codeOrEntity": "EXPECTED_VERSION_REQUIRED",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/accountRequests.ts",
+      "line": 56
+    },
+    {
+      "codeOrEntity": "account_request",
+      "httpStatus": 404,
+      "source": "src/server/modules/accounts/accountRequests.ts",
+      "line": 62,
+      "note": "Entity label, actual code is NOT_FOUND"
+    },
+    {
+      "codeOrEntity": "REQUEST_ALREADY_DECIDED",
+      "httpStatus": 409,
+      "source": "src/server/modules/accounts/accountRequests.ts",
+      "line": 63
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/modules/accounts/accountRequests.ts",
+      "line": 64
+    },
+    {
+      "codeOrEntity": "EMAIL_EXISTS",
+      "httpStatus": 409,
+      "source": "src/server/modules/accounts/accountRequests.ts",
+      "line": 69
+    },
+    {
+      "codeOrEntity": "VERSION_CONFLICT",
+      "httpStatus": 409,
+      "source": "src/server/modules/accounts/accountRequests.ts",
+      "line": 104
+    },
+    {
+      "codeOrEntity": "GOOGLE_AUTH_NOT_CONFIGURED",
+      "httpStatus": 409,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 52
+    },
+    {
+      "codeOrEntity": "GOOGLE_AUTH_RATE_LIMITED",
+      "httpStatus": 429,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 77
+    },
+    {
+      "codeOrEntity": "GOOGLE_CALLBACK_INVALID",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 103
+    },
+    {
+      "codeOrEntity": "GOOGLE_STATE_INVALID",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 109
+    },
+    {
+      "codeOrEntity": "GOOGLE_BROWSER_BINDING_INVALID",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 113
+    },
+    {
+      "codeOrEntity": "GOOGLE_STATE_INVALID",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 116
+    },
+    {
+      "codeOrEntity": "GOOGLE_ID_TOKEN_MISSING",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 120
+    },
+    {
+      "codeOrEntity": "GOOGLE_NONCE_INVALID",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 125
+    },
+    {
+      "codeOrEntity": "GOOGLE_EMAIL_UNVERIFIED",
+      "httpStatus": 400,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 128
+    },
+    {
+      "codeOrEntity": "GOOGLE_STATE_USED",
+      "httpStatus": 409,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 139
+    },
+    {
+      "codeOrEntity": "GOOGLE_REGISTRATION_ORGANIZATION_UNAVAILABLE",
+      "httpStatus": 409,
+      "source": "src/server/modules/accounts/googleAuth.ts",
+      "line": 162
+    },
+    {
+      "codeOrEntity": "INVALID_EXCHANGE_RATE",
+      "httpStatus": 400,
+      "source": "src/server/modules/treasury/exchangeRates.ts",
+      "line": 30
+    },
+    {
+      "codeOrEntity": "LOGIN_RATE_LIMITED",
+      "httpStatus": 429,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 77
+    },
+    {
+      "codeOrEntity": "LOGIN_BUSY",
+      "httpStatus": 429,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 79
+    },
+    {
+      "codeOrEntity": "PASSWORD_VERIFICATION_FAILED",
+      "httpStatus": 403,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 84
+    },
+    {
+      "codeOrEntity": "SETUP_ALREADY_COMPLETED",
+      "httpStatus": 409,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 100
+    },
+    {
+      "codeOrEntity": "LOGIN_RATE_LIMITED",
+      "httpStatus": 429,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 130
+    },
+    {
+      "codeOrEntity": "MFA_INVALID",
+      "httpStatus": 401,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 134
+    },
+    {
+      "codeOrEntity": "SETUP_NOT_AUTHORIZED",
+      "httpStatus": 403,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 147
+    },
+    {
+      "codeOrEntity": "INVALID_GOOGLE_MODE",
+      "httpStatus": 400,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 163
+    },
+    {
+      "codeOrEntity": "LOGIN_RATE_LIMITED",
+      "httpStatus": 429,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 207
+    },
+    {
+      "codeOrEntity": "LOGIN_BUSY",
+      "httpStatus": 429,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 221
+    },
+    {
+      "codeOrEntity": "INVALID_CREDENTIALS",
+      "httpStatus": 401,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 233
+    },
+    {
+      "codeOrEntity": "MFA_REQUIRED",
+      "httpStatus": 401,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 238
+    },
+    {
+      "codeOrEntity": "password.change-required",
+      "httpStatus": 403,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 251,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "mfa.admin",
+      "httpStatus": 403,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 256,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "LOGIN_RATE_LIMITED",
+      "httpStatus": 429,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 258
+    },
+    {
+      "codeOrEntity": "MFA_INVALID",
+      "httpStatus": 400,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 266
+    },
+    {
+      "codeOrEntity": "MFA_INVALID",
+      "httpStatus": 403,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 271
+    },
+    {
+      "codeOrEntity": "INVALID_CURRENT_PASSWORD",
+      "httpStatus": 401,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 325
+    },
+    {
+      "codeOrEntity": "PASSWORD_UNCHANGED",
+      "httpStatus": 400,
+      "source": "src/server/routes/accountRoutes.ts",
+      "line": 328
+    },
+    {
+      "codeOrEntity": "PUSH_NOT_CONFIGURED",
+      "httpStatus": 409,
+      "source": "src/server/routes/browserPushRoutes.ts",
+      "line": 44
+    },
+    {
+      "codeOrEntity": "collections.review",
+      "httpStatus": 403,
+      "source": "src/server/routes/collectionRoutes.ts",
+      "line": 84,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "MASRAWEYA_AUTOMATIC_WORKFLOW",
+      "httpStatus": 410,
+      "source": "src/server/routes/financialWorkRoutes.ts",
+      "line": 60
+    },
+    {
+      "codeOrEntity": "audit.read",
+      "httpStatus": 403,
+      "source": "src/server/routes/treasuryRoutes.ts",
+      "line": 37,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "financial_ledger.read",
+      "httpStatus": 403,
+      "source": "src/server/routes/treasuryRoutes.ts",
+      "line": 46,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "users.manage",
+      "httpStatus": 403,
+      "source": "src/server/routes/userManagementRoutes.ts",
+      "line": 28,
+      "note": "Permission label, actual code is PERMISSION_DENIED"
+    },
+    {
+      "codeOrEntity": "MFA_NOT_CONFIGURED",
+      "httpStatus": 409,
+      "source": "src/server/security/mfa.ts",
+      "line": 40
+    },
+    {
+      "codeOrEntity": "MFA_ALREADY_ENABLED",
+      "httpStatus": 409,
+      "source": "src/server/security/mfa.ts",
+      "line": 82
+    }
+  ]
+}

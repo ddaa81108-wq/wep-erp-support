@@ -1,0 +1,543 @@
+// accounts.ts
+export type User = {
+  id: string;
+  username: string;
+  displayName: string;
+  role: string;
+  isOwner?: boolean;
+  permissions?: string[];
+  mustChangePassword?: boolean;
+};
+
+export type ManagedUser = Omit<User, 'role'> & {
+  role: 'admin' | 'employee';
+  isActive: boolean;
+  version: number;
+  email: string | null;
+  mustChangePassword: boolean;
+  permissions: string[];
+  sectionAccess: {
+    customerDebts: 'none' | 'read' | 'manage';
+    companyDebts: 'none' | 'read' | 'manage';
+    libyanDeposits: 'none' | 'read' | 'manage';
+    egyptianDeposits: 'none' | 'read' | 'manage';
+    masraweya: 'none' | 'read' | 'manage';
+    purchases: 'none' | 'read' | 'manage';
+    treasury: 'none' | 'read' | 'manage';
+    reports: 'none' | 'read' | 'manage';
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AccountRequest = {
+  id: string;
+  provider: 'google';
+  email: string;
+  displayName: string;
+  pictureUrl: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  decisionNote: string;
+  requestedAt: string;
+  decidedAt: string | null;
+  version: number;
+};
+
+export type OrganizationSettings = {
+  organizationId: string;
+  systemName: string;
+  timezone: 'Africa/Tripoli' | 'Africa/Cairo';
+  locale: string;
+  employeeSectionsVisible: boolean;
+  version: number;
+  updatedAt: string;
+};
+
+export type OperationsHealth = {
+  integrity: string;
+  schemaVersion: string;
+  expectedSchemaVersion: string;
+  uiVersion: string;
+  activeUsers: number;
+  activeSessions: number;
+  technicalErrors: number;
+  financialMismatches: number;
+  backupPolicy: 'unverified';
+  restoreStatus?: { state: string; completedAt: string | null } | null;
+  backupSchedule?: {
+    output: string;
+    timezone: string;
+    hours: number[];
+    retentionCount: number;
+    lastSuccess: string | null;
+    lastFile: string | null;
+    lastError: string | null;
+  } | null;
+  restoreDrillStatus: 'unverified';
+  onlineOnly: boolean;
+  checkedAt: string;
+};
+
+export type ManagedSession = {
+  id: string;
+  userId: string;
+  displayName: string;
+  username: string;
+  role: string;
+  device: string;
+  remoteAddress: string;
+  createdAt: string;
+  lastSeenAt: string;
+  expiresAt: string;
+  active: boolean;
+  current: boolean;
+};
+
+export type TechnicalEvent = {
+  id: number;
+  severity: string;
+  code: string;
+  message: string;
+  correlationId: string;
+  requestMethod: string;
+  requestPath: string;
+  createdAt: string;
+};
+
+export type NotificationItem = {
+  id: number;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  sectionKey: string | null;
+  details: Record<string, unknown>;
+  actorName: string;
+  actorUsername: string | null;
+  actorRole: string | null;
+  createdAt: string;
+  readAt: string | null;
+};
+
+export type NotificationPreferences = { soundEnabled: boolean; speechEnabled: boolean };
+
+
+// audit.ts
+export type AuditEntry = {
+  id: number;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  correlationId: string;
+  outcome: 'success' | 'denied' | 'failure';
+  details: Record<string, unknown>;
+  actorName: string;
+  actorUsername: string | null;
+  createdAt: string;
+};
+
+export type FinancialLedgerEntry = {
+  id: number;
+  sourceKind: string;
+  sourceId: string;
+  sectionKey: string;
+  entryKind: string;
+  counterpartyName: string;
+  description: string;
+  referenceNo: string;
+  currency: 'LYD' | 'EGP';
+  amountUnits: number;
+  effectUnits: number;
+  actorName: string;
+  actorUsername: string | null;
+  occurredAt: string;
+  sourceStatus: string;
+  updatedAt: string;
+};
+
+
+// collections.ts
+export type CollectionAssignment = {
+  id: string;
+  customerId: string;
+  assigneeUserId: string;
+  assigneeName: string;
+  customerName: string;
+  phone: string | null;
+  balanceUnits: number;
+  hasPending: number;
+  assignedAt: string;
+  businessDate: string;
+  batchId: string;
+  latestMode: 'full' | 'partial' | null;
+  latestStatus: 'pending' | 'approved' | 'rejected' | null;
+  cashOutstandingCount: number;
+  latestCashReceivedAt: string | null;
+  latestDecisionAt: string | null;
+  externalFinancialUpdatedAt: string;
+  latestSubmissionAt: string | null;
+};
+
+export type CollectionSubmission = {
+  id: string;
+  assignmentId: string;
+  customerId: string;
+  collectorUserId: string;
+  collectorName: string;
+  customerName: string;
+  phone: string | null;
+  mode: 'full' | 'partial';
+  amountUnits: number;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  businessDate: string;
+  batchId: string;
+  decidedAt: string | null;
+  decisionNote: string;
+  cashReceivedAt: string | null;
+};
+
+export type UnlinkedCollectionReceipt = {
+  id: string;
+  customerName: string;
+  collectorName: string;
+  amountUnits: number;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  businessDate: string;
+  batchId: string;
+  linkedCustomerId: string | null;
+  entryType: 'debt' | 'payment' | null;
+  decidedAt: string | null;
+  decisionNote: string;
+  cashReceivedAt: string | null;
+};
+
+export type CollectionLinkCandidate = {
+  id: string;
+  name: string;
+  balanceUnits: number;
+  sectionKey: 'customer_debts' | 'company_debts' | 'libyan_deposits' | 'egyptian_deposits';
+};
+
+export type CollectionsDashboard = {
+  assignments: CollectionAssignment[];
+  submissions: CollectionSubmission[];
+  unlinkedReceipts: UnlinkedCollectionReceipt[];
+  metrics: {
+    collectedUnits: number;
+    pendingCount: number;
+    executedCount: number;
+    cashOutstandingUnits: number;
+    unlinkedPendingCount: number;
+  };
+  employeeTotals?: Array<{ employeeId: string; employeeName: string; collectedUnits: number; approvedCount: number; pendingCount: number }>;
+  outstandingCancelledSubmissions?: Array<{ id: string; customerName: string; collectorName: string; amountUnits: number }>;
+  assignedCount: number;
+  openBatches: Array<{ id: string; businessDate: string; batchNumber: number; openedAt: string }>;
+};
+
+export type CollectionPayrollEntry = {
+  id: string;
+  kind: 'withdrawal' | 'commission';
+  amountUnits: number;
+  reason: string;
+  createdAt: string;
+  createdByName: string;
+  confirmedAt: string | null;
+  confirmedByName: string | null;
+};
+
+export type CollectionPayrollEmployee = {
+  employeeId: string;
+  employeeName: string;
+  username: string;
+  period: string;
+  baseSalaryUnits: number;
+  openingCarryUnits: number;
+  showOpeningCarry: boolean;
+  withdrawalsUnits: number;
+  commissionsUnits: number;
+  remainingUnits: number;
+  entries: CollectionPayrollEntry[];
+};
+
+export type CollectionPayrollDashboard = {
+  period: string;
+  employees: CollectionPayrollEmployee[];
+};
+
+
+// debts.ts
+export type ConfirmedLedgerWrite = {
+  customerId: string;
+  transaction: LedgerItem;
+  customerVersion: number;
+  balanceUnits: number;
+};
+
+export type Customer = {
+  id: string;
+  name: string;
+  phone: string | null;
+  version: number;
+  activeCycleId: string;
+  openingBalanceUnits?: number;
+  balanceUnits: number;
+  currency: 'LYD' | 'EGP';
+  isPinned: boolean;
+  inactiveSince: string | null;
+  hiddenFromDefault: boolean;
+  debtStartedAt: string | null;
+  debtAgeDays: number | null;
+  activeAssigneeName: string | null;
+  systemManaged?: boolean;
+  systemLinkKey?: string | null;
+  nextSequence: number;
+  createdAt: string;
+  updatedAt?: string;
+  zeroReview?: {
+    pending: boolean;
+    financialVersion: number;
+    reviewedAt: string | null;
+    reviewedByName: string | null;
+  };
+};
+
+export type LedgerItem = {
+  id: string;
+  type: 'debt' | 'payment';
+  amountUnits: number;
+  currency: 'LYD' | 'EGP';
+  paymentMode: 'partial' | 'full' | null;
+  calculationMode: 'direct' | 'multiply' | 'divide';
+  inputValue: number;
+  factorMicros: number | null;
+  transactionDate: string;
+  referenceNo: string;
+  note: string;
+  displayNote?: string;
+  actorName: string;
+  actorIsOwner: boolean;
+  sequence: number;
+  status: 'posted' | 'corrected' | 'reversed';
+  correctsTransactionId: string | null;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+export type Ledger = {
+  customer: Pick<
+    Customer,
+    | 'id'
+    | 'name'
+    | 'phone'
+    | 'version'
+    | 'openingBalanceUnits'
+    | 'balanceUnits'
+    | 'currency'
+    | 'isPinned'
+    | 'inactiveSince'
+    | 'nextSequence'
+    | 'systemManaged'
+    | 'systemLinkKey'
+  >;
+  items: LedgerItem[];
+  pageOpeningBalanceUnits: number;
+  totalItems: number;
+  nextCursor: string | null;
+};
+
+export type CustomerFilter = 'smart' | 'today' | 'due' | 'settled' | 'pinned' | 'pending-review';
+export type AccountSuggestion = Pick<Customer, 'id' | 'name' | 'phone' | 'balanceUnits' | 'currency'>;
+export type CustomerListOptions = {
+  cursor?: string | null;
+  query?: string;
+  filter?: CustomerFilter;
+  limit?: number;
+};
+export type CustomerListResult = {
+  items: Customer[];
+  nextCursor: string | null;
+  totalItems: number;
+  summary: { totalDebt: number; activeCards: number; netBalance?: number; pendingReviewCount?: number };
+};
+
+
+// events.ts
+export type LiveChange = {
+  sequence: number;
+  topic: string;
+  aggregateId: string | null;
+  payload: Record<string, unknown>;
+  createdAt: string;
+};
+
+
+// masraweya.ts
+export type MasraweyaDay = {
+  id: string | null;
+  businessDate: string;
+  previousValueUnits: number;
+  purchasesUnits: number;
+  workTotalUnits: number;
+  finalUnits: number;
+  carryValueUnits: number | null;
+  carrySourceDate: string | null;
+  today: string;
+  earliestEditableDate: string;
+  editable: boolean;
+  openingEditable: boolean;
+  historicalAdjustmentUnits: number;
+  version: number;
+  updatedAt: string | null;
+  updatedByName: string | null;
+  updatedByIsOwner: boolean;
+  entries: Array<{ id: string; sequence: number; valueUnits: number; commissionUnits: number }>;
+};
+
+
+// purchases.ts
+export type PurchaseMerchantKey = 'al_bayan' | 'simsim';
+
+export type PurchaseEntry = {
+  id: string;
+  dayId: string;
+  sequence: number;
+  dayNumber: number;
+  businessDate: string;
+  dayStatus: 'draft' | 'finalized';
+  dayClosingDebtUnits: number;
+  dayVersion: number;
+  correctionOpen: boolean;
+  itemCode: string;
+  itemLabel: string;
+  egpValueUnits: number;
+  calculationMode: 'multiply' | 'divide';
+  exchangeRate: number;
+  resultUnits: number;
+  paidUnits: number;
+  remainingUnits: number;
+  vodafoneConsumedUnits: number;
+  actorName: string;
+  actorIsOwner: boolean;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PurchasesPage = {
+  merchant: { key: PurchaseMerchantKey; name: string };
+  day: {
+    id: string;
+    dayNumber: number;
+    businessDate: string;
+    status: 'draft' | 'finalized';
+    previousDebtUnits: number;
+    previousVodafoneUnits: number;
+    todayResultUnits: number;
+    todayPaidUnits: number;
+    totalDebtUnits: number;
+    vodafoneRemainingUnits: number;
+    version: number;
+    correctionOpen: boolean;
+  };
+  entries: PurchaseEntry[];
+  nextBefore: number | null;
+  registerTotals: {
+    resultUnits: number;
+    paidUnits: number;
+    remainingUnits: number;
+    vodafoneConsumedUnits: number;
+    vodafoneRemainingUnits: number;
+  };
+};
+
+export type PurchaseEntryInput = {
+  requestId: string;
+  expectedDayVersion: number;
+  itemCode: string;
+  itemLabel: string;
+  egpValueUnits: number;
+  calculationMode: 'multiply' | 'divide';
+  exchangeRate: string;
+  paidUnits: number;
+  vodafoneConsumedUnits: number;
+};
+
+
+// reports.ts
+export type ReportStatus = 'normal' | 'review' | 'critical' | 'missing_rate';
+
+export type DailyFinancialReport = {
+  sequence: number;
+  businessDate: string;
+  receivablesUnits: number;
+  liabilitiesUnits: number;
+  activeCashUnits: number;
+  egyptianSourceUnits: number;
+  egyptianConvertedUnits: number | null;
+  egyptianRate: number | null;
+  netUnits: number | null;
+  daily: {
+    receivablesAddedUnits: number;
+    paymentsUnits: number;
+    liabilitiesEffectUnits: number;
+    cashInUnits: number;
+    cashOutUnits: number;
+  };
+  status: ReportStatus;
+  summary: string;
+  reasons: { key: string; label: string; changeUnits: number | null }[];
+  version: number;
+  generatedAt: string;
+  updatedAt: string;
+  isFinalized: boolean;
+  finalizedAt: string | null;
+  fiveAmClosing: {
+    state: 'pending' | 'missed' | 'missing_rate' | 'recorded';
+    scheduledAt: string;
+    capturedAt: string | null;
+    netUnits: number | null;
+  };
+};
+
+export type ReportsDashboard = {
+  current: DailyFinancialReport | null;
+  items: DailyFinancialReport[];
+  methodology: { formula: string; note: string; currency: 'LYD' };
+};
+
+
+// treasury.ts
+export type TreasuryDashboard = {
+  currency: 'LYD';
+  receivablesUnits: number;
+  liabilitiesUnits: number;
+  activeCashUnits: number;
+  egyptianSourceUnits: number;
+  egyptianConvertedUnits: number | null;
+  egyptianRate: number | null;
+  egyptianRateUpdatedAt: string | null;
+  netUnits: number | null;
+  cashVersion: number;
+  sources: {
+    customers: number;
+    companies: number;
+    purchases: number;
+    libyanDeposits: number;
+    egyptianDeposits: number;
+  };
+};
+
+export type TreasuryCashEntry = {
+  id: string;
+  sequence: number;
+  direction: 'in' | 'out';
+  amountUnits: number;
+  description: string;
+  balanceBeforeUnits: number;
+  balanceAfterUnits: number;
+  actorName: string;
+  actorIsOwner: boolean;
+  createdAt: string;
+};

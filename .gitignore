@@ -24,6 +24,10 @@ var/data/
 .env.*
 !.env.example
 
+# Private staging credentials and tunnel tokens must never be versioned.
+*.private
+*.private.json
+
 # Local deployment verification screenshots (account details).
 /cloudflare-dns-saved.png
 /tunnel-route-review.png
