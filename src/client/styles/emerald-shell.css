@@ -1,0 +1,447 @@
+/* Opt-in shell appearance. Original rules remain active when the attribute is absent. */
+:root[data-royal-shell='03'] .sidebar,
+:root[data-royal-shell='03']
+  .workspace
+  :is(.dashboard-utility-bar, .debt-ticker, .debts-toolbar, .purchase-workbar, .collection-toolbar-actions) {
+  background: linear-gradient(160deg, var(--rs-top), var(--rs-base) 42%, var(--rs-bottom)) !important;
+  color: var(--rs-text) !important;
+  border-color: var(--rs-line) !important;
+  box-shadow:
+    inset 0 1px 0 #ffffff15,
+    0 2px 6px #00000018 !important;
+}
+:root[data-royal-shell='03'] .sidebar {
+  border-width: 1px !important;
+  border-radius: 12px 0 0 12px !important;
+}
+:root[data-royal-shell='03'] .sidebar :is(.sidebar-identity, .identity-user, .sidebar-controls) {
+  background: transparent !important;
+  border-color: var(--rs-line) !important;
+  box-shadow: none !important;
+}
+:root[data-royal-shell='03'] .sidebar :is(.brand-mark, .identity-app > svg, .identity-user small) {
+  color: var(--rs-accent) !important;
+  text-shadow: none !important;
+}
+:root[data-royal-shell='03'] .sidebar :is(.identity-app strong, .identity-user strong) {
+  color: var(--rs-text) !important;
+}
+:root[data-royal-shell='03']
+  .sidebar
+  :is(nav button, .sidebar-controls button, .sidebar-hide-button, .sidebar-mobile-close, .identity-avatar) {
+  background: var(--rs-control) !important;
+  color: var(--rs-text) !important;
+  border-color: var(--rs-line) !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+}
+:root[data-royal-shell='03'] .sidebar nav button > svg:not(.section-lock) {
+  color: var(--rs-accent) !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+:root[data-royal-shell='03'] .sidebar nav button.active {
+  background: var(--rs-selected) !important;
+  color: var(--rs-ink) !important;
+  border-color: var(--rs-accent) !important;
+}
+:root[data-royal-shell='03'] .sidebar nav button.active > svg:not(.section-lock) {
+  color: var(--rs-ink) !important;
+}
+:root[data-royal-shell='03'] .sidebar .sidebar-controls button svg {
+  color: var(--rs-accent) !important;
+}
+:root[data-royal-shell='03'] .sidebar nav button:hover:not(.active):not(:disabled) {
+  background: var(--rs-hover) !important;
+}
+:root[data-royal-shell='03'] .workspace :is(.dashboard-utility-bar, .debt-ticker, .debts-toolbar) {
+  border-radius: 10px !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  .dashboard-utility-bar
+  :is(.global-account-search, .sync-status, .utility-icon-button, .readability-toggle, .mobile-app-menu),
+:root[data-royal-shell='03']
+  .workspace
+  .debts-toolbar
+  :is(
+    .debt-total-card,
+    .active-cards-card,
+    .add-customer-card,
+    .routing-card,
+    .compact-filters button,
+    .dashboard-search input,
+    .egypt-rate-card
+  ),
+:root[data-royal-shell='03'] .workspace .debt-ticker-track button {
+  background: var(--rs-control) !important;
+  color: var(--rs-text) !important;
+  border-color: var(--rs-line) !important;
+  box-shadow: none !important;
+  border-radius: 7px !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  .debts-toolbar
+  :is(
+    .customer-summary-strip,
+    .customer-actions-strip,
+    .active-cards-count,
+    .compact-filters,
+    .dashboard-search,
+    .search
+  ) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .dashboard-section-title,
+:root[data-royal-shell='03']
+  .workspace
+  .debts-toolbar
+  :is(.add-customer-card, .routing-card, .compact-filters button[aria-selected='true']) {
+  background: var(--rs-selected) !important;
+  color: var(--rs-ink) !important;
+  border-color: var(--rs-accent) !important;
+  box-shadow: none !important;
+  border-radius: 7px !important;
+}
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .dashboard-section-heading {
+  color: var(--rs-ink) !important;
+}
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .sync-status b,
+:root[data-royal-shell='03'] .workspace .debts-toolbar .debt-total-card :is(strong, span, small) {
+  color: var(--rs-text) !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  .dashboard-utility-bar
+  .global-account-search
+  > :is(input, button, svg, span),
+:root[data-royal-shell='03'] .workspace .debts-toolbar .debt-total-card > :is(strong, span, small),
+:root[data-royal-shell='03'] .workspace .debts-toolbar .active-cards-card :is(span, strong, b),
+:root[data-royal-shell='03'] .workspace .debts-toolbar .dashboard-search svg {
+  color: var(--rs-text) !important;
+}
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .global-account-search input {
+  background: transparent !important;
+}
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar input::placeholder,
+:root[data-royal-shell='03'] .workspace .debts-toolbar input::placeholder {
+  color: var(--rs-muted) !important;
+  opacity: 1 !important;
+}
+:root[data-royal-shell='03'] .workspace .debt-ticker-track button :is(span, em) {
+  color: var(--rs-muted) !important;
+}
+:root[data-royal-shell='03'] .workspace .debt-ticker::after {
+  background: var(--rs-selected) !important;
+  color: var(--rs-ink) !important;
+  border-color: var(--rs-accent) !important;
+  box-shadow: none !important;
+  border-radius: 7px !important;
+}
+:root[data-royal-shell='03'] .workspace .global-account-search:focus-within {
+  outline-color: var(--rs-accent) !important;
+}
+:root[data-royal-shell='03'] .workspace .global-search-results {
+  background: var(--rs-control) !important;
+  color: var(--rs-text) !important;
+  border-color: var(--rs-line) !important;
+}
+:root[data-royal-shell='03'] .workspace .global-search-results :is(button, strong, small, b, p) {
+  color: var(--rs-text) !important;
+}
+:root[data-royal-shell='03'] .workspace .global-search-results button:hover {
+  background: var(--rs-hover) !important;
+}
+
+/* Approved local direction 03: layered emerald lacquer, satin gold, fixed geometry.
+   All gloss is a background/shadow: no overlays, timers, transforms or intercepted clicks. */
+:root[data-royal-shell='03'] {
+  --rs-base: #064a33;
+  --rs-top: #158a60;
+  --rs-bottom: #022c20;
+  --rs-control: #07563b;
+  --rs-text: #fffcef;
+  --rs-muted: #e4e8d1;
+  --rs-line: #b9a660;
+  --rs-accent: #f4dd93;
+  --rs-ink: #29200c;
+  --rs-hover: #0b7952;
+  --rs-selected: linear-gradient(
+    175deg,
+    #fffbe0 0%,
+    #f8eab3 12%,
+    #e8c966 43%,
+    #c49c38 52%,
+    #e6c86a 80%,
+    #fff1b9 100%
+  );
+  --em-shell:
+    linear-gradient(110deg, #ffffff10, transparent 28%, #d4fff10b 73%, transparent),
+    linear-gradient(
+      180deg,
+      #46b58a 0%,
+      #19825c 7%,
+      #096142 22%,
+      #034831 49%,
+      #023c2b 52%,
+      #075139 86%,
+      #10714e 100%
+    );
+  --em-control: linear-gradient(175deg, #288d68 0%, #126548 12%, #074630 48%, #033b29 52%, #0a543a 100%);
+  --em-inner: linear-gradient(155deg, #197f59, #06412e 44%, #023122 73%, #0d6044);
+  --em-shell-shadow:
+    inset 0 1px 1px #eefff0ad, inset 0 3px 4px #d0ffe52b, inset 0 -1px 1px #042b20, 0 2px 7px #002d231f;
+  --em-control-shadow: inset 0 1px 1px #daffed78, inset 0 -1px 1px #001c17a6, 0 1px 2px #001b142b;
+  --em-active-shadow: inset 0 1px 1px #fffde8, inset 0 -2px 2px #976d2c66, 0 2px 5px #001c173b;
+}
+:root[data-theme='dark'][data-royal-shell='03'] {
+  --rs-base: #043725;
+  --rs-top: #0d6a49;
+  --rs-bottom: #011e17;
+  --rs-control: #063d2d;
+  --rs-text: #f4f7e9;
+  --rs-muted: #c8d6c8;
+  --rs-line: #9e935a;
+  --rs-accent: #e9d48e;
+  --rs-hover: #0a6345;
+  --rs-selected: linear-gradient(
+    175deg,
+    #eee0ae 0%,
+    #deca84 14%,
+    #c8a54c 48%,
+    #b28c32 53%,
+    #d4b664 84%,
+    #e9d696 100%
+  );
+  --em-shell:
+    linear-gradient(110deg, #ffffff08, transparent 35%, #baffdf08 75%, transparent),
+    linear-gradient(
+      180deg,
+      #2b8863 0%,
+      #0f5a3e 8%,
+      #043e2b 25%,
+      #022e22 49%,
+      #01291e 52%,
+      #043c2b 90%,
+      #0b5239 100%
+    );
+  --em-control: linear-gradient(175deg, #1b6248 0%, #0b4833 14%, #033526 48%, #022a20 52%, #073f2c 100%);
+  --em-inner: linear-gradient(155deg, #105b3f, #032d22 47%, #01231b 75%, #06412e);
+  --em-shell-shadow:
+    inset 0 1px 1px #d3f9dc70, inset 0 3px 4px #b8fce815, inset 0 -1px 1px #001d16, 0 2px 8px #0004;
+  --em-control-shadow: inset 0 1px 1px #b4e2c94f, inset 0 -1px 1px #00130ecc, 0 1px 2px #0004;
+}
+:root[data-royal-shell='03'] .sidebar {
+  background:
+    linear-gradient(105deg, #ffffff0b, transparent 18%, transparent 87%, #021b176b),
+    linear-gradient(168deg, #14704f 0%, #064a35 24%, #022f23 69%, #011e18 100%) !important;
+  box-shadow:
+    inset 1px 0 0 #ddf8d3a1,
+    inset 3px 0 9px #bbf9db1f,
+    -2px 0 12px #04271d33 !important;
+  border-color: var(--rs-line) !important;
+}
+:root[data-theme='dark'][data-royal-shell='03'] .sidebar {
+  background:
+    linear-gradient(105deg, #ffffff07, transparent 21%, transparent 86%, #00130f85),
+    linear-gradient(168deg, #0e503a, #033527 29%, #02261e 70%, #011b16) !important;
+}
+:root[data-royal-shell='03'] .sidebar .sidebar-identity {
+  background: linear-gradient(135deg, #c6ffdf12, transparent 45%), var(--em-inner) !important;
+  box-shadow: var(--em-control-shadow) !important;
+  border-color: var(--rs-line) !important;
+}
+:root[data-royal-shell='03'] .sidebar .brand-mark {
+  color: #f6df99 !important;
+  text-shadow:
+    0 1px 0 #fff5bf99,
+    0 2px 3px #001e17,
+    0 0 12px #d8c37a35 !important;
+}
+:root[data-royal-shell='03']
+  .sidebar
+  :is(
+    nav button,
+    .sidebar-controls button,
+    .identity-user,
+    .sidebar-hide-button,
+    .sidebar-mobile-close,
+    .identity-avatar
+  ) {
+  background: var(--em-control) !important;
+  box-shadow: var(--em-control-shadow) !important;
+  border-color: var(--rs-line) !important;
+  border-radius: 10px !important;
+}
+:root[data-royal-shell='03'] .sidebar nav button > svg:not(.section-lock) {
+  background: linear-gradient(150deg, #ffffff0f, #00271e30) !important;
+  border-color: #e2d38b50 !important;
+  color: var(--rs-accent) !important;
+  border-radius: 9px !important;
+  box-shadow: inset 0 1px 1px #f1ffdf3b !important;
+}
+:root[data-royal-shell='03'] .sidebar nav button.active {
+  background: var(--rs-selected) !important;
+  box-shadow: var(--em-active-shadow) !important;
+  border-color: #f4e2a5 !important;
+  color: var(--rs-ink) !important;
+}
+:root[data-royal-shell='03'] .sidebar nav button.active > svg:not(.section-lock) {
+  background: #ffffff1f !important;
+  border-color: #8a68274d !important;
+  color: #463410 !important;
+}
+:root[data-royal-shell='03'] .sidebar nav button:hover:not(.active):not(:disabled) {
+  background: linear-gradient(175deg, #3aa179, #0e6848 48%, #084c36) !important;
+  border-color: var(--rs-accent) !important;
+}
+:root[data-royal-shell='03'] .sidebar .sidebar-controls {
+  background: var(--em-inner) !important;
+  box-shadow: var(--em-control-shadow) !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  :is(.dashboard-utility-bar, .debt-ticker, .debts-toolbar, .purchase-workbar, .collection-toolbar-actions) {
+  background: var(--em-shell) !important;
+  box-shadow: var(--em-shell-shadow) !important;
+  border-color: var(--rs-line) !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  .dashboard-utility-bar
+  :is(.global-account-search, .sync-status, .utility-icon-button, .mobile-app-menu),
+:root[data-royal-shell='03']
+  .workspace
+  .debts-toolbar
+  :is(
+    .debt-total-card,
+    .active-cards-card,
+    .add-customer-card,
+    .routing-card,
+    .compact-filters button,
+    .dashboard-search input,
+    .egypt-rate-card
+  ),
+:root[data-royal-shell='03'] .workspace .debt-ticker-track button {
+  background: var(--em-control) !important;
+  box-shadow: var(--em-control-shadow) !important;
+  border-color: var(--rs-line) !important;
+  border-radius: 9px !important;
+}
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .dashboard-section-title,
+:root[data-royal-shell='03']
+  .workspace
+  .debts-toolbar
+  :is(.add-customer-card, .routing-card, .compact-filters button[aria-selected='true']),
+:root[data-royal-shell='03'] .workspace .debt-ticker::after {
+  background: var(--rs-selected) !important;
+  box-shadow: var(--em-active-shadow) !important;
+  color: var(--rs-ink) !important;
+  border-color: #f4e2a5 !important;
+  border-radius: 9px !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  .debts-toolbar
+  .compact-filters
+  button[aria-selected='true']
+  :is(span, b) {
+  color: var(--rs-ink) !important;
+}
+/* Additional section headers share the shell; ledger rows, summaries and status cards do not. */
+:root[data-royal-shell='03']
+  .workspace
+  :is(
+    .masraweya-header,
+    .treasury-head,
+    .treasury-panel-head,
+    .reports-head,
+    .financial-overview-head,
+    .settings-topbar,
+    .purchase-action-dock,
+    .collection-overview-header
+  ) {
+  background: var(--em-shell) !important;
+  color: var(--rs-text) !important;
+  border-color: var(--rs-line) !important;
+  box-shadow: var(--em-shell-shadow) !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  :is(
+    .masraweya-header,
+    .treasury-head,
+    .treasury-panel-head,
+    .reports-head,
+    .financial-overview-head,
+    .settings-topbar,
+    .collection-overview-header
+  )
+  :is(h1, h2, p, small) {
+  color: var(--rs-text) !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  .financial-overview-head
+  :is(.report-eyebrow, .report-live-status, time) {
+  color: var(--rs-muted) !important;
+}
+:root[data-royal-shell='03']
+  .workspace
+  :is(.masraweya-header, .treasury-head, .treasury-panel-head, .reports-head, .settings-topbar)
+  :is(h1, h2) {
+  background: var(--em-control) !important;
+  box-shadow: var(--em-control-shadow) !important;
+  border-color: var(--rs-line) !important;
+}
+:root[data-royal-shell='03'] .workspace .collection-toolbar-actions .compact-action,
+:root[data-royal-shell='03'] .workspace .purchase-action-dock :is(.purchase-dock-day, .purchase-dock-note),
+:root[data-royal-shell='03'] .workspace .purchase-action-dock .purchase-head-actions > button:not(.finalize) {
+  background: var(--em-control) !important;
+  color: var(--rs-text) !important;
+  box-shadow: var(--em-control-shadow) !important;
+  border-color: var(--rs-line) !important;
+}
+:root[data-royal-shell='03'] .workspace :is(.purchase-grid-head, .purchase-day-separator),
+:root[data-royal-shell='03'] .workspace .masraweya-work-table thead th,
+:root[data-royal-shell='03'] .workspace .treasury-ledger-row.head {
+  background: var(--em-shell) !important;
+  color: var(--rs-text) !important;
+  border-color: var(--rs-line) !important;
+  box-shadow: var(--em-shell-shadow) !important;
+}
+:root[data-royal-shell='03'] .workspace .purchase-grid-head > span,
+:root[data-royal-shell='03'] .workspace .purchase-day-separator :is(span, strong, b),
+:root[data-royal-shell='03'] .workspace .treasury-ledger-row.head b {
+  background: var(--em-control) !important;
+  color: var(--rs-text) !important;
+  border-color: var(--rs-line) !important;
+  box-shadow: var(--em-control-shadow) !important;
+}
+:root[data-royal-shell='03'] .workspace .purchase-action-dock .merchant-tabs button.active {
+  background: var(--rs-selected) !important;
+  color: var(--rs-ink) !important;
+  box-shadow: var(--em-active-shadow) !important;
+}
+/* Keep feedback semantically visible; no animated shine or moving control surfaces. */
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .sync-status:is(.error, .offline),
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .sync-status:is(.error, .offline) b {
+  color: #ffc2ad !important;
+}
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .sync-status.saving,
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar .sync-status.saving b {
+  color: #ffe49b !important;
+}
+:root[data-royal-shell='03'] .sidebar button:focus-visible,
+:root[data-royal-shell='03'] .workspace .dashboard-utility-bar :is(button, input):focus-visible {
+  outline-color: #ffe5a0 !important;
+}
+@media (prefers-contrast: more) {
+  :root[data-royal-shell='03'] {
+    --rs-line: #ecdb9b;
+    --rs-muted: #fff6df;
+  }
+}

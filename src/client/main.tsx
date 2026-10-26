@@ -42,6 +42,7 @@ import './styles/readability.css';
 import './styles/auth-l01.css';
 import './styles/languages.css';
 import './styles/duplicate-warning.css';
+import './styles/emerald-shell.css';
 
 let root: Root | undefined;
 void loadLanguageCatalog()

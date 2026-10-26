@@ -8,6 +8,7 @@ import type { MainSection } from '../sections/debts/sectionConfig.ts';
 import { ThemeToggle, type Theme } from '../components/ThemeToggle.tsx';
 import { useSidebarPalette } from './useSidebarPalette.ts';
 import { LanguageToggle } from '../i18n/LanguageToggle.tsx';
+import { ShellAppearanceToggle } from '../components/ShellAppearanceToggle.tsx';
 
 type Props = {
   user: User;
@@ -74,6 +75,7 @@ export function DashboardSidebar({
         ? <AdminNavigation active={activeSection} open={open} />
         : <EmployeeNavigation user={user} active={activeSection} open={open} />}
       <div className="sidebar-controls">
+        <ShellAppearanceToggle />
         <LanguageToggle />
         <ThemeToggle theme={theme} onToggle={onThemeToggle} />
         <button className="logout-button" onClick={onLogout}><LogOut size={17} /><span>{uiText("تسجيل الخروج")}</span></button>

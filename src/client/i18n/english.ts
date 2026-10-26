@@ -2,6 +2,11 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'تبديل تنسيق الأشرطة': 'Switch navigation appearance',
+  'الرجوع إلى الشكل الأصلي': 'Restore original appearance',
+  'تفعيل الزمردي الملكي اللامع': 'Enable glossy royal emerald',
+  'الزمردي اللامع': 'Glossy emerald',
+  'الشكل الأصلي': 'Original appearance',
   'تغيّر الحساب أثناء تعديلك. ألغِ التعديل وافتحه مجددًا لمراجعة أحدث البيانات؛ مسودتك لم تُحفظ.': 'The account changed while you were editing. Cancel and reopen the edit to review the latest data; your draft has not been saved.',
   'عملة الاستلام: دينار ليبي فقط — الربط بحسابات الدينار دون تحويل.':'Receipt currency: Libyan dinar only — link to LYD accounts without conversion.',
   'لا يمكن ربط الاستلام إلا بحساب بالدينار الليبي، دون تحويل.':'This receipt can only be linked to an LYD account, without conversion.',
