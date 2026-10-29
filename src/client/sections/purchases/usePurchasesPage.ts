@@ -14,6 +14,9 @@ export function usePurchasesPage() {
   const [message, setMessage] = useState('');
   const dirty = useRef(false);
   const currentDayId = useRef<string | null>(null);
+  const entryCache=useRef<PurchaseEntry[]>([]);
+  const loadedPages=useRef(1);
+  useEffect(()=>{entryCache.current=entries;},[entries]);
   const dirtyEntryIds = useRef(new Set<string>());
   const deleteRequestIds = useRef(new Map<string, string>());
   const finalizeRequestId = useRef<string | null>(null);
@@ -23,7 +26,24 @@ export function usePurchasesPage() {
     const request = ++latestLoad.current;
     if (!quiet) setBusy(true);
     try {
-      const next = await api.purchases(key);
+      const cached=entryCache.current;
+      const byId=new Map(cached.map(entry=>[entry.id,entry]));
+      const readPage=async(before:number|null,index:number)=>{
+        const knownEntries=background?cached.slice(Math.max(0,cached.length-(index+1)*100),cached.length-index*100):[];
+        const tags=knownEntries.map(entry=>entry.viewTag).filter((tag):tag is string=>Boolean(tag));
+        let result=await api.purchases(key,before,tags.length&&tags.length===knownEntries.length?tags:undefined);
+        if(result.orderedEntryIds){
+          for(const entry of result.entries)byId.set(entry.id,entry);
+          if(result.orderedEntryIds.some(id=>!byId.has(id)||!result.entryDays?.[byId.get(id)!.dayId]))result=await api.purchases(key,before);
+          else result={...result,entries:result.orderedEntryIds.map(id=>{const entry=byId.get(id)!;return {...entry,...result.entryDays![entry.dayId]};})};
+        }
+        return result;
+      };
+      let next = await readPage(null,0);
+      for(let index=1;background&&index<loadedPages.current&&next.nextBefore;index++){
+        const older=await readPage(next.nextBefore,index);
+        next={...next,entries:[...older.entries,...next.entries],nextBefore:older.nextBefore};
+      }
       if (request !== latestLoad.current) return;
       // Same-day saved rows and totals can update independently of editor state.
       // A remote day rollover must not remount and discard an unsaved draft.
@@ -35,6 +55,7 @@ export function usePurchasesPage() {
       })) throw new Error('An edited purchase row was removed or locked remotely');
       setPage(next);
       setEntries(next.entries);
+      loadedPages.current=Math.max(1,Math.ceil(next.entries.length/100));
       currentDayId.current = next.day.id;
       if (!background) { dirty.current = false; dirtyEntryIds.current.clear(); }
     } catch (error) {
@@ -127,6 +148,7 @@ export function usePurchasesPage() {
     try {
       const old = await api.purchases(merchant, page.nextBefore);
       setEntries((current) => [...old.entries, ...current]);
+      loadedPages.current++;
       setPage((current) => (current ? { ...current, nextBefore: old.nextBefore } : current));
     } catch (error) {
       setMessage(purchaseErrorText(error));

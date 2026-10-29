@@ -29,6 +29,7 @@ import { routeCompanies } from './routes/companyRoutes.ts';
 import { routeDeposits } from './routes/depositRoutes.ts';
 import { routeAuthenticatedAccount, routePublicAccount } from './routes/accountRoutes.ts';
 import { routeReports } from './routes/reportRoutes.ts';
+import { routeAccountSearch } from './routes/accountSearchRoutes.ts';
 import { startReportScheduler } from './domain/reports/reportScheduler.ts';
 import { recordTechnicalError } from './domain/operationsCenter.ts';
 import { authenticate } from './security/sessions.ts';
@@ -136,6 +137,7 @@ async function route(
     return sendJson(response, 200, { ok: true, data: await databaseMonitor(database, config) });
   }
   if (await routeBrowserPush(database,config,user,request,response,url)) return;
+  if(method==='GET'&&url.pathname==='/api/account-search'){routeAccountSearch(database,user,url,response);return;}
 
   if (method === 'GET' && url.pathname === '/api/events') {
     if (
@@ -152,7 +154,8 @@ async function route(
     ) {
       throw forbidden('events.read');
     }
-    const after = eventCursor(url.searchParams.get('after'));
+    const lastEventId=request.headers['last-event-id'];
+    const after = eventCursor(typeof lastEventId==='string'?lastEventId:url.searchParams.get('after'));
     if (!events.attach(response, after, { userId: user.id, sessionTokenHash: user.sessionTokenHash })) {
       throw unauthorized();
     }

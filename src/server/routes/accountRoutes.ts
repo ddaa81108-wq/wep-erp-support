@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { latestEventSequence } from '../events.ts';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { ServerConfig } from '../config.ts';
 import { API_VERSION, SCHEMA_VERSION } from '../config.ts';
@@ -69,7 +70,8 @@ function finishLogin(context: AccountRouteContext, userId: string) {
     .all(userId).map(item => String(item.permission));
   sendJson(response, 200, { ok: true, data: { user: { id: userId, username: String(row.username), displayName: String(row.display_name),
     role: String(row.role), isOwner: Number(row.is_owner) === 1, mustChangePassword: Number(row.must_change_password) === 1, permissions },
-    csrfToken: session.csrfToken, expiresAt: session.expiresAt, apiVersion: API_VERSION } });
+    csrfToken: session.csrfToken, expiresAt: session.expiresAt, apiVersion: API_VERSION,
+    liveSequence: latestEventSequence(database,String(row.organization_id)) } });
 }
 
 async function verifyCurrentPassword(context: AccountRouteContext, user: AuthenticatedUser, input: Record<string, unknown>) {
@@ -304,6 +306,7 @@ export async function routeAuthenticatedAccount(
         },
         apiVersion: API_VERSION,
         schemaVersion: SCHEMA_VERSION,
+        liveSequence: latestEventSequence(database,user.organizationId),
       },
     });
     return true;

@@ -26,6 +26,10 @@ export class ApiError extends Error {
 
 let csrfToken = '';
 const pendingReads = new PendingReads();
+// Application-memory conditional snapshots only; never persist across sessions.
+let conditionalGeneration=0;
+const conditionalReads=new Map<string,{etag:string;data:unknown}>();
+function clearConditionalReads(){conditionalGeneration++;conditionalReads.clear();}
 /** A remote commit invalidates reads that began before its live event. */
 export function invalidatePendingReads() {
   pendingReads.clear();
@@ -38,6 +42,7 @@ if (csrfChannel) {
   csrfChannel.onmessage = (event: MessageEvent<unknown>) => {
     if (typeof event.data === 'string') {
       pendingReads.clear();
+      clearConditionalReads();
       csrfToken = event.data;
     }
   };
@@ -45,6 +50,7 @@ if (csrfChannel) {
 
 export function rememberCsrf(token: string) {
   pendingReads.clear();
+  clearConditionalReads();
   csrfToken = token;
   csrfChannel?.postMessage(token);
 }
@@ -54,6 +60,7 @@ export async function request<T>(path: string, init: RequestInit = {}) {
   const mutation = method !== 'GET' && method !== 'HEAD';
   if (mutation) {
     pendingReads.clear();
+    clearConditionalReads();
     try {
       const checked = duplicateAwareInput(path, init);
       try {
@@ -69,6 +76,7 @@ export async function request<T>(path: string, init: RequestInit = {}) {
       }
     } finally {
       pendingReads.clear();
+      clearConditionalReads();
     }
   }
   // Custom options (notably abort signals) must retain their independent lifecycle.
@@ -79,6 +87,10 @@ export async function request<T>(path: string, init: RequestInit = {}) {
 
 async function performRequest<T>(path: string, init: RequestInit) {
   const headers = new Headers(init.headers);
+  const conditional=(!init.method||init.method==='GET')&&/^\/api\/notifications(?:\?|$)/.test(path);
+  const generation=conditionalGeneration;
+  const cached=conditional?conditionalReads.get(path):undefined;
+  if(cached)headers.set('If-None-Match',cached.etag);
   headers.set('Accept', 'application/json');
   headers.set('X-Client-Api-Version', API_VERSION);
   if (init.body) headers.set('Content-Type', 'application/json');
@@ -100,6 +112,10 @@ async function performRequest<T>(path: string, init: RequestInit) {
     if (typeof window !== 'undefined' && tracksSaving) window.dispatchEvent(new Event(event));
   };
   let payload: unknown;
+  if(response.status===304&&cached){
+    if(generation!==conditionalGeneration)return performRequest<T>(path,init);
+    return cached.data as T;
+  }
   try {
     payload = await response.json();
   } catch {
@@ -125,5 +141,6 @@ async function performRequest<T>(path: string, init: RequestInit) {
     throw new ApiError(response.status, 'INVALID_SERVER_RESPONSE', uiText("استجابة الخادم غير مكتملة."));
   }
   signalWrite('abdo:request-finish');
+  if(conditional&&generation===conditionalGeneration){const etag=response.headers.get('ETag');if(etag)conditionalReads.set(path,{etag,data:payload.data});}
   return payload.data;
 }

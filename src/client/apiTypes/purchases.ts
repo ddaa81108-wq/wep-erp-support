@@ -1,6 +1,7 @@
 export type PurchaseMerchantKey = 'al_bayan' | 'simsim';
 
 export type PurchaseEntry = {
+  viewTag?: string;
   id: string;
   dayId: string;
   sequence: number;
@@ -27,6 +28,8 @@ export type PurchaseEntry = {
 };
 
 export type PurchasesPage = {
+  orderedEntryIds?:string[];
+  entryDays?:Record<string,Pick<PurchaseEntry,'dayVersion'|'dayStatus'|'dayClosingDebtUnits'|'correctionOpen'>>;
   merchant: { key: PurchaseMerchantKey; name: string };
   day: {
     id: string;

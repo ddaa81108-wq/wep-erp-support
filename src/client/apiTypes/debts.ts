@@ -6,6 +6,7 @@ export type ConfirmedLedgerWrite = {
 };
 
 export type Customer = {
+  viewTag?: string;
   id: string;
   name: string;
   phone: string | null;
@@ -80,12 +81,14 @@ export type Ledger = {
 export type CustomerFilter = 'smart' | 'today' | 'due' | 'settled' | 'pinned' | 'pending-review';
 export type AccountSuggestion = Pick<Customer, 'id' | 'name' | 'phone' | 'balanceUnits' | 'currency'>;
 export type CustomerListOptions = {
+  known?: readonly string[];
   cursor?: string | null;
   query?: string;
   filter?: CustomerFilter;
   limit?: number;
 };
 export type CustomerListResult = {
+  orderedIds?: string[];
   items: Customer[];
   nextCursor: string | null;
   totalItems: number;

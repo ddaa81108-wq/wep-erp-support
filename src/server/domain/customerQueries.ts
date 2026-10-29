@@ -1,4 +1,5 @@
 import { zeroReviewSnapshot } from './customerZeroReview.ts';
+import { knownViewTags, tagViews } from './viewSnapshots.ts';
 import { businessDayRange, organizationBusinessDate, organizationTimezone } from './reports/businessDates.ts';
 import type { AppDatabase } from '../db/database.ts';
 import { badRequest, notFound } from '../http/errors.ts';
@@ -102,8 +103,7 @@ export function listCustomers(
     profile.sectionKey,
   ) as { total_debt: number; active_cards: number; net_balance: number; pending_review_count: number };
   const hideBefore = Date.now() - 30 * 24 * 60 * 60_000;
-  return {
-    items: pageRows.map((row) => {
+  const items = pageRows.map((row) => {
       const balanceUnits = Number(row.current_balance_units);
       const inactiveSince = row.inactive_since ? String(row.inactive_since) : null;
       const isPinned = Number(row.is_pinned) === 1;
@@ -134,7 +134,12 @@ export function listCustomers(
         createdAt: String(row.created_at),
         updatedAt: String(row.financial_updated_at ?? row.updated_at),
       };
-    }),
+    });
+  const known=knownViewTags(url.searchParams.get('known'));
+  const tagged=tagViews(items);
+  return {
+    items:known?tagged.filter(item=>!known.has(item.viewTag)):tagged,
+    ...(known?{orderedIds:items.map(item=>item.id)}:{}),
     nextCursor: hasMore ? (() => {
       const last = pageRows.at(-1)!;
       return Buffer.from(JSON.stringify({

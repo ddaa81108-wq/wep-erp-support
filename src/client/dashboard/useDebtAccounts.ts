@@ -41,6 +41,8 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   const listRequest = useRef(0);
   const ledgerRequest = useRef(0);
   const loadedPages = useRef(1);
+  const customerCache = useRef<Customer[]>([]);
+  useEffect(()=>{customerCache.current=customers;},[customers]);
   const openLedgerId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -52,10 +54,24 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     async (cursor: string | null = null, append = false, background = false, retrySuperseded = background) => {
       const request = ++listRequest.current;
       const pages = background ? loadedPages.current : 1;
-      let result = await listSectionAccounts(debtSection, { cursor, query: debouncedQuery, filter, limit: 100 });
+      const cached=customerCache.current;
+      const cache=new Map(cached.map(customer=>[customer.id,customer]));
+      const readPage=async(pageCursor:string|null,pageIndex:number)=>{
+        const pageCache=background?cached.slice(pageIndex*100,(pageIndex+1)*100):[];
+        const tags=pageCache.map(item=>item.viewTag).filter((value):value is string=>Boolean(value));
+        const options={cursor:pageCursor,query:debouncedQuery,filter,limit:100};
+        let result=await listSectionAccounts(debtSection,{...options,...(tags.length===pageCache.length&&tags.length?{known:tags}:{})});
+        if(result.orderedIds){
+          for(const item of result.items)cache.set(item.id,item);
+          if(result.orderedIds.some(id=>!cache.has(id)))result=await listSectionAccounts(debtSection,options);
+          else result={...result,items:result.orderedIds.map(id=>cache.get(id)!)};
+        }
+        return result;
+      };
+      let result = await readPage(cursor,0);
       const items = [...result.items];
       for (let page = 1; page < pages && result.nextCursor; page += 1) {
-        result = await listSectionAccounts(debtSection, { cursor: result.nextCursor, query: debouncedQuery, filter, limit: 100 });
+        result = await readPage(result.nextCursor,page);
         items.push(...result.items);
       }
       if (request !== listRequest.current) {

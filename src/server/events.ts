@@ -6,6 +6,16 @@ export const MAX_EVENT_STREAMS_PER_USER = 8;
 export const MAX_EVENT_STREAMS = 256;
 const MAX_BUFFERED_BYTES = 256 * 1024;
 
+export function latestEventSequence(database: AppDatabase, organizationId: string) {
+  return Number((database.prepare('SELECT COALESCE(MAX(sequence),0) AS latest FROM event_log WHERE organization_id=?').get(organizationId) as {latest:number}).latest);
+}
+
+function needsSnapshot(database:AppDatabase,organizationId:string,after:number,minimum:number,maximum:number){
+  if(after>maximum||(after>0&&minimum>after+1))return true;
+  if(after===maximum)return false;
+  return Number((database.prepare('SELECT COUNT(*) AS count FROM (SELECT 1 FROM event_log WHERE organization_id=? AND sequence>? LIMIT 501)').get(organizationId,after) as {count:number}).count)>500;
+}
+
 export type EventViewer = {
   userId: string;
   sessionTokenHash: string;
@@ -58,7 +68,7 @@ export class EventHub {
     `,
       )
       .get(resolved.organizationId) as { minimum: number; maximum: number };
-    if (after > 0 && Number(bounds.minimum) > after + 1) {
+    if (needsSnapshot(this.database,resolved.organizationId,after,Number(bounds.minimum),Number(bounds.maximum))) {
       response.write(
         `event: full_resync_required\ndata: ${JSON.stringify({ latest: Number(bounds.maximum) })}\n\n`,
       );
@@ -78,6 +88,7 @@ export class EventHub {
       }
     }
 
+    response.write(`id: ${Number(bounds.maximum)}\nevent: checkpoint\ndata: {}\n\n`);
     if (response.destroyed || response.writableEnded) return true;
     const subscriber: Subscriber = {
       response,
@@ -133,7 +144,7 @@ export class EventHub {
       )
       .get(resolved.organizationId) as { minimum: number; maximum: number };
     const latest = Number(bounds.maximum);
-    if (after > 0 && Number(bounds.minimum) > after + 1) {
+    if (needsSnapshot(this.database,resolved.organizationId,after,Number(bounds.minimum),latest)) {
       return { fullResync: true, latest, events: [] };
     }
     const rows = this.database

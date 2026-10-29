@@ -2,8 +2,8 @@ import { request } from '../apiTransport.ts';
 import type { PurchaseEntryInput, PurchaseMerchantKey, PurchasesPage } from '../apiTypes.ts';
 
 export const purchasesApi = {
-  purchases: (merchant: PurchaseMerchantKey, before?: number | null) =>
-    request<PurchasesPage>(`/api/purchases/${merchant}?limit=100${before ? `&before=${before}` : ''}`),
+  purchases: (merchant: PurchaseMerchantKey, before?: number | null, known?:readonly string[]) =>
+    request<PurchasesPage>(`/api/purchases/${merchant}?limit=100${before ? `&before=${before}` : ''}${known?.length?`&known=${encodeURIComponent(known.join(','))}`:''}`),
   createPurchase: (merchant: PurchaseMerchantKey, body: PurchaseEntryInput) =>
     request(`/api/purchases/${merchant}`, { method: 'POST', body: JSON.stringify(body) }),
   updatePurchase: (

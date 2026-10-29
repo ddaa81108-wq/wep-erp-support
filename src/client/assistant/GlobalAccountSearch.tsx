@@ -3,10 +3,9 @@ import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { AccountSuggestion } from '../api.ts';
 import { debtSectionText, type DebtSection } from '../sections/debts/sectionConfig.ts';
-import { listSectionSuggestions } from '../sections/debts/debtSectionApi.ts';
+import { request } from '../apiTransport.ts';
 
 type Result = AccountSuggestion & { section: DebtSection };
-const SECTIONS: readonly DebtSection[] = ['customers', 'companies', 'libyan-deposits', 'egyptian-deposits'];
 
 export function GlobalAccountSearch({ onSelect, desktopLabel }: { onSelect: (section: DebtSection, id: string) => void; desktopLabel?: string }) {
   const [query, setQuery] = useState('');
@@ -17,14 +16,9 @@ export function GlobalAccountSearch({ onSelect, desktopLabel }: { onSelect: (sec
     let active = true;
     setLoading(true);
     const timer = window.setTimeout(() => {
-      void Promise.all(SECTIONS.map(async (section) => {
-        try {
-          const result = await listSectionSuggestions(section, query);
-          return result.items.map((item) => ({ ...item, section }));
-        } catch { return []; }
-      })).then((groups) => {
-        if (active) setItems(groups.flat().slice(0, 12));
-      }).finally(() => { if (active) setLoading(false); });
+      void request<{items:Result[]}>(`/api/account-search?q=${encodeURIComponent(query)}`).then(result=>{
+        if(active)setItems(result.items);
+      }).catch(()=>{if(active)setItems([]);}).finally(() => { if (active) setLoading(false); });
     }, 250);
     return () => { active = false; window.clearTimeout(timer); };
   }, [query]);

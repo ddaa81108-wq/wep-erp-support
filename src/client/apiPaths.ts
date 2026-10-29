@@ -6,6 +6,7 @@ export function customerListPath(path: string, options: CustomerListOptions = {}
   if (options.cursor) params.set('cursor', options.cursor);
   if (options.query?.trim()) params.set('q', options.query.trim());
   if (options.filter) params.set('filter', options.filter);
+  if (options.known?.length) params.set('known', options.known.join(','));
   return `${path}?${params.toString()}`;
 }
 

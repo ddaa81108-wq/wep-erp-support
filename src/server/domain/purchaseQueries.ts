@@ -1,5 +1,6 @@
 import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction } from '../db/database.ts';
+import { knownViewTags, tagViews } from './viewSnapshots.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
 import {
   MERCHANTS,
@@ -17,6 +18,7 @@ export function listPurchases(
   keyValue: unknown,
   beforeValue: unknown,
   limitValue: unknown,
+  knownValue?: unknown,
 ) {
   const key = merchantKey(keyValue);
   let merchant = db
@@ -61,10 +63,16 @@ export function listPurchases(
     FROM purchase_entries e
     WHERE e.organization_id=? AND e.merchant_id=? AND e.deleted_at IS NULL
   `).get(actor.organizationId, String(merchant!.id)) as Record<string, unknown>;
+  const known=knownViewTags(knownValue);
+  const entries=tagViews(page.reverse().map(mapEntry),['dayVersion','dayStatus','dayClosingDebtUnits','correctionOpen']);
+  const entryDays=Object.fromEntries(entries.map(entry=>[entry.dayId,{
+    dayVersion:entry.dayVersion,dayStatus:entry.dayStatus,dayClosingDebtUnits:entry.dayClosingDebtUnits,correctionOpen:entry.correctionOpen,
+  }]));
   return {
     merchant: { key, name: MERCHANTS[key] },
     day: mapDay(day!),
-    entries: page.reverse().map(mapEntry),
+    entries: known?entries.filter(entry=>!known.has(entry.viewTag)):entries,
+    ...(known?{orderedEntryIds:entries.map(entry=>entry.id),entryDays}:{}),
     nextBefore: hasMore ? oldestSequence : null,
     registerTotals: {
       resultUnits: Number(lifetime.result_units),

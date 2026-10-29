@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { createHash } from 'node:crypto';
 import type { ServerConfig } from '../config.ts';
 import { createEncryptedEmergencyBackup, restoreBackup, protectedBackupOperation, requireBackupOwner } from '../domain/emergencyBackup.ts';
 import { secretField } from '../http/fields.ts';
@@ -45,7 +46,12 @@ export async function routeUserManagement(context: UserManagementRouteContext) {
   }
 
   if (method === 'GET' && url.pathname === '/api/notifications') {
-    sendJson(response,200,{ok:true,data:listNotifications(database,user,url)});
+    const data=listNotifications(database,user,url);
+    const etag='"'+createHash('sha256').update(JSON.stringify([user.organizationId,user.id,data])).digest('base64url')+'"';
+    response.setHeader('ETag',etag);
+    const validators=String(request.headers['if-none-match']??'').split(',').map(value=>value.trim().replace(/^W\//,''));
+    if(validators.includes(etag)||validators.includes('*')){response.writeHead(304,{'Cache-Control':'private, no-store'});response.end();return true;}
+    sendJson(response,200,{ok:true,data});
     return true;
   }
   const notificationRead=url.pathname.match(/^\/api\/notifications\/(\d+)\/read$/);

@@ -75,6 +75,7 @@ export async function routeFinancialWork(context: FinancialWorkRouteContext) {
         purchaseRoot[1],
         url.searchParams.get('before'),
         url.searchParams.get('limit'),
+        url.searchParams.get('known'),
       ),
     });
     return true;
