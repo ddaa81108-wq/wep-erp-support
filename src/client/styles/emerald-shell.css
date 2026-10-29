@@ -152,7 +152,11 @@
 :root[data-royal-shell='03'] .workspace .global-search-results :is(button, strong, small, b, p) {
   color: var(--rs-text) !important;
 }
-:root[data-royal-shell='03'] .workspace .global-search-results button:hover {
+:root[data-royal-shell='03'] .workspace .global-search-results > button {
+  background: var(--rs-control) !important;
+  border-color: var(--rs-line) !important;
+}
+:root[data-royal-shell='03'] .workspace .global-search-results > button:is(:hover, :focus-visible) {
   background: var(--rs-hover) !important;
 }
 
