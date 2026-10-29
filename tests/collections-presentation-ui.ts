@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, rmSync, mkdirSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import type { AddressInfo } from 'node:net';
@@ -133,32 +133,46 @@ try {
     assert.ok(order[3].includes('zero-collection-card'));
     assert.ok(order[4].includes('collection-red'));
     mkdirSync(resolve('artifacts','collection-states'),{recursive:true});
-    for(const theme of ['light','dark']) {
-      await page.setViewportSize({width:1440,height:950});
-      if (await page.evaluate(()=>document.documentElement.dataset.theme) !== theme) {
-        await page.getByRole('button',{name:theme==='dark'?'المظهر الليلي':'المظهر النهاري',exact:true}).click();
-      }
-      for(const width of [390,1440]) {
-        await page.setViewportSize({width,height:950});
-        if (width===390) await expect.poll(()=>page.locator('.sidebar').evaluate(el=>el.getBoundingClientRect().left>=innerWidth)).toBe(true);
-        await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2)).toBe(true);
-        if (page === adminPage) {
-          await expect(page.locator('.batch-close-button:visible').first()).toHaveClass(/batch-occupied/);
-          await expect(page.locator('.batch-close-button:visible').first()).toHaveCSS('background-color','rgb(187, 37, 45)');
-          await expect(page.locator('.batch-close-button:visible').first().locator('svg')).toBeVisible();
-          const desktopActions = page.locator('.collection-desktop-batch-actions');
-          if (width === 390) {
-            await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeHidden();
-            await expect(page.locator('.day-actions')).toBeVisible();
-          } else {
-            await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeVisible();
-            await expect(page.locator('.day-actions')).toBeHidden();
-          }
+    for (const appearance of ['original','03']) {
+      if ((await page.evaluate(() => document.documentElement.dataset.royalShell) === '03') !== (appearance === '03'))
+        await page.getByRole('button', { name:'تبديل تنسيق الأشرطة', exact:true }).click();
+      for(const theme of ['light','dark']) {
+        await page.setViewportSize({width:1440,height:950});
+        if (await page.evaluate(()=>document.documentElement.dataset.theme) !== theme) {
+          await page.getByRole('button',{name:theme==='dark'?'المظهر الليلي':'المظهر النهاري',exact:true}).click();
         }
-        await page.screenshot({path:resolve('artifacts','collection-states',(page===adminPage?'admin':'employee')+'-'+theme+'-'+width+'.png'),fullPage:true,animations:'disabled'});
+        for(const width of [390,1440]) {
+          await page.setViewportSize({width,height:950});
+          if (width===390) await expect.poll(()=>page.locator('.sidebar').evaluate(el=>el.getBoundingClientRect().left>=innerWidth)).toBe(true);
+          await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2)).toBe(true);
+          if (page === adminPage) {
+            await expect(page.locator('.batch-close-button:visible').first()).toHaveClass(/batch-occupied/);
+            await expect(page.locator('.batch-close-button:visible').first()).toHaveCSS('background-color','rgb(187, 37, 45)');
+            await expect(page.locator('.batch-close-button:visible').first().locator('svg')).toBeVisible();
+            const desktopActions = page.locator('.collection-desktop-batch-actions');
+            if (width === 390) {
+              await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeHidden();
+              await expect(page.locator('.day-actions')).toBeVisible();
+            } else {
+              await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeVisible();
+              await expect(page.locator('.day-actions')).toBeHidden();
+            }
+          }
+          await page.screenshot({path:resolve('artifacts','collection-states',(page===adminPage?'admin':'employee')+'-'+appearance+'-'+theme+'-'+width+'.png'),fullPage:true,animations:'disabled'});
+        }
       }
     }
   }
+  const [pdfDownload] = await Promise.all([
+    adminPage.waitForEvent('download', { timeout: 60_000 }),
+    adminPage.locator('.collection-desktop-batch-actions').getByRole('button', { name: 'كشف PDF', exact: true }).click(),
+  ]);
+  const pdfPath = resolve('artifacts','collection-states','collections-export.pdf');
+  await pdfDownload.saveAs(pdfPath);
+  const pdf = readFileSync(pdfPath);
+  assert.ok(pdf.subarray(0,5).equals(Buffer.from('%PDF-')));
+  assert.ok(pdf.toString('latin1').includes('/Subtype /Image'));
+  assert.ok(pdf.toString('latin1').trimEnd().endsWith('%%EOF'));
   await adminPage.locator('.collection-desktop-batch-actions').getByRole('button', { name: 'إغلاق ومسح الدفعة', exact: true }).click();
   await expect(adminPage.getByRole('dialog')).toBeVisible();
   await adminPage.getByRole('dialog').getByRole('button', { name: 'لا', exact: true }).click();

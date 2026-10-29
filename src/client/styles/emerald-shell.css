@@ -397,7 +397,7 @@
   box-shadow: var(--em-control-shadow) !important;
   border-color: var(--rs-line) !important;
 }
-:root[data-royal-shell='03'] .workspace .collection-toolbar-actions .compact-action,
+:root[data-royal-shell='03'] .workspace .collection-toolbar-actions .compact-action:not(.batch-close-button),
 :root[data-royal-shell='03'] .workspace .purchase-action-dock :is(.purchase-dock-day, .purchase-dock-note),
 :root[data-royal-shell='03'] .workspace .purchase-action-dock .purchase-head-actions > button:not(.finalize) {
   background: var(--em-control) !important;

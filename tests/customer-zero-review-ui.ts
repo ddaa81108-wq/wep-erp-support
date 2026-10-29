@@ -71,56 +71,68 @@ try {
   page.on('response', async response => {
     if (response.url().includes('/api/customers?') || response.url().includes('/api/event-changes?')) {
       try { const data = (await response.json()).data;
-        diagnostics.push({ time: performance.now(), url: response.url(), status: response.status(),
+        diagnostics.push({ time: performance.now(), url: response.url().replace(/([?&]known=)[^&]*/, '$1[omitted]'), status: response.status(),
           first: data.items?.[0]?.name, balance: data.items?.[0]?.balanceUnits, pending: data.items?.[0]?.zeroReview?.pending,
           latest: data.latest, total: data.totalItems });
       } catch { /* A cancelled request is expected during filter changes. */ }
     }
   });
-  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  const errors: string[] = []; page.on('pageerror', error => { errors.push(error.message); diagnostics.push({ pageError: error.message }); });
   started = performance.now(); await page.goto(base + '/erp');
   const cards = page.locator('.customer-card-grid > .customer-card');
   await expect(cards).toHaveCount(100); await expect(cards.first()).toContainText(targetName);
   metrics.desktopInitialMs = performance.now() - started;
   await expect(page.locator('.active-cards-count strong')).toHaveText('1.500');
   await expect(page.locator('.pending-review-filter b')).toHaveText('500');
-  for (const theme of ['light', 'dark']) {
-    await page.setViewportSize({ width: 1440, height: 950 });
-    if (await page.evaluate(() => document.documentElement.dataset.theme) !== theme) {
-      await page.getByRole('button', { name: theme === 'dark' ? 'المظهر الليلي' : 'المظهر النهاري', exact: true }).click();
-    }
-    for (const width of [390, 1440]) {
-      await page.setViewportSize({ width, height: 950 });
-      if (width === 390) await expect.poll(() => page.locator('.sidebar').evaluate(el => el.getBoundingClientRect().left >= innerWidth)).toBe(true);
-      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
-      await expect(page.getByRole('button', { name: 'مراجعة تصفير ' + targetName, exact: true })).toBeVisible();
-      if (width === 1440) {
-        await expect(page.getByRole('tab', { name: 'نشطة 1.500', exact: true })).toBeVisible();
-        assert.ok(await page.locator('.debts-toolbar').evaluate(el => {
-          const controls = [...el.querySelectorAll('.debt-total-card, .compact-filters button, .dashboard-search input, .customer-actions-strip > button')];
-          const boxes = controls.map(control => control.getBoundingClientRect());
-          return boxes.every(box => Math.abs(box.height - 34) < 1 && Math.abs(box.top - boxes[0].top) < 1)
-            && controls.every(control => parseFloat(getComputedStyle(control).borderRadius) >= 17)
-            && el.scrollWidth <= el.clientWidth + 1;
-        }), 'Desktop pills must share one row and height without scrolling at 1440px.');
-      } else {
-        await expect(page.getByRole('tab', { name: 'الذكية', exact: true })).toBeVisible();
-        await expect(page.locator('.active-cards-count')).toBeVisible();
-        assert.ok(await page.locator('.debts-toolbar').evaluate(el => {
-          const rect = (selector: string) => el.querySelector(selector)!.getBoundingClientRect();
-          const total = rect('.debt-total-card'), add = rect('.add-customer-card'), route = rect('.routing-card');
-          const filters = rect('.active-cards-card'), searchBox = rect('.dashboard-search');
-          return Math.abs(total.top - add.top) < 1 && Math.abs(add.top - route.top) < 1
-            && filters.top >= total.bottom && searchBox.top >= filters.bottom;
-        }), 'Phone keeps its existing action/total row, filters row, and search row.');
+  for (const appearance of ['original', '03']) {
+    if ((await page.evaluate(() => document.documentElement.dataset.royalShell) === '03') !== (appearance === '03'))
+      await page.getByRole('button', { name: 'تبديل تنسيق الأشرطة', exact: true }).click();
+    for (const theme of ['light', 'dark']) {
+      await page.setViewportSize({ width: 1440, height: 950 });
+      if (await page.evaluate(() => document.documentElement.dataset.theme) !== theme) {
+        await page.getByRole('button', { name: theme === 'dark' ? 'المظهر الليلي' : 'المظهر النهاري', exact: true }).click();
       }
-      assert.ok(await page.locator('.pending-review-filter').evaluate(el => {
-        const box = el.getBoundingClientRect();
-        const strip = el.closest('.customer-summary-strip')!;
-        const parent = (getComputedStyle(strip).display === 'contents' ? el.closest('.active-cards-card')! : strip).getBoundingClientRect();
-        return box.bottom <= parent.bottom && box.left >= parent.left && box.right <= parent.right;
-      }), 'The complete review filter must fit inside its toolbar card.');
-      await page.screenshot({ path: join(output, `admin-${theme}-${width}.png`), animations: 'disabled' });
+      for (const width of [390, 1440]) {
+        await page.setViewportSize({ width, height: 950 });
+        if (width === 390) await expect.poll(() => page.locator('.sidebar').evaluate(el => el.getBoundingClientRect().left >= innerWidth)).toBe(true);
+        await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2)).toBe(true);
+        await expect(page.getByRole('button', { name: 'مراجعة تصفير ' + targetName, exact: true })).toBeVisible();
+        if (width === 1440) {
+          await expect(page.getByRole('tab', { name: 'نشطة 1.500', exact: true })).toBeVisible();
+          diagnostics.push({ appearance, theme, width, toolbar: await page.locator('.debts-toolbar').evaluate(el => ({
+            clientWidth: el.clientWidth, scrollWidth: el.scrollWidth,
+            controls: [...el.querySelectorAll('.debt-total-card, .compact-filters button, .dashboard-search input, .customer-actions-strip > button')].map(control => ({
+              className: control.className, height: control.getBoundingClientRect().height,
+              top: control.getBoundingClientRect().top, radius: getComputedStyle(control).borderRadius,
+            })),
+          })) });
+          assert.ok(await page.locator('.debts-toolbar').evaluate((el, minimumRadius) => {
+            const controls = [...el.querySelectorAll('.debt-total-card, .compact-filters button, .dashboard-search input, .customer-actions-strip > button')];
+            const boxes = controls.map(control => control.getBoundingClientRect());
+            // debt-summary-desktop.css defines the approved 42px control height.
+            return boxes.every(box => Math.abs(box.height - 42) < 1 && Math.abs(box.top - boxes[0].top) < 1)
+              && controls.every(control => parseFloat(getComputedStyle(control).borderRadius) >= minimumRadius)
+              && el.scrollWidth <= el.clientWidth + 1;
+          }, appearance === '03' ? 9 : 17), 'Desktop controls retain their approved appearance, aligned row and height without scrolling at 1440px.');
+        } else {
+          await expect(page.getByRole('tab', { name: 'الذكية', exact: true })).toBeVisible();
+          await expect(page.locator('.active-cards-count')).toBeVisible();
+          assert.ok(await page.locator('.debts-toolbar').evaluate(el => {
+            const rect = (selector: string) => el.querySelector(selector)!.getBoundingClientRect();
+            const total = rect('.debt-total-card'), add = rect('.add-customer-card'), route = rect('.routing-card');
+            const filters = rect('.active-cards-card'), searchBox = rect('.dashboard-search');
+            return Math.abs(total.top - add.top) < 1 && Math.abs(add.top - route.top) < 1
+              && filters.top >= total.bottom && searchBox.top >= filters.bottom;
+          }), 'Phone keeps its existing action/total row, filters row, and search row.');
+        }
+        assert.ok(await page.locator('.pending-review-filter').evaluate(el => {
+          const box = el.getBoundingClientRect();
+          const strip = el.closest('.customer-summary-strip')!;
+          const parent = (getComputedStyle(strip).display === 'contents' ? el.closest('.active-cards-card')! : strip).getBoundingClientRect();
+          return box.bottom <= parent.bottom && box.left >= parent.left && box.right <= parent.right;
+        }), 'The complete review filter must fit inside its toolbar card.');
+        await page.screenshot({ path: join(output, `admin-${appearance}-${theme}-${width}.png`), animations: 'disabled' });
+      }
     }
   }
   await page.getByRole('button', { name: 'إضافة عميل', exact: true }).click();
@@ -163,9 +175,9 @@ try {
   console.log('Realtime all:', JSON.stringify(metrics));
   await move('payment', 15, 'zero-again');
   console.log('Payment committed:', JSON.stringify((await read('/api/customers/' + targetId)).zeroReview));
-  console.log('Browser after payment:', await page.evaluate(() => ({ visibility: document.visibilityState, first: document.querySelector('.customer-card')?.textContent })));
+  // Wait on the small summary before querying the 2,000-card DOM repeatedly.
+  await expect(page.locator('.pending-review-filter b')).toHaveText('500', { timeout: 10000 });
   await expect(cards.first().locator('.zero-review-status.pending')).toBeVisible({ timeout: 10000 });
-  await expect(page.locator('.pending-review-filter b')).toHaveText('500');
   await expect(page.locator('.active-cards-count strong')).toHaveText('1.500');
   await page.setViewportSize({ width: 390, height: 950 });
   started = performance.now(); await page.reload(); await expect(cards).toHaveCount(100);

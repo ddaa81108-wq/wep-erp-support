@@ -39,20 +39,7 @@ function Test-Endpoint([string]$BaseUrl) {
   }
 }
 
-function Get-BackupStatus([string]$Path, [int]$AgeHours) {
-  if (-not (Test-Path -LiteralPath $Path -PathType Container)) {
-    return [pscustomobject]@{ State='missing'; Count=0; LatestUtc=$null; LatestHasManifest=$false; Fresh=$false }
-  }
-  $files = @(Get-ChildItem -LiteralPath $Path -File -Filter '*.sqlite' -ErrorAction SilentlyContinue | Sort-Object LastWriteTimeUtc -Descending)
-  $latest = $files | Select-Object -First 1
-  $fresh = $null -ne $latest -and (([DateTime]::UtcNow - $latest.LastWriteTimeUtc).TotalHours -le $AgeHours)
-  [pscustomobject]@{
-    State='readable'; Count=$files.Count
-    LatestUtc=$(if ($latest) { $latest.LastWriteTimeUtc.ToString('o') } else { $null })
-    LatestHasManifest=$(if ($latest) { Test-Path -LiteralPath ($latest.FullName + '.json') } else { $false })
-    Fresh=$fresh
-  }
-}
+. (Join-Path $PSScriptRoot 'backup-status.ps1')
 
 $services = @(Get-Service -Name 'AbdoErpLocal','AbdoErpLocalProxy','AbdoErpTunnel' -ErrorAction SilentlyContinue | ForEach-Object {
   [pscustomobject]@{ Name=$_.Name; Status=$_.Status.ToString(); StartType=$_.StartType.ToString() }
@@ -65,7 +52,7 @@ $servicesHealthy = @($serviceNames | ForEach-Object {
 $backup = Get-BackupStatus $BackupDirectory $MaxBackupAgeHours
 $local = Test-Endpoint $LocalUrl
 $public = if ($PublicUrl) { Test-Endpoint $PublicUrl } else { $null }
-$overall = $servicesHealthy -and $local.Ready -and ($null -eq $public -or $public.Ready) -and $backup.Fresh -and $backup.LatestHasManifest
+$overall = $servicesHealthy -and $local.Ready -and ($null -eq $public -or $public.Ready) -and $backup.Fresh -and $backup.LatestManifestValid
 
 $report = [pscustomobject]@{
   CheckedAtUtc=[DateTime]::UtcNow.ToString('o')

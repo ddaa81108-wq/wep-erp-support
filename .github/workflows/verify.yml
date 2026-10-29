@@ -16,6 +16,7 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - run: npm audit --audit-level=high
       - run: npx playwright install chromium
       - run: npm run build
       - run: npm run check
@@ -25,7 +26,12 @@ jobs:
       - run: npm run test:settings-requests-ui
       - run: npm run test:ledger-focus-ui
       - run: npm run test:zero-review-ui
-      - run: npm audit --audit-level=high
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: verification-failure
+          path: artifacts/
+          retention-days: 7
 
   specialized-ui:
     runs-on: windows-latest
@@ -33,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        script: [test:realtime, test:collections-ui, test:treasury-ui, test:push-ui, test:notifications-ui, test:monitor-ui, test:activity-ui, test:languages-ui]
+        script: [test:realtime, test:collections-ui, test:treasury-ui, test:push-ui, test:notifications-ui, test:monitor-ui, test:activity-ui, test:languages-ui, test:network-efficiency-ui, test:notification-sync-ui]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

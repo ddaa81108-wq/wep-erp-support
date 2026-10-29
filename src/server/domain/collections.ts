@@ -167,12 +167,18 @@ export function createUnlinkedCollectionReceipt(
   const { name, normalized } = normalizePartyName(input.customerName);
   const amountUnits = asPositiveWholeUnits(input.amountUnits, 'amountUnits');
   return inImmediateTransaction(db, () => {
-    const replay = db.prepare(`SELECT id,status,currency,amount_units AS amountUnits
+    const replay = db.prepare(`SELECT id,status,currency,customer_name,amount_units AS amountUnits
       FROM collection_unlinked_receipts WHERE collector_user_id=? AND request_id=?`).get(
       actor.id,
       requestId,
     ) as Record<string, unknown> | undefined;
-    if (replay) return { id: String(replay.id), status: String(replay.status), currency:'LYD' as const, amountUnits: Number(replay.amountUnits), replayed: true, eventSequences: [] };
+    if (replay) {
+      // All business fields are already stored, including legacy receipts. Compare
+      // them before acknowledging a replay; never accept a changed payment silently.
+      if (String(replay.customer_name) !== name || Number(replay.amountUnits) !== amountUnits || replay.currency !== 'LYD')
+        throw conflict('REQUEST_ID_REUSED', 'استُخدم معرّف الطلب من قبل لمحتوى مختلف.');
+      return { id: String(replay.id), status: String(replay.status), currency:'LYD' as const, amountUnits: Number(replay.amountUnits), replayed: true, eventSequences: [] };
+    }
     const batch = openCollectionBatch(db, actor.organizationId);
     warnDuplicate(input, () => Boolean(db.prepare(`SELECT 1 FROM collection_unlinked_receipts
       WHERE organization_id=? AND collector_user_id=? AND batch_id=? AND normalized_name=?

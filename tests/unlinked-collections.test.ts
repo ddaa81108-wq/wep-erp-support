@@ -53,6 +53,34 @@ test('rejected unlinked receipts disappear for both roles without financial post
   assert.equal(db.prepare('SELECT status FROM collection_unlinked_receipts WHERE id=?').get(receipt.id)!.status, 'rejected');
 });
 
+test('unlinked receipts replay only matching stored content, including legacy receipts and decided requests', () => {
+  const { db, admin, employee } = setup();
+  const input = { requestId: 'unlinked-content-key', customerName: 'عميل استلام تجريبي', amountUnits: 100 };
+  const first = createUnlinkedCollectionReceipt(db, employee, input, 'test');
+  const replay = () => createUnlinkedCollectionReceipt(db, employee, { ...input, customerName: '  عميل   استلام تجريبي  ', currency: 'LYD' }, 'test');
+  assert.equal(replay().id, first.id);
+  assert.equal(replay().replayed, true);
+  const before = {
+    receipts: db.prepare('SELECT * FROM collection_unlinked_receipts').all(),
+    audit: db.prepare('SELECT * FROM audit_log').all(),
+    events: db.prepare('SELECT * FROM event_log').all(),
+  };
+  for (const change of [{ amountUnits: 900 }, { customerName: 'عميل مختلف' }])
+    assert.throws(() => createUnlinkedCollectionReceipt(db, employee, { ...input, ...change }, 'test'),
+      (error: unknown) => error instanceof Error && 'code' in error && error.code === 'REQUEST_ID_REUSED');
+  assert.deepEqual(db.prepare('SELECT * FROM collection_unlinked_receipts').all(), before.receipts);
+  assert.deepEqual(db.prepare('SELECT * FROM audit_log').all(), before.audit);
+  assert.deepEqual(db.prepare('SELECT * FROM event_log').all(), before.events);
+  decideUnlinkedCollectionReceipt(db, admin, first.id, { decision: 'reject' }, 'test');
+  assert.equal(replay().status, 'rejected');
+  assert.throws(() => createUnlinkedCollectionReceipt(db, employee, { ...input, amountUnits: 900 }, 'test'),
+    (error: unknown) => error instanceof Error && 'code' in error && error.code === 'REQUEST_ID_REUSED');
+  // An independent collection keeps its own key even when the name/amount match.
+  const distinct = createUnlinkedCollectionReceipt(db, employee, { ...input, requestId: 'unlinked-content-new-key' }, 'test');
+  assert.notEqual(distinct.id, first.id);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM collection_unlinked_receipts').get()!.n, 2);
+});
+
 test('an unlinked employee receipt stays financially inert until administration links and approves it', () => {
   const { db, admin, employee } = setup();
   const created = createCustomer(db, admin, {
@@ -78,6 +106,15 @@ test('an unlinked employee receipt stays financially inert until administration 
 
   const after = db.prepare('SELECT current_balance_units balance FROM customers WHERE id=?').get(customerId) as {balance:number};
   assert.equal(after.balance, 700);
+  const approvedReplay = createUnlinkedCollectionReceipt(db, employee, {
+    requestId:'unlinked-receipt-0001',customerName:'أحمد ورشة المعلم',amountUnits:300,
+  }, 'receipt-retry');
+  assert.equal(approvedReplay.id, receipt.id);
+  assert.equal(approvedReplay.status, 'approved');
+  assert.throws(() => createUnlinkedCollectionReceipt(db, employee, {
+    requestId:'unlinked-receipt-0001',customerName:'أحمد ورشة المعلم',amountUnits:900,
+  }, 'receipt-conflict'), (error: unknown) => error instanceof Error && 'code' in error && error.code === 'REQUEST_ID_REUSED');
+  assert.equal(db.prepare('SELECT current_balance_units balance FROM customers WHERE id=?').get(customerId)!.balance, 700);
   const adminDashboard = listCollections(db, admin);
   assert.equal(adminDashboard.metrics.collectedUnits, 300);
   assert.equal(adminDashboard.metrics.unlinkedPendingCount, 0);
