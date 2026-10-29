@@ -74,7 +74,7 @@ export const collectionsApi = {
       `/api/collections/submissions/${encodeURIComponent(submissionId)}/cash-received`,
       { method: 'POST', body: '{}' },
     ),
-  closeCollectionDay: (batchId: string) =>
+  closeCollectionDay: (batchId: string, exception?: { reason: string; expectedCashPendingCount: number; expectedCashPendingUnits: number }) =>
     request<{
       batchId: string;
       businessDate: string;
@@ -83,6 +83,6 @@ export const collectionsApi = {
       deletedSubmissions: number;
     }>('/api/collections/days/close', {
       method: 'POST',
-      body: JSON.stringify({ batchId, confirmed: true }),
+      body: JSON.stringify({ batchId, confirmed: true, ...(exception ? { ...exception, allowOutstandingCash: true } : {}) }),
     }),
 };

@@ -552,6 +552,10 @@
   border-radius: 7px;
   font-weight: 800;
 }
+.collection-close-exception { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.collection-close-exception input { width: 18px; height: 18px; flex: 0 0 auto; }
+.collection-close-reason { display: grid; gap: 6px; margin-block: 12px; font-size: 12px; }
+.collection-close-reason textarea { width: 100%; box-sizing: border-box; resize: vertical; min-height: 65px; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--paper); color: var(--ink); font: inherit; }
 .compact-action {
   display: inline-flex;
   align-items: center;

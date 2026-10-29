@@ -130,7 +130,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
   return (
     <div className="collections-page employee-collections-page">
       <CollectionsOverview data={data} description={uiText("الكروت الموجهة إليك للاستلام")} onPayroll={() => { if (leaveCreate()) setPayrollOpen(true); }} creating={creating} onToggleCreate={() => { if (!creating || leaveCreate()) setCreating((value) => !value); }} />
-      <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} />
+      <OutstandingCollectionCash items={[...(data.outstandingCancelledSubmissions ?? []), ...(data.outstandingClosedUnlinkedReceipts ?? []).map(item => ({ ...item, receiptKind: 'unlinked' as const }))]} busy={busy} />
       {error && <div className="alert error">{error}</div>}
       {pendingRequests.length > 0 && <section className="collection-panel pending-collection-recovery">
         <h2>{uiText('تحصيلات تحتاج تأكيد نتيجة الإرسال')}</h2>

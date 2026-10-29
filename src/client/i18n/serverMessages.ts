@@ -2,6 +2,8 @@ import { language, uiText } from './language.ts';
 
 // Translate protocol errors by stable codes, never by modifying returned data.
 const messages: Readonly<Record<string, string>> = {
+  EXCEPTION_REASON_REQUIRED: 'Enter an exceptional closure reason between 5 and 500 characters.',
+  COLLECTION_CASH_CHANGED: 'Outstanding cash has changed. Review the amounts and confirm again.',
   UNLINKED_RECEIPT_CURRENCY_INVALID:'Unlinked receipts are in Libyan dinars only. Currency conversion is not supported.',
   COLLECTION_CURRENCY_MISMATCH:'The receipt is in LYD and cannot be linked to an account in another currency.',
   PASSWORD_CHANGE_REQUIRED: 'Change your temporary password before using the system.',

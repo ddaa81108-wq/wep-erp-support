@@ -1262,4 +1262,12 @@ export const english: Readonly<Record<string, string>> = {
   '· المطلوب {0}': '· Required {0}',
   '{0} اختلاف': '{0} differences',
   '{0} ج.م ÷ {1}': '{0} EGP ÷ {1}',
+  'توجد عمليات تنتظر الاعتماد. راجعها قبل إغلاق الدفعة.': 'Some transactions are awaiting approval. Review them before closing the batch.',
+  'نقدية غير مستلمة: {0} د.ل — {1} استلام': 'Outstanding cash: {0} LYD — {1} receipts',
+  'إغلاق استثنائي مع بقاء النقدية مستحقة': 'Exceptional closure while keeping cash outstanding',
+  'ستختفي كروت الدفعة، وتبقى الاستلامات محفوظة في «نقدية سابقة لم تُسلّم» حتى استلامها فعليًا. لا تتغير أرصدة العملاء.': 'Batch cards will disappear. Receipts remain under outstanding previous cash until cash is actually received. Customer balances do not change.',
+  'سبب الإغلاق الاستثنائي': 'Reason for exceptional closure',
+  'تغيّرت النقدية غير المستلمة. ألغِ التحديد وراجع القيم ثم أعد التأكيد.': 'Outstanding cash has changed. Uncheck, review the amounts and confirm again.',
+  'نعم، أغلق استثنائيًا': 'Yes, close exceptionally',
+  'الإغلاق العادي يتطلب استلام النقدية بالكامل. يمكن للإدارة الإغلاق الاستثنائي مع حفظ المبالغ غير المستلمة وسجلاتها.': 'Normal closure requires all cash to be received. Administration can close exceptionally while retaining outstanding amounts and their records.',
 };

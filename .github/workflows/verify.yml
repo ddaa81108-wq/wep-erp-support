@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        script: [test:realtime, test:collections-ui, test:treasury-ui, test:push-ui, test:notifications-ui, test:monitor-ui, test:activity-ui, test:languages-ui, test:network-efficiency-ui, test:notification-sync-ui]
+        script: [test:realtime, test:collections-ui, test:treasury-ui, test:push-ui, test:notifications-ui, test:monitor-ui, test:activity-ui, test:languages-ui, test:network-efficiency-ui, test:notification-sync-ui, test:collection-exceptional-close-ui]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

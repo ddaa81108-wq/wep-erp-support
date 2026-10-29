@@ -86,10 +86,10 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     s.cash_received_at AS cashReceivedAt, c.name AS customerName, c.phone,
     u.display_name AS collectorName FROM collection_submissions s
     JOIN customers c ON c.id=s.customer_id JOIN users u ON u.id=s.collector_user_id
-    WHERE c.organization_id=? ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'} ORDER BY s.submitted_at DESC,s.rowid DESC LIMIT 200`).all(...params);
-  const baseMetrics = db.prepare(`SELECT COALESCE(SUM(CASE WHEN status='approved' THEN amount_units ELSE 0 END),0) AS collectedUnits,
-    SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) AS pendingCount,
-    SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END) AS executedCount,
+    WHERE c.organization_id=? AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=s.batch_id AND b.status='open') ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'} ORDER BY s.submitted_at DESC,s.rowid DESC LIMIT 200`).all(...params);
+  const baseMetrics = db.prepare(`SELECT COALESCE(SUM(CASE WHEN status='approved' AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=s.batch_id AND b.status='open') THEN amount_units ELSE 0 END),0) AS collectedUnits,
+    SUM(CASE WHEN status='pending' AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=s.batch_id AND b.status='open') THEN 1 ELSE 0 END) AS pendingCount,
+    SUM(CASE WHEN status='approved' AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=s.batch_id AND b.status='open') THEN 1 ELSE 0 END) AS executedCount,
     SUM(CASE WHEN status='approved' AND cash_received_at IS NULL THEN amount_units ELSE 0 END) AS cashOutstandingUnits
     FROM collection_submissions s JOIN customers c ON c.id=s.customer_id
     WHERE c.organization_id=? ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'}`).get(...params) as Record<string, unknown>;
@@ -102,14 +102,14 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     r.decided_at AS decidedAt,r.decision_note AS decisionNote,
     r.cash_received_at AS cashReceivedAt,u.display_name AS collectorName
     FROM collection_unlinked_receipts r JOIN users u ON u.id=r.collector_user_id
-    WHERE r.organization_id=? AND r.status <> 'rejected' ${unlinkedScope}
+    WHERE r.organization_id=? AND r.status <> 'rejected' AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=r.batch_id AND b.status='open') ${unlinkedScope}
     ORDER BY CASE r.status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
       r.submitted_at DESC LIMIT 200`).all(...params);
   const unlinkedMetrics = db.prepare(`SELECT
-    COALESCE(SUM(CASE WHEN status='approved' THEN amount_units ELSE 0 END),0) AS collectedUnits,
-    SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END) AS executedCount,
+    COALESCE(SUM(CASE WHEN status='approved' AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=r.batch_id AND b.status='open') THEN amount_units ELSE 0 END),0) AS collectedUnits,
+    SUM(CASE WHEN status='approved' AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=r.batch_id AND b.status='open') THEN 1 ELSE 0 END) AS executedCount,
     SUM(CASE WHEN status='approved' AND cash_received_at IS NULL THEN amount_units ELSE 0 END) AS cashOutstandingUnits,
-    SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) AS unlinkedPendingCount
+    SUM(CASE WHEN status='pending' AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=r.batch_id AND b.status='open') THEN 1 ELSE 0 END) AS unlinkedPendingCount
     FROM collection_unlinked_receipts r WHERE r.organization_id=? ${unlinkedScope}`).get(...params) as Record<string, unknown>;
   const metrics = {
     collectedUnits: Number(baseMetrics.collectedUnits) + Number(unlinkedMetrics.collectedUnits),
@@ -124,14 +124,14 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
         COALESCE(SUM(CASE WHEN s.status='approved' THEN s.amount_units ELSE 0 END),0) AS collectedUnits,
         COALESCE(SUM(CASE WHEN s.status='approved' THEN 1 ELSE 0 END),0) AS approvedCount,
         COALESCE(SUM(CASE WHEN s.status='pending' THEN 1 ELSE 0 END),0) AS pendingCount
-        FROM users u LEFT JOIN collection_submissions s ON s.collector_user_id=u.id
+        FROM users u LEFT JOIN collection_submissions s ON s.collector_user_id=u.id AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=s.batch_id AND b.status='open')
         WHERE u.organization_id=? AND u.is_active=1 AND u.role <> 'admin' GROUP BY u.id,u.display_name
         ORDER BY u.display_name COLLATE NOCASE`).all(actor.organizationId) as Array<Record<string, unknown>>;
       const unlinkedRows = db.prepare(`SELECT collector_user_id AS employeeId,
         COALESCE(SUM(CASE WHEN status='approved' THEN amount_units ELSE 0 END),0) AS collectedUnits,
         COALESCE(SUM(CASE WHEN status='approved' THEN 1 ELSE 0 END),0) AS approvedCount,
         COALESCE(SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END),0) AS pendingCount
-        FROM collection_unlinked_receipts WHERE organization_id=? GROUP BY collector_user_id`).all(actor.organizationId) as Array<Record<string, unknown>>;
+        FROM collection_unlinked_receipts r WHERE organization_id=? AND EXISTS(SELECT 1 FROM collection_batches b WHERE b.id=r.batch_id AND b.status='open') GROUP BY collector_user_id`).all(actor.organizationId) as Array<Record<string, unknown>>;
       const byId = new Map(rows.map((row) => [String(row.employeeId), row]));
       for (const row of unlinkedRows) {
         const target = byId.get(String(row.employeeId));
@@ -143,7 +143,14 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
       return rows.map((row) => ({ employeeId: String(row.employeeId), employeeName: String(row.employeeName), collectedUnits: Number(row.collectedUnits), approvedCount: Number(row.approvedCount), pendingCount: Number(row.pendingCount) }));
     })()
     : undefined;
-  const openBatches=db.prepare("SELECT id,business_date AS businessDate,organization_batch_number AS batchNumber,opened_at AS openedAt FROM collection_batches WHERE organization_id=? AND status='open' ORDER BY opened_at DESC").all(actor.organizationId);
+  const openBatches=db.prepare(`SELECT b.id,b.business_date AS businessDate,b.organization_batch_number AS batchNumber,b.opened_at AS openedAt,
+    (SELECT COUNT(*) FROM collection_submissions s WHERE s.batch_id=b.id AND s.status='pending')+
+    (SELECT COUNT(*) FROM collection_unlinked_receipts r WHERE r.batch_id=b.id AND r.status='pending') AS pendingCount,
+    (SELECT COUNT(*) FROM collection_submissions s WHERE s.batch_id=b.id AND s.status='approved' AND s.cash_received_at IS NULL)+
+    (SELECT COUNT(*) FROM collection_unlinked_receipts r WHERE r.batch_id=b.id AND r.status='approved' AND r.cash_received_at IS NULL) AS cashPendingCount,
+    (SELECT COALESCE(SUM(s.amount_units),0) FROM collection_submissions s WHERE s.batch_id=b.id AND s.status='approved' AND s.cash_received_at IS NULL)+
+    (SELECT COALESCE(SUM(r.amount_units),0) FROM collection_unlinked_receipts r WHERE r.batch_id=b.id AND r.status='approved' AND r.cash_received_at IS NULL) AS cashPendingUnits
+    FROM collection_batches b WHERE b.organization_id=? AND b.status='open' ORDER BY b.opened_at DESC`).all(actor.organizationId);
   // Keep earlier approved cash reachable even after its assignment is cancelled.
   const outstandingCancelledSubmissions = db.prepare(`SELECT s.id, s.amount_units AS amountUnits,
     c.name AS customerName, u.display_name AS collectorName
@@ -152,7 +159,11 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     WHERE c.organization_id=? AND a.status='cancelled' AND s.status='approved'
       AND s.cash_received_at IS NULL ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'}
     ORDER BY s.submitted_at DESC, s.id`).all(...params);
-  return { assignments, submissions, unlinkedReceipts, outstandingCancelledSubmissions, metrics, employeeTotals, assignedCount: assignments.length, openBatches };
+  const outstandingClosedUnlinkedReceipts=db.prepare(`SELECT r.id,r.amount_units AS amountUnits,r.customer_name AS customerName,u.display_name AS collectorName
+    FROM collection_unlinked_receipts r JOIN users u ON u.id=r.collector_user_id JOIN collection_batches b ON b.id=r.batch_id
+    WHERE r.organization_id=? AND b.status='closed' AND r.status='approved' AND r.cash_received_at IS NULL ${unlinkedScope}
+    ORDER BY r.submitted_at DESC,r.id`).all(...params);
+  return { assignments, submissions, unlinkedReceipts, outstandingCancelledSubmissions, outstandingClosedUnlinkedReceipts, metrics, employeeTotals, assignedCount: assignments.length, openBatches };
 }
 
 export function createUnlinkedCollectionReceipt(
@@ -470,29 +481,48 @@ export function closeCollectionDay(db: AppDatabase, actor: AuthenticatedUser, in
     if(String(batch.status)==='closed') return {batchId,businessDate,closed:true,replayed:true};
     const blockers=db.prepare(`SELECT
       SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) pendingCount,
-      SUM(CASE WHEN status='approved' AND cash_received_at IS NULL THEN 1 ELSE 0 END) cashPendingCount
+    SUM(CASE WHEN status='approved' AND cash_received_at IS NULL THEN 1 ELSE 0 END) cashPendingCount,
+    COALESCE(SUM(CASE WHEN status='approved' AND cash_received_at IS NULL THEN amount_units ELSE 0 END),0) cashPendingUnits
       FROM collection_submissions WHERE batch_id=?`).get(batchId) as Record<string,unknown>;
     const unlinkedBlockers=db.prepare(`SELECT
       SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) pendingCount,
-      SUM(CASE WHEN status='approved' AND cash_received_at IS NULL THEN 1 ELSE 0 END) cashPendingCount
+      SUM(CASE WHEN status='approved' AND cash_received_at IS NULL THEN 1 ELSE 0 END) cashPendingCount,
+      COALESCE(SUM(CASE WHEN status='approved' AND cash_received_at IS NULL THEN amount_units ELSE 0 END),0) cashPendingUnits
       FROM collection_unlinked_receipts WHERE batch_id=?`).get(batchId) as Record<string,unknown>;
     const pendingCount=Number(blockers.pendingCount)+Number(unlinkedBlockers.pendingCount);
     const cashPendingCount=Number(blockers.cashPendingCount)+Number(unlinkedBlockers.cashPendingCount);
-    if(pendingCount>0||cashPendingCount>0) throw conflict('COLLECTION_DAY_NOT_SETTLED','لا يمكن مسح اليوم قبل اعتماد جميع العمليات واستلام كل النقدية.',{pendingCount,cashPendingCount});
+    const cashPendingUnits=Number(blockers.cashPendingUnits)+Number(unlinkedBlockers.cashPendingUnits);
+    const exceptional=input.allowOutstandingCash===true;
+    if(pendingCount>0||(!exceptional&&cashPendingCount>0)) throw conflict('COLLECTION_DAY_NOT_SETTLED','لا يمكن مسح اليوم قبل اعتماد جميع العمليات واستلام كل النقدية.',{pendingCount,cashPendingCount,cashPendingUnits});
+    const reason=typeof input.reason==='string'?input.reason.trim():'';
+    if(exceptional){
+      if(reason.length<5||reason.length>500)throw badRequest('EXCEPTION_REASON_REQUIRED','اكتب سبب الإغلاق الاستثنائي من 5 إلى 500 حرف.');
+      if(input.expectedCashPendingCount!==cashPendingCount||input.expectedCashPendingUnits!==cashPendingUnits)
+        throw conflict('COLLECTION_CASH_CHANGED','تغيّرت النقدية غير المستلمة. راجع القيم وأعد التأكيد.',{cashPendingCount,cashPendingUnits});
+    }
     const submissionCount=Number((db.prepare('SELECT COUNT(*) count FROM collection_submissions WHERE batch_id=?').get(batchId) as {count:number}).count);
     const unlinkedReceiptCount=Number((db.prepare('SELECT COUNT(*) count FROM collection_unlinked_receipts WHERE batch_id=?').get(batchId) as {count:number}).count);
     const assignedCards=db.prepare(`SELECT a.customer_id AS customerId,c.section_key AS sectionKey
       FROM debt_assignments a JOIN customers c ON c.id=a.customer_id
       WHERE a.batch_id=? AND c.organization_id=?`).all(batchId,actor.organizationId) as Array<{customerId:string;sectionKey:string}>;
     const assignmentCount=assignedCards.length;
-    db.prepare('DELETE FROM collection_submissions WHERE batch_id=?').run(batchId);
-    db.prepare('DELETE FROM collection_unlinked_receipts WHERE batch_id=?').run(batchId);
-    db.prepare('DELETE FROM debt_assignments WHERE batch_id=?').run(batchId);
     const closedAt=nowIso();
-    db.prepare("UPDATE collection_batches SET status='closed',closed_by_user_id=?,closed_at=?,deleted_assignments=?,deleted_submissions=? WHERE id=?").run(actor.id,closedAt,assignmentCount,submissionCount,batchId);
-    audit(db,actor.id,actor.organizationId,'collection.batch.close',batchId,correlationId,{businessDate,deletedAssignments:assignmentCount,deletedSubmissions:submissionCount,deletedUnlinkedReceipts:unlinkedReceiptCount});
+    const archived=exceptional&&cashPendingCount>0;
+    if(archived){
+      // Keep the original approved receipts and their cash liability reachable.
+      // Cancelling the assignments removes work cards without marking cash received.
+      db.prepare("UPDATE debt_assignments SET status='cancelled',cancelled_at=COALESCE(cancelled_at,?) WHERE batch_id=?").run(closedAt,batchId);
+    }else{
+      db.prepare('DELETE FROM collection_submissions WHERE batch_id=?').run(batchId);
+      db.prepare('DELETE FROM collection_unlinked_receipts WHERE batch_id=?').run(batchId);
+      db.prepare('DELETE FROM debt_assignments WHERE batch_id=?').run(batchId);
+    }
+    const deletedAssignments=archived?0:assignmentCount,deletedSubmissions=archived?0:submissionCount,deletedUnlinkedReceipts=archived?0:unlinkedReceiptCount;
+    db.prepare("UPDATE collection_batches SET status='closed',closed_by_user_id=?,closed_at=?,deleted_assignments=?,deleted_submissions=? WHERE id=?").run(actor.id,closedAt,deletedAssignments,deletedSubmissions,batchId);
+    audit(db,actor.id,actor.organizationId,'collection.batch.close',batchId,correlationId,{businessDate,deletedAssignments,deletedSubmissions,deletedUnlinkedReceipts,
+      ...(archived?{exceptional:true,reason,cashPendingCount,cashPendingUnits,retainedAssignments:assignmentCount,retainedSubmissions:submissionCount,retainedUnlinkedReceipts:unlinkedReceiptCount}:{})});
     const eventSequence=emitCollectionEvent(db,batchId,actor.id,actor.organizationId,'batch_closed',{businessDate});
     const customerEventSequences=assignedCards.map((card)=>emitDebtAssignmentEvent(db,String(card.customerId),actor.id,actor.organizationId,'unassigned',String(card.sectionKey)));
-    return {batchId,businessDate,closed:true,deletedAssignments:assignmentCount,deletedSubmissions:submissionCount,deletedUnlinkedReceipts:unlinkedReceiptCount,closedAt,eventSequences:[eventSequence,...customerEventSequences]};
+    return {batchId,businessDate,closed:true,deletedAssignments,deletedSubmissions,deletedUnlinkedReceipts,archived,cashPendingCount,cashPendingUnits,closedAt,eventSequences:[eventSequence,...customerEventSequences]};
   });
 }

@@ -16,6 +16,11 @@ import { CollectionPayrollPanel } from '../../sections/collections/CollectionPay
 export function AdminCollectionsSection() {
   const { data, error, busy, setError, setBusy, load, run } = useCollectionsDashboard();
   const [closingBatchId, setClosingBatchId] = useState('');
+  const [cashException, setCashException] = useState<{ expectedCashPendingCount: number; expectedCashPendingUnits: number } | null>(null);
+  const [closeReason, setCloseReason] = useState('');
+  const openCloseDialog = (id: string) => {
+    setClosingBatchId(id); setCashException(null); setCloseReason(''); setError('');
+  };
   const [selectedBatchId, setSelectedBatchId] = useState('');
   const [payrollOpen, setPayrollOpen] = useState(false);
   const decide = (id: string, decision: 'approve' | 'reject') =>
@@ -128,11 +133,13 @@ export function AdminCollectionsSection() {
     setBusy(`close-${id}`);
     setError('');
     try {
-      await api.closeCollectionDay(id);
+      await api.closeCollectionDay(id, cashException ? { ...cashException, reason: closeReason.trim() } : undefined);
       setClosingBatchId('');
       await load();
     } catch (caught) {
       setError(collectionError(caught));
+      setCashException(null);
+      await load().catch(() => undefined);
     } finally {
       setBusy('');
     }
@@ -146,6 +153,10 @@ export function AdminCollectionsSection() {
       </div>
     );
   const selectedBatch = data.openBatches.find(batch => batch.id === selectedBatchId) ?? data.openBatches[0];
+  const closingBatch = data.openBatches.find(batch => batch.id === closingBatchId);
+  const hasOutstandingCash = (closingBatch?.cashPendingCount ?? 0) > 0;
+  const cashChanged = cashException && (cashException.expectedCashPendingCount !== closingBatch?.cashPendingCount || cashException.expectedCashPendingUnits !== closingBatch?.cashPendingUnits);
+  const previousCash = [...(data.outstandingCancelledSubmissions ?? []), ...(data.outstandingClosedUnlinkedReceipts ?? []).map(item => ({ ...item, receiptKind: 'unlinked' as const }))];
   const batchHasCards = (id: string) => data.assignments.some(item => item.batchId === id)
     || data.unlinkedReceipts.some(item => item.batchId === id && item.status !== 'rejected');
   const history = (id: string) =>
@@ -157,7 +168,7 @@ export function AdminCollectionsSection() {
     <div className="collections-page admin-collections-page">
       <CollectionsOverview data={data} description={uiText("متابعة الموظفين، الاعتماد، واستلام النقدية")} onPayroll={() => setPayrollOpen(true)} desktopBatchActions={<div className="collection-desktop-batch-actions">
         {data.openBatches.length > 1 && <select aria-label={uiText("دفعة العمل")} value={selectedBatch.id} onChange={event => setSelectedBatchId(event.target.value)}>{data.openBatches.map(batch => <option key={batch.id} value={batch.id}>{batch.businessDate} {uiText(" • دفعة ")}{batch.batchNumber}</option>)}</select>}
-        <button className={`compact-action batch-close-button ${selectedBatch && batchHasCards(selectedBatch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && setClosingBatchId(selectedBatch.id)}><X size={16} aria-hidden="true" />{uiText("إغلاق ومسح الدفعة")}</button>
+        <button className={`compact-action batch-close-button ${selectedBatch && batchHasCards(selectedBatch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && openCloseDialog(selectedBatch.id)}><X size={16} aria-hidden="true" />{uiText("إغلاق ومسح الدفعة")}</button>
         <button className="compact-action" disabled={busy !== '' || !selectedBatch} onClick={() => selectedBatch && void exportPdf(selectedBatch.id, selectedBatch.businessDate)}>{uiText("كشف PDF")}</button>
       </div>} />
       {data.employeeTotals && data.employeeTotals.length > 0 && (
@@ -177,7 +188,7 @@ export function AdminCollectionsSection() {
           </div>
         </section>
       )}
-      <OutstandingCollectionCash items={data.outstandingCancelledSubmissions ?? []} busy={busy} onReceive={(id) => void cash(id)} />
+      <OutstandingCollectionCash items={previousCash} busy={busy} onReceive={(id, kind) => kind === 'unlinked' ? void run(id, () => api.receiveUnlinkedCollectionCash(id)) : void cash(id)} />
       {error && <div className="alert error">{error}</div>}
       <UnlinkedReceiptsPanel
         receipts={data.unlinkedReceipts}
@@ -271,7 +282,7 @@ export function AdminCollectionsSection() {
               </strong>
               <button disabled={busy !== ''} onClick={() => void exportPdf(batch.id, batch.businessDate)}>
                 {uiText("كشف PDF اختياري")}</button>
-              <button className={`batch-close-button ${batchHasCards(batch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== ''} onClick={() => setClosingBatchId(batch.id)}><X size={16} aria-hidden="true" />
+              <button className={`batch-close-button ${batchHasCards(batch.id) ? 'batch-occupied' : 'batch-empty'}`} disabled={busy !== ''} onClick={() => openCloseDialog(batch.id)}><X size={16} aria-hidden="true" />
                 {uiText("إغلاق ومسح الدفعة")}</button>
             </article>
           ))}
@@ -281,12 +292,27 @@ export function AdminCollectionsSection() {
         <div className="collection-confirm-shade">
           <section role="dialog" aria-modal="true">
             <h3>{uiText("تأكيد مسح دفعة العمل")}</h3>
-            <p>
-              {uiText("هل تم اعتماد جميع العمليات واستلام النقدية بالكامل؟ ستُمسح الدفعة نهائيًا، ولن يتأثر سجل ديون العملاء.")}</p>
+            <p>{hasOutstandingCash ? uiText("الإغلاق العادي يتطلب استلام النقدية بالكامل. يمكن للإدارة الإغلاق الاستثنائي مع حفظ المبالغ غير المستلمة وسجلاتها.") : uiText("هل تم اعتماد جميع العمليات واستلام النقدية بالكامل؟ ستُمسح الدفعة نهائيًا، ولن يتأثر سجل ديون العملاء.")}</p>
+            {(closingBatch?.pendingCount ?? 0) > 0 && <p role="alert">{uiText("توجد عمليات تنتظر الاعتماد. راجعها قبل إغلاق الدفعة.")}</p>}
+            {hasOutstandingCash && <>
+              <p className="alert error">{uiText("نقدية غير مستلمة: {0} د.ل — {1} استلام", [collectionMoney.format(closingBatch!.cashPendingUnits ?? 0), closingBatch!.cashPendingCount ?? 0])}</p>
+              <label className="collection-close-exception">
+                <input type="checkbox" checked={Boolean(cashException)} disabled={busy !== '' || (closingBatch?.pendingCount ?? 0) > 0} onChange={event => { setError(''); setCashException(event.target.checked ? { expectedCashPendingCount: closingBatch!.cashPendingCount!, expectedCashPendingUnits: closingBatch!.cashPendingUnits! } : null); }} />
+                {uiText("إغلاق استثنائي مع بقاء النقدية مستحقة")}
+              </label>
+              {cashException && <>
+                <p>{uiText("ستختفي كروت الدفعة، وتبقى الاستلامات محفوظة في «نقدية سابقة لم تُسلّم» حتى استلامها فعليًا. لا تتغير أرصدة العملاء.")}</p>
+                <label className="collection-close-reason">{uiText("سبب الإغلاق الاستثنائي")}
+                  <textarea rows={2} maxLength={500} value={closeReason} disabled={busy !== ''} onChange={event => setCloseReason(event.target.value)} />
+                </label>
+              </>}
+              {cashChanged && <p role="alert">{uiText("تغيّرت النقدية غير المستلمة. ألغِ التحديد وراجع القيم ثم أعد التأكيد.")}</p>}
+            </>}
+            {error && <p role="alert" className="alert error">{error}</p>}
             <div>
-              <button onClick={() => setClosingBatchId('')}>{uiText("لا")}</button>
-              <button className="danger" disabled={busy !== ''} onClick={() => void closeDay()}>
-                {uiText("نعم، امسح الدفعة")}</button>
+              <button disabled={busy !== ''} onClick={() => setClosingBatchId('')}>{uiText("لا")}</button>
+              <button className="danger" disabled={busy !== '' || (closingBatch?.pendingCount ?? 0) > 0 || Boolean(cashChanged) || (hasOutstandingCash && (!cashException || closeReason.trim().length < 5))} onClick={() => void closeDay()}>
+                {uiText(cashException ? "نعم، أغلق استثنائيًا" : "نعم، امسح الدفعة")}</button>
             </div>
           </section>
         </div>

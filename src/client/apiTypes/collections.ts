@@ -78,8 +78,9 @@ export type CollectionsDashboard = {
   };
   employeeTotals?: Array<{ employeeId: string; employeeName: string; collectedUnits: number; approvedCount: number; pendingCount: number }>;
   outstandingCancelledSubmissions?: Array<{ id: string; customerName: string; collectorName: string; amountUnits: number }>;
+  outstandingClosedUnlinkedReceipts?: Array<{ id: string; customerName: string; collectorName: string; amountUnits: number }>;
   assignedCount: number;
-  openBatches: Array<{ id: string; businessDate: string; batchNumber: number; openedAt: string }>;
+  openBatches: Array<{ id: string; businessDate: string; batchNumber: number; openedAt: string; pendingCount?: number; cashPendingCount?: number; cashPendingUnits?: number }>;
 };
 
 export type CollectionPayrollEntry = {
