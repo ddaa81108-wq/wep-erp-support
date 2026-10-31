@@ -1,4 +1,10 @@
 /* Shared notification panel for administration and employees. */
+.admin-notification-speech { margin: 8px 12px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); }
+.admin-notification-speech summary { cursor: pointer; font-weight: 800; }
+.admin-notification-speech p, .admin-notification-speech small { display: block; font-size: 12px; line-height: 1.7; }
+.admin-notification-speech label { display: grid; gap: 4px; margin-block: 8px; font-size: 12px; }
+.admin-notification-speech select { width: 100%; min-width: 0; padding: 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); color: var(--ink); }
+.admin-notification-speech > button { min-height: 34px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); }
 .notification-panel {
   position: absolute;
   top: calc(100% + 10px);

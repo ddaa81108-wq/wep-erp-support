@@ -54,7 +54,7 @@ async function playNoticeTone() {
   oscillator.stop(context.currentTime + 0.2);
 }
 
-export function useNotifications(enabled: boolean) {
+export function useNotifications(enabled: boolean, speakForAccount?: (text: string) => boolean) {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [preferences, setPreferences] = useState<NotificationPreferences>({
@@ -93,11 +93,16 @@ export function useNotifications(enabled: boolean) {
         announcementTimer.current = window.setTimeout(() => setAnnouncement(null), 8_000);
         if (preferencesRef.current.soundEnabled) void playNoticeTone();
         if (preferencesRef.current.speechEnabled && 'speechSynthesis' in window) {
-          const speech = new SpeechSynthesisUtterance(
-            notificationSentence(result.items[0]),
-          );
-          speech.lang = displayLocale;
-          window.speechSynthesis.speak(speech);
+          const text = notificationSentence(result.items[0]);
+          try {
+            if (!speakForAccount?.(text)) {
+              const speech = new SpeechSynthesisUtterance(text);
+              speech.lang = displayLocale;
+              window.speechSynthesis.speak(speech);
+            }
+          } catch {
+            // Optional speech must not invalidate successfully loaded notices.
+          }
         }
       }
       newestId.current = Math.max(newestId.current, latestId);
@@ -108,7 +113,7 @@ export function useNotifications(enabled: boolean) {
     } finally {
       setLoading(false);
     }
-  }, [enabled]);
+  }, [enabled, speakForAccount]);
   const queue = useMemo(() => new RefreshQueue(), []);
   const load = useCallback(() => queue.run(refresh), [queue, refresh]);
 

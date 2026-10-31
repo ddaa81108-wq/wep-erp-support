@@ -71,7 +71,8 @@ test('schema 50 upgrades pending receipts to independent installments without de
   try {
     const body={mode:'partial',amountUnits:15,requestId:'pre-upgrade-pending-key'};
     const first=submitCollection(db,collector,assignments[0],body,'test');
-    db.exec(`ALTER TABLE collection_unlinked_receipts DROP COLUMN currency;
+    db.exec(`DROP TABLE notification_speech_settings;
+      ALTER TABLE collection_unlinked_receipts DROP COLUMN currency;
       DROP INDEX idx_pending_collection_assignment;
       DROP INDEX uq_pending_full_collection_submission;
       CREATE UNIQUE INDEX uq_pending_collection_submission ON collection_submissions(assignment_id) WHERE status='pending';

@@ -13,6 +13,7 @@ import type { AuthenticatedUser } from '../security/sessions.ts';
 import { getOrganizationSettings, updateOrganizationSettings } from '../domain/organizationSettings.ts';
 import { listOrganizationSessions, listTechnicalEvents, operationsSnapshot, revokeOrganizationSession } from '../domain/operationsCenter.ts';
 import { getNotificationPreferences, listNotifications, markAllNotificationsRead, markNotificationRead, updateNotificationPreferences } from '../domain/notifications.ts';
+import { getNotificationSpeech, updateNotificationSpeech } from '../domain/notificationSpeech.ts';
 
 type UserManagementRouteContext = {
   config: ServerConfig;
@@ -31,6 +32,12 @@ function requireAdmin(user: AuthenticatedUser) {
 
 export async function routeUserManagement(context: UserManagementRouteContext) {
   const { database, request, response, user, url, method, correlationId } = context;
+  if (url.pathname === '/api/notification-speech' && (method === 'GET' || method === 'PATCH')) {
+    requireAdmin(user);
+    const data = method === 'GET' ? getNotificationSpeech(database, user) : updateNotificationSpeech(database, user, await readJson(request));
+    sendJson(response, 200, { ok: true, data });
+    return true;
+  }
   if (method === 'POST' && url.pathname === '/api/operations/backup/emergency') {
     requireBackupOwner(database, user);
     const input = await readJson(request);

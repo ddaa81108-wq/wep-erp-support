@@ -11,6 +11,7 @@ const stamp = new Date().toISOString();
 for (const permission of ['debts.read', 'debts.write', 'purchases.read', 'purchases.write'])
   db.prepare('INSERT INTO user_permissions(user_id,permission,allowed,updated_at) VALUES(?,?,1,?)').run(collector.id, permission, stamp);
 db.prepare('INSERT OR REPLACE INTO notification_preferences(user_id,sound_enabled,speech_enabled,updated_at) VALUES(?,0,1,?)').run(admin.id, stamp);
+db.prepare("INSERT INTO notification_speech_settings(user_id,profile,voice_uri,rate,updated_at) VALUES(?,'clear','',0.9,?)").run(admin.id, stamp);
 const server = createApp(db, loadConfig({ databasePath: ':memory:', publicOrigin: '', internetRequired: false, secureCookie: false }));
 const browser = await chromium.launch({ headless: true });
 const releasePending = new Set<() => void>();
@@ -74,6 +75,7 @@ try {
   await expect.poll(() => latest, { timeout: 3_000, intervals: [25, 50] }).toBeGreaterThanOrEqual(first);
   await expect(page.getByRole('button', { name: 'إشعار جديد', exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => (window as unknown as { syncSpeech: string[] }).syncSpeech.length), { timeout: 3_000 }).toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => (window as unknown as { syncSpeech: string[] }).syncSpeech.some(text => text.includes('دينار ليبي'))), { timeout: 3_000 }).toBe(true);
   await expect(page.locator('.ledger-record').filter({ hasText: 'sync-operation-1' })).toBeVisible({ timeout: 2_000 });
   await expect(page.getByLabel('ملاحظة المعاملة', { exact: true })).toBeFocused();
   await expect(page.getByLabel('قيمة المعاملة', { exact: true })).toHaveValue('7');

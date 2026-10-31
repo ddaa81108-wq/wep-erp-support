@@ -6,6 +6,8 @@ import type { User } from '../api.ts';
 import { isMainSection, type MainSection } from '../../shared/sections.ts';
 import { useNotifications } from './useNotifications.ts';
 import { notificationSentence } from './notificationModel.ts';
+import { AdminNotificationSpeech } from './AdminNotificationSpeech.tsx';
+import { useAdminNotificationSpeech } from './useAdminNotificationSpeech.ts';
 
 const time = new Intl.DateTimeFormat(displayLocale, { dateStyle: 'short', timeStyle: 'short' });
 
@@ -18,7 +20,8 @@ export function NotificationCenter({
 }) {
   const enabled = user.role === 'admin' || user.permissions?.includes('collections.read') === true;
   const [open, setOpen] = useState(false);
-  const notifications = useNotifications(enabled);
+  const speech = useAdminNotificationSpeech(user.role === 'admin');
+  const notifications = useNotifications(enabled, user.role === 'admin' ? speech.speak : undefined);
   const insight = useMemo(() => {
     const unread = notifications.items.filter((item) => !item.readAt);
     if (!unread.length) return uiText("لا توجد حركات جديدة تحتاج مراجعتك.");
@@ -99,6 +102,7 @@ export function NotificationCenter({
               <span>{uiText("النطق")}<strong>{!notifications.preferencesReady ? uiText("جارٍ التحميل…") : notifications.preferences.speechEnabled ? uiText("مفعّل") : uiText("متوقف")}</strong></span>
             </button>
           </div>
+          {user.role === 'admin' && <AdminNotificationSpeech speech={speech} />}
           <BrowserPushControls />
           {notifications.preferencesSaving && <p className="notification-preference-status" role="status">{uiText("جارٍ حفظ إعدادات التنبيه…")}</p>}
           {notifications.preferencesError && <p className="notification-error" role="alert">{notifications.preferencesError}</p>}

@@ -46,6 +46,7 @@
     "test:treasury-ui": "node tests/treasury-presentation-ui.ts",
     "test:push-ui": "node tests/browser-push-ui.ts",
     "test:notifications-ui": "node tests/notification-buttons-ui.ts",
+    "test:notification-speech-ui": "node tests/notification-speech-ui.ts",
     "test:monitor-ui": "node tests/database-monitor-ui.ts",
     "test:activity-ui": "node tests/database-activity-ui.ts",
     "test:load": "node scripts/load-test.mts"
