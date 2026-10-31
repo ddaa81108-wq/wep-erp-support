@@ -38,7 +38,7 @@ function Assert-SameTree([string]$ExpectedRoot, [string]$ActualRoot) {
 
 . (Join-Path $PSScriptRoot 'deployment-services.ps1')
 
-function Wait-AppHealth([int]$TimeoutSeconds = 30) {
+function Wait-AppHealth([int]$TimeoutSeconds = 90) {
   $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
   do {
     Start-Sleep -Milliseconds 500
@@ -81,6 +81,7 @@ foreach ($path in @($installedDist, $stagingDist, $rollbackDist)) {
 }
 # Preflight runs before any service is stopped or installed file is moved.
 $servicePlan = Get-DeploymentServicePlan
+$schemaBefore = Get-DeploymentSchemaVersion
 $servicesTouched = $false
 $oldMoved = $false
 $newInstalled = $false
@@ -120,6 +121,10 @@ try {
   $failure = $_
   if ($oldMoved -or $newInstalled) {
     try {
+      $schemaAfter = Get-DeploymentSchemaVersion
+      if ($schemaAfter -gt $schemaBefore) {
+        throw "Database advanced from schema $schemaBefore to $schemaAfter. Automatic program downgrade is blocked; the new release and previous program files are preserved. Repair forward without restoring old financial data."
+      }
       # Never replace a release while any of its services may still be using it.
       Stop-DeploymentServices $servicePlan
       if ($oldMoved -and -not (Test-Path -LiteralPath $rollbackDist -PathType Container)) {

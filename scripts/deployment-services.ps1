@@ -1,4 +1,23 @@
 # Service lifecycle only. No database, settings, credentials or service configuration changes.
+function Get-DeploymentSchemaVersion {
+  param([string]$ServiceRoot = 'C:\ProgramData\AbdoErpLocal\services')
+  # Read metadata only. Never open a live database through application migrations.
+  [xml]$config = Get-Content -LiteralPath (Join-Path $ServiceRoot 'AbdoErpLocal.xml') -ErrorAction Stop
+  $databasePath = @($config.service.env | Where-Object name -eq 'ABDO_DB_PATH' | ForEach-Object value)
+  $runtimePath = [string]$config.service.executable
+  if ($databasePath.Count -ne 1 -or -not (Test-Path -LiteralPath $databasePath[0] -PathType Leaf) -or
+      -not (Test-Path -LiteralPath $runtimePath -PathType Leaf)) {
+    throw 'Cannot determine installed database/runtime; deployment was not started.'
+  }
+  # stdin avoids Windows PowerShell 5.1 native-command quote mangling for JS.
+  $query = 'const {DatabaseSync}=require("node:sqlite");const db=new DatabaseSync(process.argv[2],{readOnly:true});try{console.log(db.prepare("SELECT COALESCE(MAX(version),0) AS version FROM schema_migrations").get().version)}finally{db.close()}'
+  $value = $query | & $runtimePath --disable-warning=ExperimentalWarning - $databasePath[0]
+  if ($LASTEXITCODE -ne 0 -or [string]$value -notmatch '^\d+$') {
+    throw 'Could not read database schema safely; automatic program replacement is blocked.'
+  }
+  return [int]$value
+}
+
 function Get-DeploymentServicePlan {
   $names = @('AbdoErpLocal', 'AbdoErpLocalProxy', 'AbdoErpTunnel')
   $services = @{}

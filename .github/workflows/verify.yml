@@ -20,6 +20,7 @@ jobs:
       - run: npx playwright install chromium
       - run: npm run build
       - run: npm run check
+      - run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-deployment-recovery.ps1
       - run: npm run test:coverage
       - run: npm run test:restore
       - run: npm run test:ui

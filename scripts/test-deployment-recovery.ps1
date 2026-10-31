@@ -13,7 +13,8 @@ $helper = (Join-Path $PSScriptRoot 'deployment-services.ps1').Replace("'", "''")
 $source = $source.Replace(". (Join-Path `$PSScriptRoot 'deployment-services.ps1')", ". '$helper'")
 $source = $source.Replace("'C:\ProgramData\AbdoErpLocal\logs\last-deployment.json'", "(Join-Path `$InstallRoot 'last-deployment.json')")
 # Keep simulated health failures fast; the production timeout remains unchanged.
-$source = $source.Replace('[int]$TimeoutSeconds = 30', '[int]$TimeoutSeconds = 0')
+$source = $source.Replace('[int]$TimeoutSeconds = 90', '[int]$TimeoutSeconds = 0')
+$source = $source.Replace('Get-DeploymentSchemaVersion', 'Get-TestDeploymentSchemaVersion')
 $deploy = [scriptblock]::Create($source)
 $testRoot = Join-Path ([IO.Path]::GetTempPath()) ('erp-deploy-test-' + [guid]::NewGuid().ToString('N'))
 
@@ -42,9 +43,14 @@ function Start-Service {
   $script:fakeServices[$Name].Status = 'Running'
 }
 function Start-Sleep { param($Milliseconds) }
+function Get-TestDeploymentSchemaVersion {
+  if ($script:scenario -eq 'schema-read-failure') { throw 'Simulated schema read failure' }
+  if ($script:scenario -eq 'schema-advanced' -and $script:calls.Count -gt 0) { return 53 }
+  return 52
+}
 function Invoke-RestMethod {
   param($Uri, $TimeoutSec)
-  if ($script:scenario -eq 'health-failure' -and (Get-Content -LiteralPath (Join-Path $script:install 'dist/server/main.mjs') -Raw) -eq 'new-server') {
+  if ($script:scenario -in @('health-failure', 'schema-advanced') -and (Get-Content -LiteralPath (Join-Path $script:install 'dist/server/main.mjs') -Raw) -eq 'new-server') {
     # The test copy uses a zero timeout; production still waits for recovery.
     throw 'Simulated health failure'
   }
@@ -61,7 +67,21 @@ function Move-Item {
 }
 
 try {
-  foreach ($script:scenario in @('success', 'no-tunnel', 'stop-failure', 'swap-failure', 'start-failure', 'health-failure', 'verification-failure', 'unknown-dependent', 'stopped-proxy')) {
+  . (Join-Path $PSScriptRoot 'deployment-services.ps1')
+  $schemaFixture = Join-Path $testRoot 'schema metadata with spaces'
+  New-Item -ItemType Directory -Path $schemaFixture -Force | Out-Null
+  $schemaDatabase = Join-Path $schemaFixture 'test.sqlite'
+  $runtime = (Get-Command node.exe -ErrorAction Stop).Source
+  'const{DatabaseSync}=require("node:sqlite");const db=new DatabaseSync(process.argv[2]);db.exec("CREATE TABLE schema_migrations(version INTEGER);INSERT INTO schema_migrations VALUES(53)");db.close()' |
+    & $runtime --disable-warning=ExperimentalWarning - $schemaDatabase
+  if ($LASTEXITCODE) { throw 'Could not create schema test fixture' }
+  $xml = '<service><executable>' + [Security.SecurityElement]::Escape($runtime) + '</executable><env name="ABDO_DB_PATH" value="' + [Security.SecurityElement]::Escape($schemaDatabase) + '"/></service>'
+  [IO.File]::WriteAllText((Join-Path $schemaFixture 'AbdoErpLocal.xml'), $xml)
+  $schemaHash = (Get-FileHash -LiteralPath $schemaDatabase -Algorithm SHA256).Hash
+  Assert-Test ((Get-DeploymentSchemaVersion -ServiceRoot $schemaFixture) -eq 53) 'Wrong read-only schema result'
+  Assert-Test ((Get-FileHash -LiteralPath $schemaDatabase -Algorithm SHA256).Hash -eq $schemaHash) 'Schema query modified database'
+  Write-Host 'PASS real read-only SQLite schema query with spaced paths'
+  foreach ($script:scenario in @('success', 'no-tunnel', 'stop-failure', 'swap-failure', 'start-failure', 'health-failure', 'verification-failure', 'unknown-dependent', 'stopped-proxy', 'schema-advanced', 'schema-read-failure')) {
     $root = Join-Path $testRoot $script:scenario
     $src = Join-Path $root 'source'
     $script:install = Join-Path $root 'installed'
@@ -94,7 +114,7 @@ try {
     try { & $deploy -SourceRoot $src -InstallRoot $script:install | Out-Null } catch { $failure = $_ }
     $success = $script:scenario -in @('success', 'no-tunnel', 'stopped-proxy')
     Assert-Test ($success -eq ($null -eq $failure)) "Unexpected result in $script:scenario : $failure"
-    $expected = if ($success) { 'new-server' } else { 'old-server' }
+    $expected = if ($success -or $script:scenario -eq 'schema-advanced') { 'new-server' } else { 'old-server' }
     Assert-Test ((Get-Content -LiteralPath (Join-Path $script:install 'dist/server/main.mjs') -Raw) -eq $expected) "Wrong installed release in $script:scenario"
     foreach ($service in $script:fakeServices.Values) { Assert-Test ($service.Status -eq 'Running') "Service not recovered: $($service.Name)" }
     foreach ($file in @('data/database.sqlite', 'backups/backup.sqlite', 'settings.xml')) {
@@ -104,6 +124,11 @@ try {
       Assert-Test (($script:calls -join ',') -eq 'stop:AbdoErpTunnel,stop:AbdoErpLocalProxy,stop:AbdoErpLocal,start:AbdoErpLocal,start:AbdoErpLocalProxy,start:AbdoErpTunnel') 'Wrong service order'
     }
     if ($script:scenario -eq 'unknown-dependent') { Assert-Test ($script:calls.Count -eq 0) 'Preflight changed services' }
+    if ($script:scenario -eq 'schema-read-failure') { Assert-Test ($script:calls.Count -eq 0) 'Schema read failure changed services' }
+    if ($script:scenario -eq 'schema-advanced') {
+      Assert-Test (@(Get-ChildItem -LiteralPath $script:install -Directory -Filter '.deploy-rollback-*').Count -eq 1) 'Previous program was not preserved'
+      Assert-Test (@($script:calls | Where-Object { $_ -like 'stop:*' }).Count -eq 3) 'Schema advance tried to roll back services'
+    }
     Write-Host "PASS $script:scenario"
   }
 } finally {
