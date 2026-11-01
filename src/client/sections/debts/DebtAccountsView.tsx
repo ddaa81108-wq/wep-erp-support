@@ -23,6 +23,8 @@ export type DebtAccountsViewProps = {
   canRead: boolean;
   canWrite: boolean;
   loading: boolean;
+  loadError: boolean;
+  onRetryLoad: () => void;
   loadingMore: boolean;
   hasMore: boolean;
   query: string;
@@ -98,6 +100,8 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
         ? <div className="empty"><ShieldCheck size={38} /><h3>{uiText("لا توجد صلاحية لعرض ")}{labels.plural}</h3><p>{uiText("يمكن للمدير تفعيل صلاحية العرض من الإعدادات.")}</p></div>
         : loading
           ? <div className="empty"><div className="spinner" /><p>{uiText("جارٍ تحميل الحسابات…")}</p></div>
+          : props.loadError && visibleCustomers.length === 0
+            ? <div className="empty" role="alert"><p>{uiText('تعذر تحميل الحسابات. أعد المحاولة.')}</p><button onClick={props.onRetryLoad}>{uiText('إعادة المحاولة')}</button></div>
           : visibleCustomers.length === 0
             ? <div className="empty"><Users size={38} /><h3>{query ? uiText("لا توجد نتائج") : uiText("لا توجد كروت في هذا العرض")}</h3><p>{query ? uiText("البحث يشمل {0} الظاهرين والمخفيين ذكيًا.", [labels.plural]) : canWrite ? uiText("{0} أو اختر فلترًا آخر.", [labels.add]) : uiText("لا توجد حسابات مسجلة.")}</p></div>
             : <><div className="customer-card-grid">{visibleCustomers.map((customer) => {

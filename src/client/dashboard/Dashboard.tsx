@@ -135,6 +135,8 @@ export function Dashboard({
     canRead,
     canWrite,
     loading: debtAccounts.loading,
+    loadError: debtAccounts.loadError,
+    onRetryLoad: debtAccounts.retryLoad,
     loadingMore: debtAccounts.loadingMore,
     hasMore: debtAccounts.hasMore,
     query: debtAccounts.query,

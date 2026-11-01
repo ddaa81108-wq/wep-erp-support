@@ -47,6 +47,7 @@
     "test:push-ui": "node tests/browser-push-ui.ts",
     "test:notifications-ui": "node tests/notification-buttons-ui.ts",
     "test:notification-speech-ui": "node tests/notification-speech-ui.ts",
+    "test:account-loading-ui": "node tests/account-loading-ui.ts",
     "test:monitor-ui": "node tests/database-monitor-ui.ts",
     "test:activity-ui": "node tests/database-activity-ui.ts",
     "test:load": "node scripts/load-test.mts"

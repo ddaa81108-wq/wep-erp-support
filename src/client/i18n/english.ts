@@ -2,6 +2,7 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'تعذر تحميل الحسابات. أعد المحاولة.': 'Could not load accounts. Try again.',
   'الصوت الحالي مع تحسين الوضوح': 'Current voice with improved clarity',
   'نفس صوت جهازك الحالي، مع قراءة العملات كاملة وتجهيز النص الطويل على أجزاء متتابعة دون حذف كلمات.': 'Your usual device voice, with full currency names and long text queued in consecutive parts without dropping words.',
   'تجربة وضوح النطق الحالي': 'Test clarity of the current voice',
