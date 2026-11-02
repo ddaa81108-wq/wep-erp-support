@@ -96,30 +96,38 @@ try {
     await page.getByRole('button',{name:'قسم استلامات الديون',exact:true}).click();
     await page.locator('.collections-page').waitFor();
   }
-  const adminCards = adminPage.locator('.admin-collection-grid > .admin-customer-collection-card');
+  const adminCards = adminPage.locator('.board-assignment-grid > .board-assignment');
   const employeeCards = employeePage.locator('.collection-grid > .collection-card');
-  await expect(adminCards).toHaveCount(7);
-  await expect(employeeCards).toHaveCount(7);
-  await adminCards.filter({hasText:'استلام مستقل للاختبار'}).getByRole('button',{name:'رفض',exact:true}).click();
+  await expect(adminPage.locator('.unlinked-admin-card')).toHaveCount(1);
+  await expect(adminPage.locator('.board-receipt')).toHaveCount(1);
+  await expect(employeeCards).toHaveCount(6);
+  await employeePage.locator('#employee-tab-history').click();
+  await expect(employeePage.locator('.unlinked-receipt-card')).toHaveCount(1);
+  await adminPage.locator('.unlinked-admin-card').filter({hasText:'استلام مستقل للاختبار'}).getByRole('button',{name:'رفض',exact:true}).click();
   await expect(adminPage.locator('.unlinked-admin-card')).toHaveCount(0);
   await expect(employeePage.locator('.unlinked-receipt-card')).toHaveCount(0, {timeout:7000});
-  await adminCards.filter({hasText:names[5]}).getByRole('button',{name:'رفض',exact:true}).click();
+  await adminPage.locator('.board-receipt').filter({hasText:names[5]}).getByRole('button',{name:'رفض',exact:true}).click();
   await expect(adminCards.filter({hasText:names[5]})).toHaveCount(0);
+  await employeePage.locator('#employee-tab-cards').click();
   await expect(employeeCards.filter({hasText:names[5]})).toHaveCount(0, {timeout:7000});
   const afterReject = await read(writer.request, '/api/collections');
   assert.equal(afterReject.assignedCount, 5);
-  await expect(adminPage.locator('.outstanding-collection-cash')).toContainText('20');
-  await expect(employeePage.locator('.outstanding-collection-cash')).toContainText('20', {timeout:7000});
+  await adminPage.locator('#board-tab-cash').click();
+  const cancelledCash = adminPage.locator('.board-receipt').filter({hasText:names[5]});
+  await expect(cancelledCash).toContainText('20');
+  await employeePage.locator('#employee-tab-cash').click();
+  await expect(employeePage.locator('.employee-receipt').filter({hasText:names[5]})).toContainText('20', {timeout:7000});
   mkdirSync(resolve('artifacts','collection-states'),{recursive:true});
   await adminPage.screenshot({path:resolve('artifacts','collection-states','cash-preserved-after-rejection.png'),fullPage:true});
-  await adminPage.locator('.outstanding-collection-cash').getByRole('button',{name:'تم استلام النقدية',exact:true}).click();
-  await expect(adminPage.locator('.outstanding-collection-cash')).toHaveCount(0);
-  await expect(employeePage.locator('.outstanding-collection-cash')).toHaveCount(0, {timeout:7000});
+  await cancelledCash.getByRole('button',{name:'تأكيد استلام النقدية',exact:true}).click();
+  await expect(cancelledCash).toHaveCount(0);
+  await expect(employeePage.locator('.employee-receipt').filter({hasText:names[5]})).toHaveCount(0, {timeout:7000});
   for(const page of [adminPage,employeePage]) {
     await page.goto(base+'/erp');
     await page.getByRole('button',{name:'قسم استلامات الديون',exact:true}).click();
     await page.locator('.collections-page').waitFor();
-    const cards=page===adminPage?page.locator('.admin-collection-grid > .admin-customer-collection-card'):page.locator('.collection-grid > .collection-card');
+    if (page === adminPage) await page.locator('#board-tab-all').click();
+    const cards=page===adminPage?page.locator('.board-assignment-grid > .board-assignment'):page.locator('.collection-grid > .collection-card');
     await expect(cards).toHaveCount(5);
     for(const [i,tone] of ['collection-base','collection-yellow','zero-collection-card','collection-red','collection-green'].entries()) {
       await expect(cards.filter({hasText:names[i]})).toHaveClass(new RegExp(tone));
@@ -148,15 +156,9 @@ try {
           if (page === adminPage) {
             await expect(page.locator('.batch-close-button:visible').first()).toHaveClass(/batch-occupied/);
             await expect(page.locator('.batch-close-button:visible').first()).toHaveCSS('background-color','rgb(187, 37, 45)');
-            await expect(page.locator('.batch-close-button:visible').first().locator('svg')).toBeVisible();
-            const desktopActions = page.locator('.collection-desktop-batch-actions');
-            if (width === 390) {
-              await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeHidden();
-              await expect(page.locator('.day-actions')).toBeVisible();
-            } else {
-              await expect(desktopActions.getByRole('button', { name: 'كشف PDF', exact: true })).toBeVisible();
-              await expect(page.locator('.day-actions')).toBeHidden();
-            }
+            await expect(page.getByRole('button', { name: 'كشف PDF للدفعة', exact:true })).toBeVisible();
+            await expect(page.locator('.board-day-close')).toBeVisible();
+            await expect(page.getByRole('button', { name: 'إغلاق ومسح الدفعة', exact:true })).toHaveCount(1);
           }
           await page.screenshot({path:resolve('artifacts','collection-states',(page===adminPage?'admin':'employee')+'-'+appearance+'-'+theme+'-'+width+'.png'),fullPage:true,animations:'disabled'});
         }
@@ -165,7 +167,7 @@ try {
   }
   const [pdfDownload] = await Promise.all([
     adminPage.waitForEvent('download', { timeout: 60_000 }),
-    adminPage.locator('.collection-desktop-batch-actions').getByRole('button', { name: 'كشف PDF', exact: true }).click(),
+    adminPage.getByRole('button', { name: 'كشف PDF للدفعة', exact: true }).click(),
   ]);
   const pdfPath = resolve('artifacts','collection-states','collections-export.pdf');
   await pdfDownload.saveAs(pdfPath);
@@ -173,13 +175,13 @@ try {
   assert.ok(pdf.subarray(0,5).equals(Buffer.from('%PDF-')));
   assert.ok(pdf.toString('latin1').includes('/Subtype /Image'));
   assert.ok(pdf.toString('latin1').trimEnd().endsWith('%%EOF'));
-  await adminPage.locator('.collection-desktop-batch-actions').getByRole('button', { name: 'إغلاق ومسح الدفعة', exact: true }).click();
+  await adminPage.locator('.board-day-close').getByRole('button', { name: 'إغلاق ومسح الدفعة', exact: true }).click();
   await expect(adminPage.getByRole('dialog')).toBeVisible();
   await adminPage.getByRole('dialog').getByRole('button', { name: 'لا', exact: true }).click();
   const account=await read(writer.request,'/api/customers/'+ids[2]);
   const version=account.customer?.version ?? account.version;
   await mutate('/api/customers/'+ids[2]+'/transactions',{requestId:'colour-admin-promote',expectedVersion:version,type:'debt',inputValue:40,calculationMode:'direct'});
-  await expect(adminPage.locator('.admin-collection-grid > .admin-customer-collection-card').first()).toContainText(names[2],{timeout:7000});
+  await expect(adminPage.locator('.board-assignment-grid > .board-assignment').first()).toContainText(names[2],{timeout:7000});
   await expect(employeePage.locator('.collection-grid > .collection-card').first()).toContainText(names[2],{timeout:7000});
   const promoted = await read(writer.request,'/api/customers/'+ids[2]);
   await mutate('/api/customers/'+ids[2]+'/transactions',{requestId:'colour-admin-zero-again',expectedVersion:promoted.customer?.version ?? promoted.version,type:'payment',inputValue:40,calculationMode:'direct'});

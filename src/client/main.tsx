@@ -43,6 +43,8 @@ import './styles/auth-l01.css';
 import './styles/languages.css';
 import './styles/duplicate-warning.css';
 import './styles/emerald-shell.css';
+import './styles/collection-board.css';
+import './styles/employee-collection-board.css';
 
 let root: Root | undefined;
 void loadLanguageCatalog()

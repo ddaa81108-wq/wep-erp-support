@@ -68,12 +68,12 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     c.current_balance_units AS balanceUnits,
     EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending') AS hasPending,
     EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending' AND s.mode='full') AS hasPendingFull,
-    (SELECT s.mode FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestMode,
-    (SELECT s.status FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestStatus,
-    (SELECT s.cash_received_at FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestCashReceivedAt,
-    (SELECT s.decided_at FROM collection_submissions s WHERE s.assignment_id=a.id ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestDecisionAt,
+    (SELECT s.mode FROM collection_submissions s WHERE s.assignment_id=a.id AND NOT (s.status='rejected' AND s.approved_transaction_id IS NOT NULL) ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestMode,
+    (SELECT s.status FROM collection_submissions s WHERE s.assignment_id=a.id AND NOT (s.status='rejected' AND s.approved_transaction_id IS NOT NULL) ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestStatus,
+    (SELECT s.cash_received_at FROM collection_submissions s WHERE s.assignment_id=a.id AND NOT (s.status='rejected' AND s.approved_transaction_id IS NOT NULL) ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestCashReceivedAt,
+    (SELECT s.decided_at FROM collection_submissions s WHERE s.assignment_id=a.id AND NOT (s.status='rejected' AND s.approved_transaction_id IS NOT NULL) ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestDecisionAt,
     MAX(a.assigned_at, COALESCE(MAX(CASE WHEN t.updated_at <> t.created_at OR NOT EXISTS(SELECT 1 FROM collection_submissions linked WHERE linked.approved_transaction_id=t.id) THEN t.updated_at END),a.assigned_at)) AS externalFinancialUpdatedAt,
-    (SELECT MAX(s.submitted_at) FROM collection_submissions s WHERE s.assignment_id=a.id) AS latestSubmissionAt,
+    (SELECT MAX(s.submitted_at) FROM collection_submissions s WHERE s.assignment_id=a.id AND NOT (s.status='rejected' AND s.approved_transaction_id IS NOT NULL)) AS latestSubmissionAt,
     (SELECT COUNT(*) FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='approved' AND s.cash_received_at IS NULL) AS cashOutstandingCount
     FROM debt_assignments a JOIN customers c ON c.id=a.customer_id
     JOIN users u ON u.id=a.assignee_user_id JOIN customer_cycles cy ON cy.customer_id=c.id AND cy.status='active'
@@ -153,13 +153,13 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     FROM collection_batches b WHERE b.organization_id=? AND b.status='open' ORDER BY b.opened_at DESC`).all(actor.organizationId);
   // Keep earlier approved cash reachable even after its assignment is cancelled.
   const outstandingCancelledSubmissions = db.prepare(`SELECT s.id, s.amount_units AS amountUnits,
-    c.name AS customerName, u.display_name AS collectorName
+    c.name AS customerName, u.display_name AS collectorName,s.collector_user_id AS collectorUserId,s.batch_id AS batchId
     FROM collection_submissions s JOIN debt_assignments a ON a.id=s.assignment_id
     JOIN customers c ON c.id=s.customer_id JOIN users u ON u.id=s.collector_user_id
     WHERE c.organization_id=? AND a.status='cancelled' AND s.status='approved'
       AND s.cash_received_at IS NULL ${actor.role === 'admin' ? '' : 'AND s.collector_user_id = ?'}
     ORDER BY s.submitted_at DESC, s.id`).all(...params);
-  const outstandingClosedUnlinkedReceipts=db.prepare(`SELECT r.id,r.amount_units AS amountUnits,r.customer_name AS customerName,u.display_name AS collectorName
+  const outstandingClosedUnlinkedReceipts=db.prepare(`SELECT r.id,r.amount_units AS amountUnits,r.customer_name AS customerName,u.display_name AS collectorName,r.collector_user_id AS collectorUserId,r.batch_id AS batchId
     FROM collection_unlinked_receipts r JOIN users u ON u.id=r.collector_user_id JOIN collection_batches b ON b.id=r.batch_id
     WHERE r.organization_id=? AND b.status='closed' AND r.status='approved' AND r.cash_received_at IS NULL ${unlinkedScope}
     ORDER BY r.submitted_at DESC,r.id`).all(...params);

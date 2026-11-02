@@ -1,5 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { AppDatabase } from '../db/database.ts';
+import { cancelCollectionApproval } from '../domain/collectionApprovalCancellation.ts';
+import { collectionWorkspace, employeeCollectionWorkspace } from '../domain/collectionWorkspaceQueries.ts';
 import {
   assignCustomers,
   closeCollectionDay,
@@ -44,6 +46,21 @@ function publish(events: EventHub, sequences: unknown) {
 
 export async function routeCollections(context: CollectionRouteContext) {
   const { database, events, request, response, user, url, method, correlationId } = context;
+  const cancelApproval = url.pathname.match(/^\/api\/collections\/(submissions|unlinked-receipts)\/([^/]+)\/cancel-approval$/);
+  if (method === 'POST' && cancelApproval) {
+    const data = cancelCollectionApproval(database, user, decodePathSegment(cancelApproval[2]), await readJson(request), correlationId, cancelApproval[1] === 'submissions' ? 'linked' : 'unlinked');
+    publish(events, data.eventSequences);
+    sendJson(response, 200, { ok: true, data });
+    return true;
+  }
+  if (method === 'GET' && url.pathname === '/api/collections/mine') {
+    sendJson(response, 200, { ok: true, data: employeeCollectionWorkspace(database, user, url) });
+    return true;
+  }
+  if (method === 'GET' && url.pathname === '/api/collections/workspace') {
+    sendJson(response, 200, { ok: true, data: collectionWorkspace(database, user, url) });
+    return true;
+  }
 
   if (method === 'GET' && url.pathname === '/api/collections') {
     requirePermission(user, 'collections.read');

@@ -84,7 +84,9 @@ try {
     .click();
   await dialog.getByRole('button', { name: 'ربط واعتماد', exact: true }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.locator('.unlinked-admin-card')).toContainText('تم الربط والاعتماد');
+  await expect(page.locator('.unlinked-admin-card')).toHaveCount(0);
+  await page.locator('#board-tab-cash').click();
+  await expect(page.locator('.board-receipt')).toContainText('عميل مطابقة العملة');
   assert.equal(
     db.prepare('SELECT current_balance_units balance FROM customers WHERE id=?').get(lydId)!.balance,
     75,

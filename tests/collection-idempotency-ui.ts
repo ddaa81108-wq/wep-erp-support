@@ -40,7 +40,7 @@ try {
   };
   await open();
   const card=page.locator('.collection-card').filter({hasText:'Recovery customer'});
-  await card.locator('summary').click();
+  await card.locator('.partial-collection-details > summary').click();
   await card.locator('input[name="amount"]').fill('30');
   await card.getByRole('button',{name:'حفظ',exact:true}).click();
   const recovery=page.locator('.pending-collection-recovery');
@@ -56,7 +56,7 @@ try {
   await expect(recovery).toBeVisible();
   assert.equal(requests.length,1);
   const currentCard=page.locator('.collection-card').filter({hasText:'Recovery customer'});
-  await currentCard.locator('summary').click();
+  await currentCard.locator('.partial-collection-details > summary').click();
   await currentCard.locator('input[name="amount"]').fill('31');
   await currentCard.locator('input[name="amount"]').press('Enter');
   await expect(page.getByText('توجد محاولة سابقة لم يتأكد ردها. أعد التحقق منها قبل تغيير المبلغ أو نوع التحصيل.',{exact:true})).toBeVisible();
@@ -91,7 +91,7 @@ try {
   await mobile.getByRole('button',{name:'قسم استلامات الديون',exact:true}).click();
   await mobile.setViewportSize({width:390,height:844});
   const mobileCard=mobile.locator('.collection-card').filter({hasText:'Second customer'});
-  await mobileCard.locator('summary').click();
+  await mobileCard.locator('.partial-collection-details > summary').click();
   const mobileAmount=mobileCard.locator('input[name="amount"]');
   await mobileAmount.fill('25');
   const focusedBox=await mobileAmount.boundingBox();
@@ -100,6 +100,7 @@ try {
   assert.equal((await mobileAmount.boundingBox())?.height,focusedBox?.height,'Magnification must preserve input geometry.');
   await mobileAmount.focus();
   await save.click();
+  await mobileCard.locator('.employee-card-history > summary').click();
   await expect(mobileCard).toContainText('ينتظر الاعتماد');
   assert.equal(db.prepare('SELECT COUNT(*) n FROM collection_submissions').get()!.n,2);
   await expect(mobileCard.getByRole('button',{name:'استلام كلي',exact:true})).toBeDisabled();
@@ -117,8 +118,10 @@ try {
   const adminPage=await adminContext.newPage();
   await adminPage.goto(base+'/erp');
   await adminPage.getByRole('button',{name:'قسم استلامات الديون',exact:true}).click();
-  const adminCard=adminPage.locator('.admin-customer-collection-card').filter({hasText:'Second customer'});
-  await expect(adminCard.locator('.admin-card-history > article')).toHaveCount(3);
+  await adminPage.locator('#board-tab-all').click();
+  const adminCard=adminPage.locator('.board-assignment').filter({hasText:'Second customer'});
+  await adminCard.locator('summary').click();
+  await expect(adminCard.locator('.board-receipt')).toHaveCount(3);
   for (const remaining of [2,1,0]) {
     await adminCard.getByRole('button',{name:'اعتماد',exact:true}).first().click();
     await expect(adminCard.getByRole('button',{name:'اعتماد',exact:true})).toHaveCount(remaining);

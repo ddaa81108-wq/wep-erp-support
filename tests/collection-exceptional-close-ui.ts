@@ -32,7 +32,7 @@ try {
   };
   const adminPage=await open(admin.id), employeePage=await open(collector.id);
   await expect(employeePage.getByRole('button',{name:'إغلاق ومسح الدفعة',exact:true})).toHaveCount(0);
-  await adminPage.locator('.collection-desktop-batch-actions').getByRole('button',{name:'إغلاق ومسح الدفعة',exact:true}).click();
+  await adminPage.locator('.board-day-close').getByRole('button',{name:'إغلاق ومسح الدفعة',exact:true}).click();
   const dialog=adminPage.getByRole('dialog');
   await expect(dialog).toContainText('70');
   await expect(dialog.getByRole('button',{name:'نعم، امسح الدفعة',exact:true})).toBeDisabled();
@@ -57,13 +57,15 @@ try {
   await confirm.click();
   await expect(dialog).toHaveCount(0);
   await expect(adminPage.locator('.admin-customer-collection-card')).toHaveCount(0);
+  await adminPage.locator('#board-tab-previous').click();
   const adminCash=adminPage.getByRole('region',{name:'نقدية سابقة لم تُسلّم',exact:true});
   await expect(adminCash.locator('.outstanding-cash-row')).toHaveCount(3);
+  await employeePage.locator('#employee-tab-cash').click();
   const employeeCash=employeePage.getByRole('region',{name:'نقدية سابقة لم تُسلّم',exact:true});
   await expect(employeeCash.locator('.outstanding-cash-row')).toHaveCount(3);
   await expect(employeeCash.getByRole('button')).toHaveCount(0);
   for(let remaining=3;remaining>0;remaining--){
-    await adminCash.getByRole('button',{name:'تم استلام النقدية',exact:true}).first().click();
+    await adminCash.getByRole('button',{name:'تأكيد استلام النقدية',exact:true}).first().click();
     await expect(adminPage.locator('.outstanding-cash-row')).toHaveCount(remaining-1);
   }
   await expect(employeePage.locator('.outstanding-cash-row')).toHaveCount(0);

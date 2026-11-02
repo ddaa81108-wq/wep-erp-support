@@ -1,0 +1,166 @@
+/* Employee layout only. Existing collection status colors and payment controls are preserved. */
+.employee-collection-board .employee-board-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.employee-board-navigation {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 1fr);
+  align-items: end;
+  gap: 12px;
+}
+.employee-board-navigation .board-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.employee-board-search {
+  display: grid;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 0;
+}
+.employee-board-search input {
+  width: 100%;
+  min-width: 0;
+  min-height: 43px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font: inherit;
+}
+.employee-collection-board #employee-collection-content {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+}
+.employee-collection-board .collection-panel {
+  margin: 0;
+  min-width: 0;
+}
+.employee-collection-board .collection-grid:not(.unlinked-collection-grid) {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 265px), 1fr));
+  gap: 12px;
+}
+.employee-collection-board .collection-card {
+  min-width: 0;
+  padding: 14px;
+  gap: 7px;
+}
+.employee-collection-board .collection-card > strong {
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.employee-collection-board .collection-card > b {
+  font-size: 22px;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.employee-collection-board .employee-balance-label {
+  font-size: 10px;
+  margin-bottom: -6px;
+}
+.employee-card-history {
+  border-top: 1px solid #ffffff55;
+  padding-top: 8px;
+  width: 100%;
+  font-size: 11px;
+}
+.employee-card-history > summary {
+  cursor: pointer;
+  font-weight: 800;
+  padding-block: 4px;
+}
+.employee-collection-board .collection-payment-history {
+  max-height: none;
+  overflow: visible;
+  margin-top: 7px;
+}
+.employee-collection-board .collection-payment-history > span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.employee-collection-board .collection-payment-history em {
+  font-size: 10px;
+}
+.employee-collection-board .collector-actions {
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.employee-collection-board .collector-actions :is(button, a, summary) {
+  min-height: 38px;
+  font-size: 12px;
+  padding: 7px 9px;
+}
+.employee-collection-board .partial-collection-form {
+  min-width: 0;
+}
+.employee-collection-board .partial-collection-form input {
+  width: 100%;
+  min-width: 0;
+}
+.employee-collection-board .employee-receipt-status {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.employee-receipt.is-pending .employee-receipt-status {
+  background: #fff2cb;
+  color: #624700;
+}
+.employee-receipt.is-cash .employee-receipt-status {
+  background: #fff0dc;
+  color: #68450a;
+}
+.employee-cash-time {
+  font-size: 10px;
+  color: var(--muted);
+}
+.employee-collection-board .outstanding-cash-row {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .employee-collection-board .employee-board-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .employee-board-summary article:last-child {
+    grid-column: 1/-1;
+    min-height: 83px;
+  }
+  .employee-board-navigation {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .employee-board-navigation .board-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .employee-collection-board .collection-panel {
+    padding: 12px;
+  }
+}
+.employee-card-history .employee-receipts {
+  margin-top: 8px;
+  padding: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 10px;
+}
+.employee-card-history .board-receipt-list {
+  grid-template-columns: minmax(0, 1fr);
+}
+.employee-card-history .board-content-heading h2 {
+  font-size: 12px;
+}
+.employee-card-history .board-receipt {
+  padding: 9px;
+}
+.employee-card-history .board-receipt-heading b {
+  font-size: 16px;
+}

@@ -1,8 +1,18 @@
 import { request } from '../apiTransport.ts';
-import type { CollectionLinkCandidate, CollectionPayrollDashboard, CollectionsDashboard } from '../apiTypes.ts';
+import type { CollectionLinkCandidate, CollectionPayrollDashboard, CollectionsDashboard, CollectionWorkspace } from '../apiTypes.ts';
 
 export const collectionsApi = {
   collections: () => request<CollectionsDashboard>('/api/collections'),
+  cancelCollectionApproval: (kind: 'linked' | 'unlinked', id: string, input: { requestId: string; reason: string; expectedTransactionId: string }) =>
+    request<{ id: string; cancelled: boolean }>(`/api/collections/${kind === 'linked' ? 'submissions' : 'unlinked-receipts'}/${encodeURIComponent(id)}/cancel-approval`, { method: 'POST', body: JSON.stringify(input) }),
+  myCollectionReceipts: (options: { state: 'all' | 'cash'; q?: string; page?: number; assignmentId?: string }, signal?: AbortSignal) => {
+    const params = new URLSearchParams(Object.entries(options).map(([key, value]) => [key, String(value ?? '')]));
+    return request<CollectionWorkspace>('/api/collections/mine?' + params.toString(), { signal });
+  },
+  collectionWorkspace: (options: { batchId: string; employeeId?: string; state: 'review' | 'cash' | 'all'; q?: string; page?: number; assignmentId?: string; export?: '1' }, signal?: AbortSignal) => {
+    const params = new URLSearchParams(Object.entries(options).filter(([, value]) => value !== undefined && value !== '').map(([key, value]) => [key, String(value)]));
+    return request<CollectionWorkspace>('/api/collections/workspace?' + params.toString(), { signal });
+  },
   collectionPayroll: () => request<CollectionPayrollDashboard>('/api/collections/payroll'),
   createCollectionPayrollEntry: (
     employeeUserId: string,

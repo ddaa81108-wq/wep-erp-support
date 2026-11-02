@@ -77,10 +77,22 @@ export type CollectionsDashboard = {
     unlinkedPendingCount: number;
   };
   employeeTotals?: Array<{ employeeId: string; employeeName: string; collectedUnits: number; approvedCount: number; pendingCount: number }>;
-  outstandingCancelledSubmissions?: Array<{ id: string; customerName: string; collectorName: string; amountUnits: number }>;
-  outstandingClosedUnlinkedReceipts?: Array<{ id: string; customerName: string; collectorName: string; amountUnits: number }>;
+  outstandingCancelledSubmissions?: Array<{ id: string; customerName: string; collectorName: string; amountUnits: number; collectorUserId?: string; batchId?: string }>;
+  outstandingClosedUnlinkedReceipts?: Array<{ id: string; customerName: string; collectorName: string; amountUnits: number; collectorUserId?: string; batchId?: string }>;
   assignedCount: number;
   openBatches: Array<{ id: string; businessDate: string; batchNumber: number; openedAt: string; pendingCount?: number; cashPendingCount?: number; cashPendingUnits?: number }>;
+};
+
+export type CollectionWorkspaceReceipt = Omit<CollectionSubmission, 'assignmentId' | 'customerId' | 'mode'> & {
+  kind: 'linked' | 'unlinked'; assignmentId: string | null; customerId: string | null; mode: 'full' | 'partial' | null;
+  currency: 'LYD'; currencyMismatch: number; linkedCustomerId: string | null; entryType: 'debt' | 'payment' | null;
+  cashReceivedByName: string | null; decidedByName: string | null;
+  approvedTransactionId: string | null; approvalCancelled: number;
+};
+export type CollectionWorkspace = {
+  summary: { approvedUnits: number; receivedUnits: number; outstandingUnits: number; pendingCount: number; unlinkedPendingCount: number; cashPendingCount: number; receiptCount: number };
+  employees: Array<{ id: string; name: string }>;
+  items: CollectionWorkspaceReceipt[]; totalItems: number; page: number; hasMore: boolean; limit: number;
 };
 
 export type CollectionPayrollEntry = {

@@ -2,6 +2,10 @@ import { language, uiText } from './language.ts';
 
 // Translate protocol errors by stable codes, never by modifying returned data.
 const messages: Readonly<Record<string, string>> = {
+  CANCELLATION_REASON_REQUIRED: 'Enter a cancellation reason between 5 and 500 characters.',
+  COLLECTION_CASH_ALREADY_RECEIVED: 'Cash was already received for this receipt. Its approval cannot be cancelled here.',
+  COLLECTION_APPROVAL_CHANGED: 'The approval changed or is not complete. Refresh and review the receipt.',
+  COLLECTION_POSTING_CHANGED: 'The original posting changed or its accounting cycle is no longer active. Review the customer ledger.',
   EXCEPTION_REASON_REQUIRED: 'Enter an exceptional closure reason between 5 and 500 characters.',
   COLLECTION_CASH_CHANGED: 'Outstanding cash has changed. Review the amounts and confirm again.',
   UNLINKED_RECEIPT_CURRENCY_INVALID:'Unlinked receipts are in Libyan dinars only. Currency conversion is not supported.',
