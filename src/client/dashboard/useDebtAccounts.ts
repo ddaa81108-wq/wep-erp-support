@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Customer, CustomerFilter, Ledger, ConfirmedLedgerWrite } from '../api.ts';
 import { api } from '../api.ts';
 import { flushBeforeNavigation } from './navigationGuards.ts';
+import { oldestLedgerSequence, readLedgerWindow } from './ledgerReadWindow.ts';
 import {
   getSectionAccount,
   getSectionLedger,
@@ -55,6 +56,10 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     customerCache.current = customers;
   }, [customers]);
   const openLedgerId = useRef<string | null>(null);
+  const ledgerCache = useRef<Ledger | null>(null);
+  useEffect(() => {
+    ledgerCache.current = ledger;
+  }, [ledger]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
@@ -152,10 +157,27 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     [fetchLedger],
   );
   const loadOlderLedger = useCallback(async () => {
-    if (!ledger?.nextCursor) return;
-    const older = await fetchLedger(ledger.customer.id, ledger.nextCursor);
-    setLedger((current) => prependOlderLedgerPage(current, older));
-  }, [fetchLedger, ledger]);
+    const snapshot = ledgerCache.current;
+    if (!snapshot?.nextCursor) return;
+    const id = snapshot.customer.id;
+    try {
+      const older = await fetchLedger(id, snapshot.nextCursor);
+      const latest = ledgerCache.current;
+      if (latest?.customer.id !== id) return;
+      if (older.customer.version !== latest.customer.version) {
+        const oldest = Math.min(
+          oldestLedgerSequence(latest) ?? Infinity,
+          oldestLedgerSequence(older) ?? Infinity,
+        );
+        const next = await readLedgerWindow(fetchLedger, id, Number.isFinite(oldest) ? oldest : undefined);
+        setLedger((current) => mergeFreshLedger(current, next, id));
+      } else {
+        setLedger((current) => prependOlderLedgerPage(current, older));
+      }
+    } catch (error) {
+      if (openLedgerId.current === id) onNotice({ kind: 'error', text: dashboardErrorText(error) });
+    }
+  }, [fetchLedger, onNotice]);
 
   const mergeCustomers = useCallback((snapshots: Customer[]) => {
     setCustomers((current) => mergeCustomerSnapshots(current, snapshots));
@@ -172,7 +194,15 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     async (id: string) => {
       if (openLedgerId.current !== id) return;
       await Promise.all([
-        fetchLedger(id).then((next) => setLedger((current) => mergeFreshLedger(current, next, id))),
+        fetchLedger(id).then(async (first) => {
+          const current = ledgerCache.current;
+          if (current?.customer.id !== id) return;
+          const next =
+            first.customer.version > current.customer.version
+              ? await readLedgerWindow(fetchLedger, id, oldestLedgerSequence(current), first)
+              : first;
+          setLedger((previous) => mergeFreshLedger(previous, next, id));
+        }),
         fetchCustomer(id).then((snapshot) =>
           setCustomers((current) => {
             const previous = current.find((customer) => customer.id === id);

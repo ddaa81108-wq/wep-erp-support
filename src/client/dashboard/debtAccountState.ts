@@ -10,29 +10,40 @@ export function mergeCustomerSnapshots(current: Customer[], snapshots: Customer[
 }
 
 export function appendCustomerPage(current: Customer[], page: Customer[]) {
-  return orderCustomerCards([
-    ...new Map([...current, ...page].map((item) => [item.id, item])).values(),
-  ]);
+  return orderCustomerCards([...new Map([...current, ...page].map((item) => [item.id, item])).values()]);
 }
 
 export function prependOlderLedgerPage(current: Ledger | null, older: Ledger) {
   if (current?.customer.id !== older.customer.id) return current;
+  if (older.customer.version !== current.customer.version) return current;
+  if (!older.items.length) return { ...current, nextCursor: older.nextCursor };
+  const olderStartsFirst =
+    Math.min(...older.items.map((item) => item.sequence)) <
+    Math.min(...current.items.map((item) => item.sequence));
+  const opening = olderStartsFirst || !current.items.length ? older : current;
   return {
-    ...older,
-    items: [...older.items, ...current.items],
+    ...current,
+    items: [...new Map([...older.items, ...current.items].map((item) => [item.id, item])).values()].sort(
+      (a, b) => a.sequence - b.sequence,
+    ),
+    pageOpeningBalanceUnits: opening.pageOpeningBalanceUnits,
+    nextCursor: opening.nextCursor,
     totalItems: Math.max(older.totalItems, current.totalItems),
   };
 }
 
 export function mergeFreshLedger(current: Ledger | null, next: Ledger, customerId: string) {
-  if (current?.customer.id !== customerId) return current;
+  if (current?.customer.id !== customerId || next.customer.id !== customerId) return current;
   if (next.customer.version < current.customer.version) return current;
+  // An account revision invalidates cached older rows and their opening balance.
+  // The caller supplies a freshly read, consistent window when history is loaded.
+  if (next.customer.version > current.customer.version) return next;
   if (current.items.length <= next.items.length) return next;
   return {
     ...next,
-    items: [
-      ...new Map([...current.items, ...next.items].map((item) => [item.id, item])).values(),
-    ].sort((left, right) => left.sequence - right.sequence),
+    items: [...new Map([...current.items, ...next.items].map((item) => [item.id, item])).values()].sort(
+      (left, right) => left.sequence - right.sequence,
+    ),
     pageOpeningBalanceUnits: current.pageOpeningBalanceUnits,
     nextCursor: current.nextCursor,
   };
@@ -42,12 +53,12 @@ export function mergeFreshLedger(current: Ledger | null, next: Ledger, customerI
 export function applyConfirmedLedgerWrite(current: Ledger | null, saved: ConfirmedLedgerWrite) {
   if (!current || current.customer.id !== saved.customerId) return current;
   if (saved.customerVersion !== current.customer.version + 1) return current;
-  const existing = current.items.some(item => item.id === saved.transaction.id);
+  const existing = current.items.some((item) => item.id === saved.transaction.id);
   // A correction outside the loaded page needs an authoritative page-opening balance.
   if (!existing && saved.transaction.sequence < current.customer.nextSequence) return current;
   if (!existing && saved.transaction.sequence !== current.customer.nextSequence) return current;
   const items = existing
-    ? current.items.map(item => item.id === saved.transaction.id ? saved.transaction : item)
+    ? current.items.map((item) => (item.id === saved.transaction.id ? saved.transaction : item))
     : [...current.items, saved.transaction];
   return {
     ...current,

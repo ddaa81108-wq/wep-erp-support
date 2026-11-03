@@ -84,7 +84,8 @@ export function LedgerRecordRow({ section, item, balanceAfter, canWrite, busy, o
       </strong>
       <strong className="ledger-cell ledger-row-balance" data-label={uiText("الرصيد")}>
         <span className="ledger-readable-value" tabIndex={0} data-preview={`${ledgerMoney.format(balanceAfter)} ${currencyLabel(section)}`}>
-          {ledgerMoney.format(balanceAfter)} {currencyLabel(section)}
+          <bdi dir="ltr">{ledgerMoney.format(balanceAfter)}</bdi>{' '}
+          <span className="ledger-row-currency">{currencyLabel(section)}</span>
         </span>
       </strong>
       {editable ? (

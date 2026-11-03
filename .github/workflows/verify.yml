@@ -26,6 +26,7 @@ jobs:
       - run: npm run test:ui
       - run: npm run test:settings-requests-ui
       - run: npm run test:ledger-focus-ui
+      - run: npm run test:ledger-window-sync-ui
       - run: npm run test:zero-review-ui
       - uses: actions/upload-artifact@v4
         if: failure()

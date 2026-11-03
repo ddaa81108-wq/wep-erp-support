@@ -2,6 +2,7 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'تغيّر السجل أثناء تحديثه. ستُعاد المزامنة دون تكرار أي معاملة.': 'The ledger changed while refreshing. Synchronization will retry without resubmitting any transaction.',
   'رجوع': 'Back',
   'إلغاء الاعتماد': 'Cancel approval',
   'إلغاء اعتماد الاستلام': 'Cancel receipt approval',

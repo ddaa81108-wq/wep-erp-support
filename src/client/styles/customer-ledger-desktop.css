@@ -189,6 +189,28 @@
   height: 36px; padding: 3px 4px;
 }
 
+/* Keep customer running balances intact without changing other ledger columns. */
+.ledger-panel.section-customers .ledger-grid {
+  min-width: 1540px;
+  grid-template-columns: 44px 360px minmax(206px, 1.2fr) 100px 86px minmax(166px, 1fr) 78px 86px 86px minmax(190px, 1fr) 48px 48px;
+}
+.ledger-panel.section-customers .ledger-row-balance .ledger-readable-value {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.ledger-panel.section-customers .ledger-row-balance bdi,
+.ledger-panel.section-customers .ledger-row-balance .ledger-row-currency {
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 /* Libyan trusts: positive funds belong to the customer; withdrawals reduce them. */
 .ledger-panel.section-libyan-deposits .choice-debt { background: #087443; }
 .ledger-panel.section-libyan-deposits :is(.choice-partial, .choice-full) { background: #a61e2a; }
