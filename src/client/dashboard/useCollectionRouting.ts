@@ -1,6 +1,7 @@
 import { uiText } from '../i18n/language.ts';
 import { useCallback, useState } from 'react';
 import { api } from '../api.ts';
+import type { Customer } from '../api.ts';
 import type { DebtSection } from '../sections/debts/sectionConfig.ts';
 import { dashboardErrorText } from './dashboardModel.ts';
 
@@ -19,6 +20,43 @@ export function useCollectionRouting({ debtSection, refreshAccounts, onNotice }:
     [],
   );
   const [assigneeId, setAssigneeId] = useState('');
+  const [cancellingAssignmentId, setCancellingAssignmentId] = useState<string | null>(null);
+
+  async function removeAssignment(customer: Customer) {
+    const id = customer.activeAssignmentId;
+    if (!id || cancellingAssignmentId) return;
+    if (
+      !window.confirm(
+        uiText(
+          'إلغاء توجيه «{0}» من «{1}»؟ ستبقى الاستلامات السابقة والنقدية باسم الموظف الأصلي دون تغيير.',
+          [customer.name, customer.activeAssigneeName],
+        ),
+      )
+    )
+      return;
+    setCancellingAssignmentId(id);
+    try {
+      await api.cancelCollectionAssignment(id);
+    } catch (error) {
+      onNotice({ kind: 'error', text: dashboardErrorText(error) });
+      setCancellingAssignmentId(null);
+      return;
+    }
+    onNotice({
+      kind: 'success',
+      text: uiText('تم إلغاء توجيه الكارت. يمكنك توجيهه لموظف آخر إذا كان عليه دين.'),
+    });
+    try {
+      await refreshAccounts();
+    } catch {
+      onNotice({
+        kind: 'success',
+        text: uiText('تم إلغاء التوجيه. تعذر تحديث العرض مؤقتًا؛ ستعيد المزامنة المحاولة تلقائيًا.'),
+      });
+    } finally {
+      setCancellingAssignmentId(null);
+    }
+  }
 
   async function startRouting() {
     setRouting(true);
@@ -58,11 +96,16 @@ export function useCollectionRouting({ debtSection, refreshAccounts, onNotice }:
     }
     setRouting(false);
     setSelectedCustomers([]);
-    onNotice({ kind: 'success', text: uiText("تم توجيه الكروت إلى الموظف.") });
+    onNotice({ kind: 'success', text: uiText('تم توجيه الكروت إلى الموظف.') });
     try {
       await refreshAccounts();
     } catch {
-      onNotice({ kind: 'success', text: uiText("تم توجيه الكروت إلى الموظف. تعذر تحديث العرض مؤقتًا؛ ستعيد المزامنة المحاولة تلقائيًا.") });
+      onNotice({
+        kind: 'success',
+        text: uiText(
+          'تم توجيه الكروت إلى الموظف. تعذر تحديث العرض مؤقتًا؛ ستعيد المزامنة المحاولة تلقائيًا.',
+        ),
+      });
     }
   }
 
@@ -84,5 +127,7 @@ export function useCollectionRouting({ debtSection, refreshAccounts, onNotice }:
     selectCustomer,
     confirmRouting,
     resetRouting,
+    removeAssignment,
+    cancellingAssignmentId,
   };
 }

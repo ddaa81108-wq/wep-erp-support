@@ -76,6 +76,7 @@ export function listCustomers(
   const rows = database.prepare(`
     SELECT c.*, cy.id AS cycle_id, cy.initial_balance_units,
       ${zeroRank} AS zero_rank,
+      (SELECT a.id FROM debt_assignments a WHERE a.customer_id=c.id AND a.status='active' LIMIT 1) AS active_assignment_id,
       (SELECT u.display_name
         FROM debt_assignments a JOIN users u ON u.id = a.assignee_user_id
         WHERE a.customer_id = c.id AND a.status = 'active'
@@ -128,6 +129,7 @@ export function listCustomers(
         debtStartedAt,
         debtAgeDays,
         activeAssigneeName: row.active_assignee_name ? String(row.active_assignee_name) : null,
+        activeAssignmentId: row.active_assignment_id ? String(row.active_assignment_id) : null,
         systemManaged: Boolean(row.system_link_key),
         systemLinkKey: row.system_link_key ? String(row.system_link_key) : null,
         nextSequence: Number(row.ledger_next_sequence),
@@ -189,6 +191,7 @@ export function customerSnapshot(
   const profile = partyProfile(kind);
   const row = database.prepare(`
     SELECT c.*, cy.id AS cycle_id, cy.initial_balance_units,
+      (SELECT a.id FROM debt_assignments a WHERE a.customer_id=c.id AND a.status='active' LIMIT 1) AS active_assignment_id,
       (SELECT u.display_name
         FROM debt_assignments a JOIN users u ON u.id = a.assignee_user_id
         WHERE a.customer_id = c.id AND a.status = 'active'
@@ -222,6 +225,7 @@ export function customerSnapshot(
       ? Math.max(0, Math.floor((Date.now() - new Date(debtStartedAt).getTime()) / (24 * 60 * 60_000)))
       : null,
     activeAssigneeName: row.active_assignee_name ? String(row.active_assignee_name) : null,
+    activeAssignmentId: row.active_assignment_id ? String(row.active_assignment_id) : null,
     systemManaged: Boolean(row.system_link_key),
     systemLinkKey: row.system_link_key ? String(row.system_link_key) : null,
     nextSequence: Number(row.ledger_next_sequence),

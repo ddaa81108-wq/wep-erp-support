@@ -109,6 +109,8 @@ export function Dashboard({
     selectCustomer,
     confirmRouting,
     resetRouting,
+    removeAssignment,
+    cancellingAssignmentId,
   } = useCollectionRouting({
     debtSection,
     refreshAccounts: debtAccounts.refreshAfterMutation,
@@ -156,6 +158,8 @@ export function Dashboard({
     onAssigneeChange: setAssigneeId,
     onCustomerSelection: selectCustomer,
     onConfirmRouting: () => void confirmRouting(),
+    onRemoveAssignment: (customer) => void removeAssignment(customer),
+    cancellingAssignmentId,
     onOpenLedger: (id) => void debtAccounts.loadLedger(id)
       .catch((error) => setNotice({ kind: 'error', text: dashboardErrorText(error) })),
     onTogglePinned: (customer) => void debtAccounts.togglePinned(customer),

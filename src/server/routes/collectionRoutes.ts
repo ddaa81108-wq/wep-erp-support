@@ -4,6 +4,7 @@ import { cancelCollectionApproval } from '../domain/collectionApprovalCancellati
 import { collectionWorkspace, employeeCollectionWorkspace } from '../domain/collectionWorkspaceQueries.ts';
 import {
   assignCustomers,
+  cancelCollectionAssignment,
   closeCollectionDay,
   collectionLinkCandidates,
   createUnlinkedCollectionReceipt,
@@ -129,6 +130,13 @@ export async function routeCollections(context: CollectionRouteContext) {
     return true;
   }
 
+  const cancelAssignment = url.pathname.match(/^\/api\/collections\/assignments\/([^/]+)\/cancel$/);
+  if (method === 'POST' && cancelAssignment) {
+    const data = cancelCollectionAssignment(database, user, decodePathSegment(cancelAssignment[1]), correlationId);
+    publish(events, data.eventSequences);
+    sendJson(response, 200, { ok: true, data });
+    return true;
+  }
   const submission = url.pathname.match(/^\/api\/collections\/assignments\/([^/]+)\/submissions$/);
   if (method === 'POST' && submission) {
     requirePermission(user, 'collections.write');

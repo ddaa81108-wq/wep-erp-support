@@ -3,6 +3,9 @@ import type { CollectionLinkCandidate, CollectionPayrollDashboard, CollectionsDa
 
 export const collectionsApi = {
   collections: () => request<CollectionsDashboard>('/api/collections'),
+  cancelCollectionAssignment: (id: string) => request<{ id: string; cancelled: boolean }>(
+    `/api/collections/assignments/${encodeURIComponent(id)}/cancel`, { method: 'POST', body: '{}' },
+  ),
   cancelCollectionApproval: (kind: 'linked' | 'unlinked', id: string, input: { requestId: string; reason: string; expectedTransactionId: string }) =>
     request<{ id: string; cancelled: boolean }>(`/api/collections/${kind === 'linked' ? 'submissions' : 'unlinked-receipts'}/${encodeURIComponent(id)}/cancel-approval`, { method: 'POST', body: JSON.stringify(input) }),
   myCollectionReceipts: (options: { state: 'all' | 'cash'; q?: string; page?: number; assignmentId?: string }, signal?: AbortSignal) => {

@@ -2,6 +2,10 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'إلغاء توجيه {0} من {1}': 'Remove assignment of {0} from {1}',
+  'إلغاء توجيه «{0}» من «{1}»؟ ستبقى الاستلامات السابقة والنقدية باسم الموظف الأصلي دون تغيير.': 'Remove the assignment of “{0}” from “{1}”? Existing receipts and cash remain with the original employee.',
+  'تم إلغاء توجيه الكارت. يمكنك توجيهه لموظف آخر إذا كان عليه دين.': 'Assignment removed. You can assign the card to another employee if it has an outstanding debt.',
+  'تم إلغاء التوجيه. تعذر تحديث العرض مؤقتًا؛ ستعيد المزامنة المحاولة تلقائيًا.': 'Assignment removed. The view could not refresh temporarily; synchronization will retry automatically.',
   'تغيّر السجل أثناء تحديثه. ستُعاد المزامنة دون تكرار أي معاملة.': 'The ledger changed while refreshing. Synchronization will retry without resubmitting any transaction.',
   'رجوع': 'Back',
   'إلغاء الاعتماد': 'Cancel approval',

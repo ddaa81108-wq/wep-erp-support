@@ -44,6 +44,8 @@ export type DebtAccountsViewProps = {
   onAssigneeChange: (id: string) => void;
   onCustomerSelection: (id: string, selected: boolean) => void;
   onConfirmRouting: () => void;
+  onRemoveAssignment: (customer: Customer) => void;
+  cancellingAssignmentId: string | null;
   onOpenLedger: (id: string) => void;
   onTogglePinned: (customer: Customer) => void;
   onLoadMore: () => void;
@@ -88,6 +90,15 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
     routing, selectedCustomers, assignees, assigneeId,
   } = props;
   const labels = debtSectionText[section];
+  const assignmentBadge = (customer: Customer) => !customer.activeAssigneeName ? null :
+    isAdmin && customer.activeAssignmentId ? <button type="button"
+      className="customer-assignee-badge cancel-assignment"
+      disabled={Boolean(props.cancellingAssignmentId)}
+      aria-label={uiText('إلغاء توجيه {0} من {1}', [customer.name, customer.activeAssigneeName])}
+      title={uiText('إلغاء التوجيه')}
+      onClick={() => props.onRemoveAssignment(customer)}>
+      {uiText("لدى: ")}{customer.activeAssigneeName} ×
+    </button> : <span className="customer-assignee-badge">{uiText("لدى: ")}{customer.activeAssigneeName}</span>;
 
   return <>
     {!isDepositSection(section) && <DebtTicker customers={customers} onOpenLedger={props.onOpenLedger} />}
@@ -109,7 +120,7 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
               const canRoute = canRouteDebtCard(customer);
               return <article key={customer.id} data-balance-owner={customer.balanceUnits === 0 ? 'zero' : (section === 'libyan-deposits' ? customer.balanceUnits > 0 : customer.balanceUnits < 0) ? 'customer' : 'system'} className={`customer-card ${sectionCardState(section, customer)} ${customer.systemManaged ? 'system-linked-card' : ''} ${selected ? 'selected-routing' : ''} ${customer.activeAssigneeName ? 'has-assignee' : ''} ${routing && !canRoute ? 'routing-unavailable' : ''}`}>
                 {routing && canRoute && <label className="routing-select"><input type="checkbox" checked={selected} onChange={(event) => props.onCustomerSelection(customer.id, event.target.checked)} /><span><Check size={16} /></span></label>}
-                {section === 'customers' ? <div className="customer-card-status-row">{customer.activeAssigneeName && <span className="customer-assignee-badge">{uiText("لدى: ")}{customer.activeAssigneeName}</span>}{isAdmin && !routing && <ZeroReviewButton customer={customer} onReview={props.onReviewZero} />}</div> : section === 'companies' && customer.activeAssigneeName && <span className="customer-assignee-badge">{uiText("لدى: ")}{customer.activeAssigneeName}</span>}
+                {section === 'customers' ? <div className="customer-card-status-row">{assignmentBadge(customer)}{isAdmin && !routing && <ZeroReviewButton customer={customer} onReview={props.onReviewZero} />}</div> : section === 'companies' && assignmentBadge(customer)}
                 <button className="customer-card-main" onClick={() => routing ? canRoute && props.onCustomerSelection(customer.id, !selected) : props.onOpenLedger(customer.id)}><span className="customer-card-label">{customer.systemManaged ? uiText("مرتبط تلقائيًا") : cardLabel(section, customer)}</span><strong className="customer-name-line"><span>{customer.name}</span></strong><b><span className="customer-balance-amount">{money.format(Math.abs(customer.balanceUnits))}</span> <small>{currencyLabel(section)}</small></b><small className="customer-last-movement">{uiText("آخر حركة: ")}{movementTime.format(new Date(customer.updatedAt ?? customer.createdAt))}</small></button>
                 {canWrite && !routing && !customer.systemManaged && <button className="pin-customer" aria-label={customer.isPinned ? uiText("إلغاء تثبيت {0}", [customer.name]) : uiText("تثبيت {0}", [customer.name])} title={customer.isPinned ? uiText("إلغاء التثبيت") : uiText("إبقاء الكارت ظاهرًا دائمًا")} onClick={() => props.onTogglePinned(customer)}>{customer.isPinned ? <PinOff size={17} /> : <Pin size={17} />}</button>}
 

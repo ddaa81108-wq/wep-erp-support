@@ -19,6 +19,7 @@
     "test:settings-requests-ui": "node tests/settings-request-order-ui.ts",
     "test:ledger-focus-ui": "node tests/ledger-focus-ui.ts",
     "test:ledger-window-sync-ui": "node tests/ledger-window-sync-ui.ts",
+    "test:collection-unassign-ui": "node tests/collection-unassign-ui.ts",
     "test:languages-ui": "node tests/languages-ui.ts",
     "test:readability": "node tests/readability-ui.ts",
     "test:auth-l01": "node tests/auth-l01-ui.ts",

@@ -21,6 +21,7 @@ export type Customer = {
   debtStartedAt: string | null;
   debtAgeDays: number | null;
   activeAssigneeName: string | null;
+  activeAssignmentId?: string | null;
   systemManaged?: boolean;
   systemLinkKey?: string | null;
   nextSequence: number;

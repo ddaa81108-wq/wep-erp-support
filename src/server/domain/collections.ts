@@ -365,6 +365,28 @@ export function assignCustomers(db: AppDatabase, actor: AuthenticatedUser, input
   });
 }
 
+/** End a work assignment without cancelling receipts or changing their cash owner. */
+export function cancelCollectionAssignment(db: AppDatabase, actor: AuthenticatedUser, assignmentId: string, correlationId: string) {
+  if (actor.role !== 'admin') throw forbidden('collections.review');
+  return inImmediateTransaction(db, () => {
+    const row = db.prepare(`SELECT a.*,c.section_key FROM debt_assignments a
+      JOIN customers c ON c.id=a.customer_id WHERE a.id=? AND c.organization_id=?`)
+      .get(assignmentId, actor.organizationId) as Record<string, unknown> | undefined;
+    if (!row) throw notFound('assignment');
+    if (row.status !== 'active') return { id: assignmentId, cancelled: true, eventSequences: [] };
+    const cancelledAt = nowIso();
+    db.prepare("UPDATE debt_assignments SET status='cancelled',cancelled_at=? WHERE id=? AND status='active'")
+      .run(cancelledAt, assignmentId);
+    db.prepare(`INSERT INTO audit_log(actor_user_id,organization_id,action,entity_type,entity_id,correlation_id,outcome,details_json,created_at)
+      VALUES(?,?,'collection.unassign','debt_assignment',?,?,'success',?,?)`)
+      .run(actor.id,actor.organizationId,assignmentId,correlationId,JSON.stringify({customerId:row.customer_id,assigneeUserId:row.assignee_user_id}),cancelledAt);
+    return { id: assignmentId, cancelled: true, eventSequences: [
+      emitCollectionEvent(db,assignmentId,actor.id,actor.organizationId,'unassigned',{customerId:row.customer_id,assigneeUserId:row.assignee_user_id}),
+      emitDebtAssignmentEvent(db,String(row.customer_id),actor.id,actor.organizationId,'unassigned',String(row.section_key)),
+    ] };
+  });
+}
+
 export function submitCollection(db: AppDatabase, actor: AuthenticatedUser, assignmentId: string, input: Record<string, unknown>, correlationId: string) {
   const requestId = validateRequestId(input.requestId);
   const mode = input.mode;
