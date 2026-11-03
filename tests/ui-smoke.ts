@@ -78,24 +78,23 @@ try {
       });
       for (const theme of ['light', 'dark']) {
         await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
+        await page.evaluate(() => scrollTo(0, 0));
         const layout = await page.locator('.collections-page').evaluate(root => {
-          const header = root.querySelector('.collection-overview-header')!.getBoundingClientRect();
-          const metrics = [...root.querySelectorAll('.collection-metrics article')]
-            .filter(el => getComputedStyle(el).display !== 'none').map(el => el.getBoundingClientRect());
-          const toolbar = root.querySelector('.collection-toolbar-actions')!.getBoundingClientRect();
-          const buttons = [...root.querySelectorAll('.collection-toolbar-actions button')]
-            .filter(el => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden')
-            .map(el => el.getBoundingClientRect());
+          const header = root.querySelector('.collection-overview-header')?.getBoundingClientRect();
+          const metrics = [...root.querySelectorAll('.collection-board-summary article')].map(el => el.getBoundingClientRect());
+          const toolbar = root.querySelector('.collection-toolbar-actions')!;
+          const buttons = [...toolbar.querySelectorAll('button')].filter(el => el.getClientRects().length > 0).map(el => el.getBoundingClientRect());
+          const within = (r: DOMRect) => r.width > 0 && r.left >= -1 && r.right <= innerWidth + 1;
           return {
             overflow: document.documentElement.scrollWidth > innerWidth + 1,
-            compactHeader: header.height < 80,
+            headerFits: !header || within(header),
             metricsCount: metrics.length,
-            metricsOneRow: metrics.every(r => Math.abs(r.top - metrics[0].top) < 1),
-            bottom: Math.abs(toolbar.bottom - innerHeight) < 1,
-            buttons: buttons.length > 0 && buttons.every(r => r.height >= 40 && r.left >= 0 && r.right <= innerWidth),
+            metricsFit: metrics.length > 0 && metrics.every(within),
+            toolbarInFlow: getComputedStyle(toolbar).position !== 'fixed',
+            buttons: buttons.length > 0 && buttons.every(r => r.height >= 40 && within(r)),
           };
         });
-        assert.deepEqual(layout, { overflow: false, compactHeader: true, metricsCount: 4, metricsOneRow: true, bottom: true, buttons: true });
+        assert.deepEqual(layout, { overflow: false, headerFits: true, metricsCount: role === 'admin' ? 4 : 3, metricsFit: true, toolbarInFlow: true, buttons: true });
         await page.screenshot({ path: resolve('artifacts', 'ui', 'collections-' + role + '-' + theme + '-' + width + '.png'), animations: 'disabled' });
       }
     }
@@ -679,7 +678,7 @@ try {
   await page.getByRole('button', { name: 'أمانات ليبية' }).click();
   await page.getByRole('heading', { name: 'أمانات ليبية' }).waitFor();
   await page.getByRole('button', { name: 'قسم استلامات الديون' }).click();
-  await page.getByRole('heading', { name: 'قسم استلامات الديون' }).waitFor();
+  await page.locator('.workspace.active-section-collections .collections-page [role=tablist]').waitFor();
   await page.getByRole('button', { name: 'الخزينة' }).click();
   await page.getByRole('heading', { name: 'سجل الفلوس النشطة', exact: true }).waitFor();
   await page.getByRole('button', { name: 'دخول', exact: true }).click();
@@ -913,7 +912,13 @@ try {
     await page.getByRole('button', { name: 'فتح القائمة الرئيسية' }).click();
     await page.locator('.sidebar.open').waitFor();
     await page.locator('.sidebar').getByRole('button', { name: navigationLabel, exact: true }).click();
-    await page.getByRole('heading', { name: headingLabel, exact: true }).first().waitFor();
+    if (screenshotName === 'collections') {
+      const collections = page.locator('.workspace.active-section-collections .collection-board');
+      await collections.getByRole('tablist', { name: 'تنظيم استلامات الديون', exact: true }).waitFor();
+      await collections.getByRole('tabpanel').waitFor();
+    } else {
+      await page.getByRole('heading', { name: headingLabel, exact: true }).first().waitFor();
+    }
     await page.waitForFunction(() => {
       const sidebar = document.querySelector<HTMLElement>('.sidebar');
       return (
@@ -978,7 +983,7 @@ try {
   await page.getByLabel('كلمة المرور الجديدة', { exact: true }).fill('Reader Personal 456!');
   await page.getByLabel('تأكيد كلمة المرور الجديدة').fill('Reader Personal 456!');
   await page.getByRole('button', { name: 'حفظ ودخول المنظومة' }).click();
-  await page.getByRole('heading', { name: 'قسم استلامات الديون', exact: true }).waitFor();
+  await page.locator('.workspace.active-section-collections .collections-page [role=tablist]').waitFor();
   await page.locator('.identity-app strong').getByText('منظومة اختبار الإصلاحات', { exact: true }).waitFor();
   const branding = await context.request.get(`${base}/api/organization-branding`);
   assert.equal(branding.status(), 200);
@@ -1029,7 +1034,7 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'فتح القائمة الرئيسية' }).click();
   await page.locator('.sidebar').getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
-  await page.getByRole('heading', { name: 'قسم استلامات الديون', exact: true }).waitFor();
+  await page.locator('.workspace.active-section-collections .collections-page [role=tablist]').waitFor();
   await verifyCollectionsPhone('employee');
   await page.getByRole('button', { name: 'إنشاء عميل مستقل', exact: true }).click();
   await page.getByLabel('اسم العميل', { exact: true }).fill('عميل مستقل تجريبي');
@@ -1116,7 +1121,8 @@ try {
   await page.getByRole('button', { name: 'تسجيل الدخول' }).click();
   await page.locator('.app-shell').waitFor();
   await page.getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
-  await page.getByRole('heading', { name: 'قسم استلامات الديون', exact: true }).waitFor();
+  await page.locator('.workspace.active-section-collections .collections-page [role=tablist]').waitFor();
+  await page.locator('#board-tab-review').click();
   const independentAdminCard = page.locator('.unlinked-admin-card').filter({ hasText: 'عميل مستقل تجريبي' });
   await independentAdminCard.waitFor();
   assert.equal(await independentAdminCard.getByRole('button', { name: 'عميل قديم', exact: true }).count(), 1);

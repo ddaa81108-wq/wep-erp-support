@@ -49,6 +49,29 @@ try {
   await expect(board.locator('.collection-overview-header')).toHaveCount(0);
   const summary = () => board.locator('.collection-board-summary').innerText();
   const originalSummary = await summary();
+  const assertWholeBalances = async () => {
+    await expect
+      .poll(
+        () =>
+          board.locator('.board-current-balance bdi').evaluateAll((numbers) =>
+            numbers.flatMap((number) => {
+              const card = number.closest('.board-assignment')!.getBoundingClientRect();
+              const range = document.createRange();
+              range.selectNodeContents(number);
+              const bounds = range.getBoundingClientRect();
+              const rows = [...range.getClientRects()].filter((rect) => rect.width > 0);
+              const wrapped = rows.some((rect) => Math.abs(rect.top - rows[0].top) > 1);
+              return wrapped || bounds.left < card.left + 5 || bounds.right > card.right - 5
+                ? [{ text: number.textContent, wrapped, width: bounds.width, cardWidth: card.width }]
+                : [];
+            }),
+          ),
+        {
+          message: 'Every balance must remain one complete, unclipped number after responsive layout settles',
+        },
+      )
+      .toEqual([]);
+  };
   const tabs = ['review', 'cash', 'all', 'previous'];
   let screens = 0;
   for (const shell of ['original', '03']) {
@@ -81,9 +104,17 @@ try {
               Math.abs(batchBox.y + batchBox.height / 2 - (payrollBox.y + payrollBox.height / 2)) < 12,
             'Batch and actions share one row',
           );
-          for (const control of [board.getByLabel('الموظف', {exact:true}), board.getByLabel('بحث في الاستلامات', {exact:true}), board.getByRole('button',{name:'كشف PDF للدفعة',exact:true}), board.getByRole('button',{name:'إغلاق ومسح الدفعة',exact:true})]) {
-            const rect=await control.boundingBox();
-            assert.ok(batchBox && rect && Math.abs(rect.y+rect.height/2-batchBox.y-batchBox.height/2)<12, 'Every desktop filter/action shares one row');
+          for (const control of [
+            board.getByLabel('الموظف', { exact: true }),
+            board.getByLabel('بحث في الاستلامات', { exact: true }),
+            board.getByRole('button', { name: 'كشف PDF للدفعة', exact: true }),
+            board.getByRole('button', { name: 'إغلاق ومسح الدفعة', exact: true }),
+          ]) {
+            const rect = await control.boundingBox();
+            assert.ok(
+              batchBox && rect && Math.abs(rect.y + rect.height / 2 - batchBox.y - batchBox.height / 2) < 12,
+              'Every desktop filter/action shares one row',
+            );
           }
         }
         for (const tab of tabs) {
@@ -104,7 +135,11 @@ try {
                 .map((element) => element.outerHTML.slice(0, 120)),
             );
           assert.deepEqual(outside, [], `${shell}/${theme}/${width}/${tab}: controls outside viewport`);
-          if (tab === 'all') await expect(board.locator('.board-assignment')).toHaveCount(200);
+          if (tab === 'all') {
+            await expect(board.locator('.board-assignment')).toHaveCount(200);
+            await expect(board.locator('.board-current-balance bdi')).toHaveCount(200);
+            await assertWholeBalances();
+          }
           if (tab === 'previous') await expect(board.locator('.outstanding-cash-row')).toHaveCount(2);
           await page.evaluate(() => scrollTo(0, 0));
           await page.screenshot({
@@ -116,6 +151,37 @@ try {
       }
     }
   }
+  // UI-only responses exercise the full signed safe-integer display range. The
+  // financial fixture is deliberately not modified by these presentation cases.
+  const dashboardResponse = await context.request.get(base + '/api/collections');
+  const dashboard = (await dashboardResponse.json()).data;
+  const values = [0, 1, -1, 1234567890, Number.MAX_SAFE_INTEGER, -Number.MAX_SAFE_INTEGER];
+  const extremeDashboard = {
+    ...dashboard,
+    assignments: dashboard.assignments.slice(0, values.length).map((item: object, index: number) => ({
+      ...item,
+      balanceUnits: values[index],
+      customerName: 'اسم عميل طويل جدًا لاختبار وضوح الرصيد كاملًا دون قص أو كسر ' + index,
+    })),
+  };
+  await page.route('**/api/collections', (route) =>
+    route.fulfill({ json: { ok: true, data: extremeDashboard } }),
+  );
+  await page.reload();
+  await page.getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
+  await expect(board.locator('.board-assignment')).toHaveCount(values.length);
+  for (const width of [360, 390, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await assertWholeBalances();
+    await page.screenshot({
+      path: `${directory}/unbroken-signed-balances-${width}.png`,
+      animations: 'disabled',
+    });
+  }
+  await page.unroute('**/api/collections');
+  await page.reload();
+  await page.getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
+  await expect(board.locator('.board-assignment')).toHaveCount(200);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator('#board-tab-all').click();
   await idle();

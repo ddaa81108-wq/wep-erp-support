@@ -317,7 +317,8 @@ export function CollectionWorkBoard({
                     <div className="board-current-balance">
                       <small>{uiText('الرصيد الحالي')}</small>
                       <b>
-                        {collectionMoney.format(assignment.balanceUnits)} {uiText('د.ل')}
+                        <bdi dir="ltr">{collectionMoney.format(assignment.balanceUnits)}</bdi>
+                        <span className="board-balance-currency">{uiText('د.ل')}</span>
                       </b>
                     </div>
                   </header>
