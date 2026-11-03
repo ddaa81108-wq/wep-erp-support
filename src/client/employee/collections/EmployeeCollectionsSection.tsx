@@ -18,6 +18,7 @@ import { EmployeeCollectionHeader, type EmployeeCollectionTab } from './Employee
 import { EmployeeCollectionReceipts, EmployeeAssignmentReceipts } from './EmployeeCollectionReceipts.tsx';
 import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { CollectionPayrollPanel } from '../../sections/collections/CollectionPayrollPanel.tsx';
+import { CollectionCardAmounts } from '../../sections/collections/CollectionCardAmounts.tsx';
 
 function PartialReceiptForm({
   busy,
@@ -340,10 +341,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
                         >
                           <span>{assignment.assigneeName}</span>
                           <strong>{assignment.customerName}</strong>
-                          <small className="employee-balance-label">{uiText('الرصيد الحالي')}</small>
-                          <b>
-                            {collectionMoney.format(assignment.balanceUnits)} {uiText(' د.ل')}
-                          </b>
+                          <CollectionCardAmounts assignment={assignment} />
                           <small>{assignment.phone || uiText('لا يوجد رقم هاتف')}</small>
                           <EmployeeAssignmentReceipts id={assignment.id} revision={data} />
                           <div className="collector-actions">

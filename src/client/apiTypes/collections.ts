@@ -6,6 +6,7 @@ export type CollectionAssignment = {
   customerName: string;
   phone: string | null;
   balanceUnits: number;
+  assignedBalanceUnits?: number | null;
   hasPending: number;
   hasPendingFull: number;
   assignedAt: string;

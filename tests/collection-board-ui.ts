@@ -53,7 +53,7 @@ try {
     await expect
       .poll(
         () =>
-          board.locator('.board-current-balance bdi').evaluateAll((numbers) =>
+          board.locator('[data-amount="current"] bdi').evaluateAll((numbers) =>
             numbers.flatMap((number) => {
               const card = number.closest('.board-assignment')!.getBoundingClientRect();
               const range = document.createRange();
@@ -137,7 +137,7 @@ try {
           assert.deepEqual(outside, [], `${shell}/${theme}/${width}/${tab}: controls outside viewport`);
           if (tab === 'all') {
             await expect(board.locator('.board-assignment')).toHaveCount(200);
-            await expect(board.locator('.board-current-balance bdi')).toHaveCount(200);
+            await expect(board.locator('[data-amount="current"] bdi')).toHaveCount(200);
             await assertWholeBalances();
           }
           if (tab === 'previous') await expect(board.locator('.outstanding-cash-row')).toHaveCount(2);

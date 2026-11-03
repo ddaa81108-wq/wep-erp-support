@@ -298,48 +298,39 @@
   align-items: start;
 }
 .collection-board .board-assignment {
-  min-height: 130px;
-  padding: 12px;
-  gap: 10px;
+  min-height: 0;
+  padding: 9px;
+  gap: 6px;
   border: 1px solid #ffffff38;
 }
 .collection-board .board-assignment > header {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 9px;
+  gap: 4px;
   min-width: 0;
 }
 .collection-board .board-assignment > header strong {
   font-size: 13px;
   overflow-wrap: anywhere;
 }
+.collection-board .board-assignment > header > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+.collection-board .board-assignment > header > div strong { min-width: 0; line-height: 1.5; }
+.collection-board .board-assignment > header > div > span {
+  max-width: 45%;
+  font-size: 9px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .collection-board .board-assignment > header span {
   font-size: 11px;
   color: #fff;
-}
-.board-current-balance {
-  min-width: 0;
-  max-width: 100%;
-  text-align: start;
-}
-.board-current-balance small {
-  font-size: 9px;
-}
-.collection-board .board-current-balance b {
-  display: flex;
-  align-items: baseline;
-  gap: 5px;
-  min-width: 0;
-  font-size: 15px;
-  white-space: nowrap;
-  overflow-wrap: normal;
-  word-break: normal;
-}
-.collection-board .board-current-balance bdi {
-  white-space: nowrap;
-  overflow-wrap: normal;
-  word-break: normal;
-  font-variant-numeric: tabular-nums;
 }
 .board-assignment-state {
   display: flex;

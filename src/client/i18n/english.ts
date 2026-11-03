@@ -2,6 +2,9 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'قيمة التوجيه': 'Assigned debt',
+  'غير مسجلة': 'Not recorded',
+  'رُفضت العملية — التوجيه مستمر': 'Receipt rejected — assignment remains active',
   'إلغاء توجيه {0} من {1}': 'Remove assignment of {0} from {1}',
   'إلغاء توجيه «{0}» من «{1}»؟ ستبقى الاستلامات السابقة والنقدية باسم الموظف الأصلي دون تغيير.': 'Remove the assignment of “{0}” from “{1}”? Existing receipts and cash remain with the original employee.',
   'تم إلغاء توجيه الكارت. يمكنك توجيهه لموظف آخر إذا كان عليه دين.': 'Assignment removed. You can assign the card to another employee if it has an outstanding debt.',

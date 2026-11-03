@@ -47,7 +47,17 @@ Run `npm run test:employee-collection-board-ui` for 60 employee visual states ac
 
 Administrators can cancel one approved linked/unlinked receipt before its cash has been confirmed received. A reason and the expected posting reference are required. The operation uses the existing ledger reversal command and one database transaction to reverse the intact original posting, mark the receipt rejected, retain its original posting reference, record the cancellation evidence, and remove its outstanding cash liability. It does not delete or reverse other receipts or later account activity.
 
-No migration is needed: a rejected receipt with a retained approved posting reference represents a cancelled approval. Read APIs expose `approvalCancelled`, and complete histories show the cancellation and reason to the administrator and employee. Ordinary pre-approval rejections retain their existing behavior. Original approval actor/time and notes are preserved in audit evidence; the ledger retains the reversed posting.
+No migration is needed: a rejected receipt with a retained approved posting reference represents a cancelled approval. Read APIs expose `approvalCancelled`, and complete histories show the cancellation and reason to the administrator and employee. Original approval actor/time and notes are preserved in audit evidence; the ledger retains the reversed posting.
+
+## Pre-approval rejection keeps the assignment
+
+Rejecting a pending linked receipt now rejects that receipt only. The existing customer/company assignment remains active for the same employee, even when no other receipts are pending. The employee can submit a corrected receipt with a new requestId without asking for reassignment. Posted balances, earlier approved receipts and outstanding cash remain unchanged. Only the explicit administrator unassignment action (or batch closure) ends the assignment. Previously cancelled assignments are not automatically reactivated; historical migration 46 remains unchanged.
+
+## Compact cards retain assigned debt after settlement
+
+Admin and employee cards display `assignedBalanceUnits` (the fixed debt when this assignment was created) beside `balanceUnits` (the current signed account balance). This is not the account's opening balance or the amount of its latest receipt. A later payment, rejection or account edit never overwrites the assignment snapshot; a new assignment records its own current debt. Expanded receipt history remains optional.
+
+Schema 54 adds the nullable `debt_assignments.assigned_balance_units` display snapshot. For legacy assignments, backfill only reconstructs the value when the available ledger shows no unrelated entries/edits or cycle changes since assignment. Unknown historical values remain null and are displayed as “غير مسجلة”; zero is never substituted for an unknown amount. Financial transactions, balances and receipt ownership are unchanged. Rejected active cards now have an explicit opaque background and readable text in both themes.
 
 POST `/api/collections/submissions/:id/cancel-approval` and `/api/collections/unlinked-receipts/:id/cancel-approval` accept `requestId`, `reason`, and `expectedTransactionId`. Only administrators can call these routes. Cash already received, a changed/corrected original posting, a different currency or an inactive posting cycle blocks the operation. Exact retries replay the result, while a competing cash confirmation and cancellation can only yield one successful transition.
 

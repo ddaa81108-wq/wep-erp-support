@@ -4,7 +4,7 @@ import { collectionCardTone, compareCollectionCards, type CollectionCardState } 
 import { openDatabase } from '../src/server/db/database.ts';
 import { collectionRejectionMigrations } from '../src/server/db/migrationsCollectionRejection.ts';
 import { createCustomer, addCustomerTransaction } from '../src/server/domain/customers.ts';
-import { assignCustomers, submitCollection, decideCollection, markCollectionCashReceived, listCollections } from '../src/server/domain/collections.ts';
+import { assignCustomers, cancelCollectionAssignment, submitCollection, decideCollection, markCollectionCashReceived, listCollections } from '../src/server/domain/collections.ts';
 import type { AuthenticatedUser } from '../src/server/security/sessions.ts';
 
 const card = (id: string, changes: Partial<CollectionCardState> = {}): CollectionCardState => ({
@@ -83,18 +83,22 @@ test('collection API ordering tracks financial origin and preserves approval and
     assert.equal(collectionCardTone(list().find(c=>c.id===assignmentIds[0])!), 'collection-red');
     const reject=submitCollection(db,employee,assignmentIds[1],{requestId:'presentation-submit-3',mode:'partial',amountUnits:10},'test');
     decideCollection(db,admin,reject.id,{decision:'reject'},'test');
-    assert.ok(!list().some(c => c.id === assignmentIds[1]));
-    assert.ok(!list(employee).some(c => c.id === assignmentIds[1]));
-    assert.equal(listCollections(db, admin).assignedCount, 1);
+    assert.ok(list().some(c => c.id === assignmentIds[1]));
+    assert.ok(list(employee).some(c => c.id === assignmentIds[1]));
+    assert.equal(listCollections(db, admin).assignedCount, 2);
     assert.equal(db.prepare('SELECT current_balance_units balance FROM customers WHERE id=?').get(ids[1])!.balance, 100);
     assert.equal(db.prepare('SELECT status FROM collection_submissions WHERE id=?').get(reject.id)!.status, 'rejected');
-    assert.throws(() => submitCollection(db, employee, assignmentIds[1], {requestId:'presentation-submit-4',mode:'partial',amountUnits:10}, 'test'), /غير نشط/);
+    const corrected = submitCollection(db, employee, assignmentIds[1], {requestId:'presentation-submit-4',mode:'partial',amountUnits:10}, 'test');
+    decideCollection(db,admin,corrected.id,{decision:'reject'},'test');
+    cancelCollectionAssignment(db,admin,assignmentIds[1],'test');
     const reassigned = assignCustomers(db, admin, { customerIds:[ids[1]], assigneeUserId:employee.id }, 'test').assignmentIds[0];
     const approved = submitCollection(db, employee, reassigned, {requestId:'presentation-submit-5',mode:'partial',amountUnits:20}, 'test');
     decideCollection(db, admin, approved.id, {decision:'approve'}, 'test');
     const refusedAgain = submitCollection(db, employee, reassigned, {requestId:'presentation-submit-6',mode:'partial',amountUnits:5}, 'test');
     assert.throws(() => decideCollection(db, employee, refusedAgain.id, {decision:'reject'}, 'test'));
     decideCollection(db, admin, refusedAgain.id, {decision:'reject'}, 'test');
+    assert.ok(list(employee).some(c => c.id === reassigned));
+    cancelCollectionAssignment(db,admin,reassigned,'test');
     const outstanding = listCollections(db, admin).outstandingCancelledSubmissions;
     assert.deepEqual(outstanding.map(row => row.id), [approved.id]);
     assert.equal(outstanding[0].amountUnits, 20);

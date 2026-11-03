@@ -55,7 +55,7 @@ try {
   database.prepare("UPDATE users SET must_change_password=0 WHERE username='collector'").run();
   const collector=await browser.newContext();
   const collectorLogin=await collector.request.post(base+'/api/auth/login',{headers:{'X-Client-Api-Version':'1'},data:{username:'collector',password:'Live Collector 123!'}});
-  const collectorCsrf=(await collectorLogin.json()).data.csrfToken;
+  let collectorCsrf=(await collectorLogin.json()).data.csrfToken;
   const collectorId=String((database.prepare("SELECT id FROM users WHERE username='collector'").get() as {id:string}).id);
   const submit=async (id:string,mode:string,amountUnits:number)=>{
     const response=await collector.request.post(base+'/api/collections/assignments/'+id+'/submissions',{headers:{'X-Client-Api-Version':'1','X-CSRF-Token':collectorCsrf},data:{mode,amountUnits,requestId:crypto.randomUUID()}});
@@ -108,11 +108,25 @@ try {
   await expect(adminPage.locator('.unlinked-admin-card')).toHaveCount(0);
   await expect(employeePage.locator('.unlinked-receipt-card')).toHaveCount(0, {timeout:7000});
   await adminPage.locator('.board-receipt').filter({hasText:names[5]}).getByRole('button',{name:'رفض',exact:true}).click();
-  await expect(adminCards.filter({hasText:names[5]})).toHaveCount(0);
+  await adminPage.locator('#board-tab-all').click();
+  await expect(adminCards.filter({hasText:names[5]})).toHaveCount(1);
   await employeePage.locator('#employee-tab-cards').click();
-  await expect(employeeCards.filter({hasText:names[5]})).toHaveCount(0, {timeout:7000});
+  await expect(employeeCards.filter({hasText:names[5]})).toHaveCount(1, {timeout:7000});
   const afterReject = await read(writer.request, '/api/collections');
-  assert.equal(afterReject.assignedCount, 5);
+  assert.equal(afterReject.assignedCount, 6);
+  await expect(adminCards.filter({hasText:names[5]}).locator('[data-amount="assigned"] bdi')).toHaveText('100');
+  await expect(adminCards.filter({hasText:names[5]}).locator('[data-amount="current"] bdi')).toHaveText('80');
+  await expect(employeeCards.filter({hasText:names[5]}).locator('[data-amount="assigned"] bdi')).toHaveText('100');
+  await expect(employeeCards.filter({hasText:names[5]}).locator('[data-amount="current"] bdi')).toHaveText('80');
+  const rejectedCard=adminCards.filter({hasText:names[5]});
+  await rejectedCard.locator('.board-card-history > summary').click();
+  const activeAssignment=afterReject.assignments.find((item: {customerName:string})=>item.customerName===names[5]);
+  collectorCsrf=(await read(collector.request,'/api/auth/csrf')).csrfToken;
+  const nextMistake=await submit(activeAssignment.id,'partial',5);
+  await rejectedCard.locator(`[data-receipt-id="${nextMistake.id}"]`).getByRole('button',{name:'رفض',exact:true}).click();
+  await expect(rejectedCard.locator('.board-card-history')).not.toHaveAttribute('open');
+  await expect(rejectedCard.locator('[data-amount="assigned"] bdi')).toHaveText('100');
+  await expect(rejectedCard.locator('[data-amount="current"] bdi')).toHaveText('80');
   await adminPage.locator('#board-tab-cash').click();
   const cancelledCash = adminPage.locator('.board-receipt').filter({hasText:names[5]});
   await expect(cancelledCash).toContainText('20');
@@ -129,18 +143,21 @@ try {
     await page.locator('.collections-page').waitFor();
     if (page === adminPage) await page.locator('#board-tab-all').click();
     const cards=page===adminPage?page.locator('.board-assignment-grid > .board-assignment'):page.locator('.collection-grid > .collection-card');
-    await expect(cards).toHaveCount(5);
+    await expect(cards).toHaveCount(6);
     for(const [i,tone] of ['collection-base','collection-yellow','zero-collection-card','collection-red','collection-green'].entries()) {
       await expect(cards.filter({hasText:names[i]})).toHaveClass(new RegExp(tone));
     }
     await expect(page.locator('.collection-rejected-badge')).toHaveCount(0);
-    await expect(cards.filter({hasText:names[5]})).toHaveCount(0);
+    await expect(cards.filter({hasText:names[5]})).toHaveCount(1);
+    await expect(cards.filter({hasText:names[2]}).locator('[data-amount="assigned"] bdi')).toHaveText('100');
+    await expect(cards.filter({hasText:names[2]}).locator('[data-amount="current"] bdi')).toHaveText('0');
     const order=await cards.evaluateAll(elements=>elements.map(e=>e.className));
     assert.ok(order[0].includes('collection-base'));
     assert.ok(order[1].includes('collection-yellow'));
     assert.ok(order[2].includes('collection-green'));
     assert.ok(order[3].includes('zero-collection-card'));
     assert.ok(order[4].includes('collection-red'));
+    assert.ok(order[5].includes('collection-rejected'));
     mkdirSync(resolve('artifacts','collection-states'),{recursive:true});
     for (const appearance of ['original','03']) {
       if ((await page.evaluate(() => document.documentElement.dataset.royalShell) === '03') !== (appearance === '03'))

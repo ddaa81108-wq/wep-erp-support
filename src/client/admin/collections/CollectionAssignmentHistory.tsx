@@ -21,6 +21,9 @@ export function CollectionAssignmentHistory({
     [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   useEffect(() => {
+    if (assignment.latestStatus === 'rejected') setOpen(false);
+  }, [assignment.latestStatus, assignment.latestDecisionAt]);
+  useEffect(() => {
     if (!open) return;
     const controller = new AbortController();
     setLoading(true);
@@ -42,7 +45,7 @@ export function CollectionAssignmentHistory({
     return () => controller.abort();
   }, [assignment.batchId, assignment.id, page, open, revision]);
   return (
-    <details className="board-card-history" onToggle={(event) => setOpen(event.currentTarget.open)}>
+    <details className="board-card-history" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary>{uiText('تفاصيل الاستلامات')}</summary>
       {open && (
         <>

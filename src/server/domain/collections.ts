@@ -66,6 +66,7 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     a.status, a.business_date AS businessDate, a.batch_id AS batchId, a.assigned_at AS assignedAt, c.name AS customerName, c.phone, c.version AS customerVersion,
     u.display_name AS assigneeName,
     c.current_balance_units AS balanceUnits,
+    a.assigned_balance_units AS assignedBalanceUnits,
     EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending') AS hasPending,
     EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending' AND s.mode='full') AS hasPendingFull,
     (SELECT s.mode FROM collection_submissions s WHERE s.assignment_id=a.id AND NOT (s.status='rejected' AND s.approved_transaction_id IS NOT NULL) ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestMode,
@@ -355,8 +356,8 @@ export function assignCustomers(db: AppDatabase, actor: AuthenticatedUser, input
       if (Number(customer.current_balance_units) <= 0) throw conflict('ASSIGNMENT_REQUIRES_POSITIVE_DEBT', 'يمكن توجيه الكروت ذات الدين الموجب فقط. كارت الصفر أو الأمانة لا يقبل التوجيه.');
       if (db.prepare("SELECT id FROM debt_assignments WHERE customer_id=? AND status='active'").get(customerId)) throw conflict('CUSTOMER_ALREADY_ASSIGNED', 'أحد الكروت محدد لموظف بالفعل.');
       const id = randomUUID();
-      db.prepare(`INSERT INTO debt_assignments(id,customer_id,assignee_user_id,assigned_by_user_id,status,assigned_at,business_date,batch_id)
-        VALUES(?,?,?,?,'active',?,?,?)`).run(id, customerId, assigneeId, actor.id, createdAt, businessDate, String(batch.id)); ids.push(id);
+      db.prepare(`INSERT INTO debt_assignments(id,customer_id,assignee_user_id,assigned_by_user_id,status,assigned_at,business_date,batch_id,assigned_balance_units)
+        VALUES(?,?,?,?,'active',?,?,?,?)`).run(id, customerId, assigneeId, actor.id, createdAt, businessDate, String(batch.id), Number(customer.current_balance_units)); ids.push(id);
     }
     audit(db, actor.id, actor.organizationId, 'collection.assign', ids[0], correlationId, { assigneeId, customerIds, section });
     const eventSequence = emitCollectionEvent(db, assigneeId, actor.id, actor.organizationId, 'assigned', { assignmentIds: ids, customerIds, section });
@@ -453,13 +454,10 @@ export function decideCollection(db: AppDatabase, actor: AuthenticatedUser, subm
     const decidedAt = nowIso(); const note = typeof input.note === 'string' ? input.note.trim().slice(0, 500) : '';
     if (decision === 'reject') {
       db.prepare("UPDATE collection_submissions SET status='rejected',decided_by_user_id=?,decided_at=?,decision_note=? WHERE id=?").run(actor.id, decidedAt, note, submissionId);
-      const cancelled = db.prepare(`UPDATE debt_assignments SET status='cancelled',cancelled_at=? WHERE id=? AND status='active'
-        AND NOT EXISTS(SELECT 1 FROM collection_submissions WHERE assignment_id=debt_assignments.id AND status='pending')`)
-        .run(decidedAt, String(row.assignment_id));
+      // Reject this receipt only. Ending the employee's assignment is a separate admin action.
       audit(db, actor.id, actor.organizationId, 'collection.reject', submissionId, correlationId, { note, assignmentId: row.assignment_id });
       const collectionEvent = emitCollectionEvent(db, submissionId, actor.id, actor.organizationId, 'rejected');
-      const assignmentEvents = cancelled.changes ? [emitDebtAssignmentEvent(db, String(row.customer_id), actor.id, actor.organizationId, 'unassigned', String(row.section_key))] : [];
-      return { id: submissionId, status: 'rejected', eventSequences: [collectionEvent, ...assignmentEvents] };
+      return { id: submissionId, status: 'rejected', eventSequences: [collectionEvent] };
     }
     const transactionKind = String(row.section_key) === 'company_debts' ? 'company' : 'customer';
     const collectorPermission = transactionKind === 'company' ? 'companies.write' : 'debts.write';

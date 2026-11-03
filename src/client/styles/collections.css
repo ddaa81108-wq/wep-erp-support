@@ -1159,6 +1159,27 @@
   .admin-customer-collection-card > header b { font-size: 15px; }
 }
 
+.collection-card.collection-rejected,
+.admin-customer-collection-card.collection-rejected {
+  background: linear-gradient(145deg, #35405b, #19263c);
+  color: #fff;
+  border-color: #f0bf69;
+}
+.collection-card .collection-card-amounts,
+.admin-customer-collection-card .collection-card-amounts {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+}
+.collection-card-amounts > div { min-width: 0; display: grid; gap: 2px; }
+.collection-card-amounts small { font-size: 9px; color: inherit; opacity: .9; }
+.collection-card-amounts b { display: flex; gap: 4px; align-items: baseline; font-size: 15px; white-space: nowrap; }
+.collection-card-amounts bdi { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.collection-card-amounts b span { font-size: 9px; }
+
 .collection-card.collection-base,
 .admin-customer-collection-card.collection-base {
   background: linear-gradient(145deg, #3548ff 0%, #211caf 52%, #15126f 100%);

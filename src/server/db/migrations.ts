@@ -17,6 +17,7 @@ import { zeroReviewMigrations } from './migrationsZeroReview.ts';
 import { collectionInstallmentMigrations } from './migrationsCollectionInstallments.ts';
 import { unlinkedCurrencyMigrations } from './migrationsUnlinkedCurrency.ts';
 import { notificationSpeechMigrations } from './migrationsNotificationSpeech.ts';
+import { collectionAssignedAmountMigrations } from './migrationsCollectionAssignedAmount.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -38,4 +39,5 @@ export const migrations: Migration[] = [
   ...collectionInstallmentMigrations,
   ...unlinkedCurrencyMigrations,
   ...notificationSpeechMigrations,
+  ...collectionAssignedAmountMigrations,
 ];

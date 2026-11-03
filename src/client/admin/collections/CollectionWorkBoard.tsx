@@ -10,6 +10,7 @@ import { OutstandingCollectionCash } from '../../sections/collections/Outstandin
 import { UnlinkedReceiptsPanel } from './UnlinkedReceiptsPanel.tsx';
 import { CollectionReceiptRows } from './CollectionReceiptRows.tsx';
 import { CollectionAssignmentHistory } from './CollectionAssignmentHistory.tsx';
+import { CollectionCardAmounts } from '../../sections/collections/CollectionCardAmounts.tsx';
 
 type Tab = 'review' | 'cash' | 'all' | 'previous';
 type Props = {
@@ -314,17 +315,13 @@ export function CollectionWorkBoard({
                       <strong>{assignment.customerName}</strong>
                       <span>{assignment.assigneeName}</span>
                     </div>
-                    <div className="board-current-balance">
-                      <small>{uiText('الرصيد الحالي')}</small>
-                      <b>
-                        <bdi dir="ltr">{collectionMoney.format(assignment.balanceUnits)}</bdi>
-                        <span className="board-balance-currency">{uiText('د.ل')}</span>
-                      </b>
-                    </div>
                   </header>
+                  <CollectionCardAmounts assignment={assignment} />
                   <div className="board-assignment-state">
                     <span>
-                      {assignment.hasPending
+                      {assignment.latestStatus === 'rejected' && !assignment.hasPending
+                        ? uiText('رُفضت العملية — التوجيه مستمر')
+                        : assignment.hasPending
                         ? uiText('يحتاج مراجعة')
                         : assignment.cashOutstandingCount
                           ? uiText('نقدية لم تُسلّم')
