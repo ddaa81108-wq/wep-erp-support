@@ -21,6 +21,8 @@ type Props = {
   ledger: Ledger | null;
   dialog: 'customer' | 'audit' | 'financial-ledger' | 'system-settings' | null;
   canWrite: boolean;
+  isAdmin: boolean;
+  onAccountDeleted: () => void;
   onCloseLedger: () => void;
   onRefreshLedger: (saved?: ConfirmedLedgerWrite) => Promise<void>;
   onLoadOlder: () => Promise<void>;
@@ -35,6 +37,8 @@ export function DashboardOverlays({
   ledger,
   dialog,
   canWrite,
+  isAdmin,
+  onAccountDeleted,
   onCloseLedger,
   onRefreshLedger,
   onLoadOlder,
@@ -56,6 +60,8 @@ export function DashboardOverlays({
           >
             <Suspense fallback={<OverlayLoading />}>
               <LedgerWorkspace
+                isAdmin={isAdmin}
+                onDeleted={onAccountDeleted}
                 section={section}
                 ledger={ledger}
                 canWrite={canWrite && !ledger.customer.systemManaged}

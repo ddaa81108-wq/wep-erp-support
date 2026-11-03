@@ -194,6 +194,12 @@ export function Dashboard({
         />
       </main>
       <DashboardOverlays
+        isAdmin={user.role === 'admin'}
+        onAccountDeleted={() => {
+          void debtAccounts.closeLedger();
+          setNotice({kind:'success',text:uiText('تم حذف الكارت من القسم. يمكنك إنشاء حساب جديد في القسم المطلوب.')});
+          void debtAccounts.refreshAfterMutation().catch(()=>setNotice({kind:'success',text:uiText('تم حذف الكارت. سيُحدّث العرض عند عودة الاتصال.')}));
+        }}
         section={debtSection}
         ledger={debtAccounts.ledger}
         dialog={dialog}

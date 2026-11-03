@@ -1,7 +1,7 @@
 import { uiText } from '../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Customer, CustomerFilter, Ledger, ConfirmedLedgerWrite } from '../api.ts';
-import { api } from '../api.ts';
+import { api, ApiError } from '../api.ts';
 import { flushBeforeNavigation } from './navigationGuards.ts';
 import { oldestLedgerSequence, readLedgerWindow } from './ledgerReadWindow.ts';
 import {
@@ -211,7 +211,13 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
               : current;
           }),
         ),
-      ]);
+      ]).catch((error: unknown) => {
+        if(error instanceof ApiError && error.status===404 && error.code==='NOT_FOUND') {
+          setLedger(current=>current?.customer.id===id?null:current);
+          return;
+        }
+        throw error;
+      });
     },
     [fetchLedger, fetchCustomer],
   );

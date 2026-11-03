@@ -2,6 +2,17 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'حذف الكارت': 'Delete account',
+  'تعذر حذف الكارت.': 'Could not delete the account.',
+  'الرصيد الحالي: {0} {1}': 'Current balance: {0} {1}',
+  'سيختفي الكارت من القسم والبحث، ويُستبعد رصيده من الإجماليات الحالية. يبقى سجل معاملاته محفوظًا للمراجعة. إنشاء حساب جديد لا ينقل إليه الرصيد تلقائيًا.': 'The account will disappear from the section and search, and its balance will be excluded from current totals. Its transaction history is retained for audit. A new account does not inherit this balance automatically.',
+  'اكتب اسم الكارت لتأكيد الحذف': 'Type the account name to confirm deletion',
+  'سبب الحذف': 'Deletion reason',
+  'راجعت الرصيد وأوافق على حذف الكارت وأثره على الإجماليات.': 'I reviewed the balance and confirm deletion and its effect on totals.',
+  'جارٍ الحذف…': 'Deleting…',
+  'تأكيد حذف الكارت': 'Confirm account deletion',
+  'تم حذف الكارت من القسم. يمكنك إنشاء حساب جديد في القسم المطلوب.': 'Account deleted from the section. You can create a new account in the required section.',
+  'تم حذف الكارت. سيُحدّث العرض عند عودة الاتصال.': 'Account deleted. The view will refresh when the connection returns.',
   'قيمة التوجيه': 'Assigned debt',
   'غير مسجلة': 'Not recorded',
   'رُفضت العملية — التوجيه مستمر': 'Receipt rejected — assignment remains active',

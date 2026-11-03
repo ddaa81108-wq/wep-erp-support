@@ -6,6 +6,7 @@ import { useUnsavedForm } from '../../dashboard/useUnsavedForm.ts';
 import { debtSectionText, type DebtSection } from './sectionConfig.ts';
 import { currencyLabel } from './debtSectionUtils.ts';
 import { createSectionAccount, listSectionSuggestions, updateSectionAccount } from './debtSectionApi.ts';
+import { DeleteAccountDialog } from './DeleteAccountDialog.tsx';
 
 const errorText = (error: unknown) => error instanceof ApiError
   ? error.message
@@ -71,12 +72,15 @@ export function CustomerForm({ section, initial, onClose, onCreated, onExisting 
   </form></Modal>;
 }
 
-export function CustomerDetailsForm({ section, ledger, onClose, onSaved }: {
+export function CustomerDetailsForm({ section, ledger, onClose, onSaved, isAdmin, onDeleted }: {
   section: DebtSection;
   ledger: Ledger;
   onClose: () => void;
   onSaved: () => Promise<void>;
+  isAdmin?: boolean;
+  onDeleted?: () => void;
 }) {
+  const [deleting,setDeleting]=useState(false);
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   const { bindForm, trackChanges, markSaved, confirmLeave } = useUnsavedForm(busy);
   const close = () => { if (confirmLeave()) onClose(); };
@@ -93,10 +97,12 @@ export function CustomerDetailsForm({ section, ledger, onClose, onSaved }: {
       await onSaved();
     } catch (caught) { setError(errorText(caught)); } finally { setBusy(false); }
   }
+  if(deleting&&isAdmin&&onDeleted)return <DeleteAccountDialog section={section} customer={ledger.customer} onClose={()=>setDeleting(false)} onDeleted={onDeleted}/>;
   return <Modal title={uiText("تعديل بيانات {0}", [debtSectionText[section].singular])} onClose={close}><form ref={bindForm} onInput={trackChanges} onChange={trackChanges} className="stack" onSubmit={submit}>
     <label>{uiText("اسم ")}{debtSectionText[section].singular}<input name="name" defaultValue={ledger.customer.name} required minLength={2} maxLength={160} autoFocus /></label>
     <label>{uiText("رقم الهاتف")}<input name="phone" defaultValue={ledger.customer.phone ?? ''} inputMode="tel" dir="ltr" /></label>
     {error && <div className="alert error">{error}</div>}
     <div className="form-actions"><button type="button" className="secondary" onClick={close}>{uiText("إلغاء")}</button><button className="primary" disabled={busy}>{busy ? uiText("جارٍ الحفظ…") : uiText("حفظ البيانات")}</button></div>
+    {isAdmin&&onDeleted&&!ledger.customer.systemManaged&&<button type="button" className="secondary account-delete-open" disabled={busy} onClick={()=>{if(confirmLeave())setDeleting(true);}}>{uiText('حذف الكارت')}</button>}
   </form></Modal>;
 }

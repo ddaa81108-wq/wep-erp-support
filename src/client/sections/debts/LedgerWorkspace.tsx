@@ -20,10 +20,14 @@ export function LedgerWorkspace({
   onRefresh,
   onLoadOlder,
   onNotice,
+  isAdmin,
+  onDeleted,
 }: {
   section: DebtSection;
   ledger: Ledger;
   canWrite: boolean;
+  isAdmin?: boolean;
+  onDeleted?: () => void;
   onClose: () => void;
   onRefresh: (saved?: ConfirmedLedgerWrite) => Promise<void>;
   onLoadOlder: () => Promise<void>;
@@ -82,6 +86,8 @@ export function LedgerWorkspace({
       <AnimatePresence>
         {detailsOpen && (
           <CustomerDetailsForm
+            isAdmin={isAdmin}
+            onDeleted={onDeleted}
             section={section}
             ledger={ledger}
             onClose={() => setDetailsOpen(false)}

@@ -2,6 +2,9 @@ import { language, uiText } from './language.ts';
 
 // Translate protocol errors by stable codes, never by modifying returned data.
 const messages: Readonly<Record<string, string>> = {
+  ACCOUNT_DELETE_REASON_REQUIRED: 'Enter a deletion reason between 5 and 500 characters.',
+  ACCOUNT_DELETE_CONFIRMATION_CHANGED: 'Review the latest balance, enter the account name and confirm the effect on totals.',
+  ACCOUNT_HAS_UNSETTLED_COLLECTIONS: 'Review pending receipts and confirm outstanding cash before deleting this account.',
   CANCELLATION_REASON_REQUIRED: 'Enter a cancellation reason between 5 and 500 characters.',
   COLLECTION_CASH_ALREADY_RECEIVED: 'Cash was already received for this receipt. Its approval cannot be cancelled here.',
   COLLECTION_APPROVAL_CHANGED: 'The approval changed or is not complete. Refresh and review the receipt.',

@@ -1,0 +1,8 @@
+.modal .account-delete-open { color: #a11c2d; border: 1px solid #c42d40; }
+.delete-account-dialog input:not([type='checkbox']) { height: 48px; min-height: 48px; box-sizing: border-box; }
+.delete-account-dialog textarea { height: 84px; min-height: 84px; box-sizing: border-box; resize: vertical; }
+.delete-account-dialog .account-delete-consent { display: flex; align-items: flex-start; gap: 9px; line-height: 1.7; }
+.delete-account-dialog .account-delete-consent input { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 4px; }
+.delete-account-dialog .delete-account-confirm { background: #b71f34; color: #fff; border-color: #b71f34; border-radius: 10px; padding: 10px 14px; }
+.delete-account-dialog .delete-account-confirm:disabled { opacity: .5; cursor: not-allowed; }
+.delete-account-dialog .delete-account-confirm:focus-visible { outline: 3px solid #db9b26; outline-offset: 3px; }

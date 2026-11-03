@@ -19,6 +19,7 @@ import { readJson, sendJson } from '../http/io.ts';
 import { decodePathSegment } from '../http/web.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
 import { reviewCustomerZero } from '../domain/customerZeroReview.ts';
+import { deleteCustomerAccount } from '../domain/customerDeletion.ts';
 
 export type PermanentAccountRouteContext = {
   database: AppDatabase;
@@ -96,6 +97,9 @@ export async function routePermanentAccounts(
       updateCustomerDetails(database, user, id, await readJson(request), correlationId, config.kind),
     );
   }
+  if (method === 'DELETE' && segments.length === 1) {
+    return sendOperation(response, events, deleteCustomerAccount(database,user,id,await readJson(request),correlationId,config.kind),true);
+  }
   if (method === 'GET' && action === 'ledger' && !transactionId) {
     requirePermission(user, config.readPermission);
     sendJson(response, 200, {
@@ -165,11 +169,12 @@ function sendOperation(
     status: number;
     body: unknown;
     eventSequence?: number;
+    eventSequences?: number[];
     replayed?: boolean;
   },
   includeReplay = false,
 ) {
-  if (result.eventSequence) events.publish(result.eventSequence);
+  for(const sequence of new Set([...(result.eventSequence?[result.eventSequence]:[]),...(result.eventSequences??[])])) events.publish(sequence);
   sendJson(response, result.status, {
     ok: true,
     data: result.body,

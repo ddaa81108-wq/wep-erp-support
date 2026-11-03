@@ -15,6 +15,7 @@ export type OperationResult = {
   status: number;
   body: Record<string, unknown>;
   eventSequence?: number;
+  eventSequences?: number[];
   replayed?: boolean;
 };
 
