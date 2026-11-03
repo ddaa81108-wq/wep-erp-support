@@ -72,6 +72,7 @@ try {
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(base + '/erp');
   await page.getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
+  await page.locator('#board-tab-review').click();
   await page.locator('.unlinked-admin-card').getByRole('button', { name: 'عميل قديم', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog).toContainText('عملة الاستلام: دينار ليبي فقط');
@@ -127,6 +128,7 @@ try {
   );
   await page.reload();
   await page.getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
+  await page.locator('#board-tab-review').click();
   await page
     .locator('.unlinked-admin-card')
     .filter({ hasText: 'تجربة رد قديم' })

@@ -41,6 +41,12 @@ try {
     await expect(board.getByRole('status').first()).toHaveText('متصل بالمزامنة الحية');
   };
   await idle();
+  await expect(board.getByRole('tab').first()).toHaveAttribute('id', 'board-tab-all');
+  await expect(page.locator('#board-tab-all')).toHaveAttribute('aria-selected', 'true');
+  await expect(
+    board.locator('.board-batch-actions').getByRole('button', { name: 'إغلاق ومسح الدفعة', exact: true }),
+  ).toHaveCount(1);
+  await expect(board.locator('.collection-overview-header')).toHaveCount(0);
   const summary = () => board.locator('.collection-board-summary').innerText();
   const originalSummary = await summary();
   const tabs = ['review', 'cash', 'all', 'previous'];
@@ -58,6 +64,28 @@ try {
           .click();
       for (const width of [360, 390, 768, 1024, 1440, 1920]) {
         await page.setViewportSize({ width, height: 1000 });
+        if (width >= 768) {
+          const ratio = await board
+            .locator('.collection-board-summary')
+            .evaluate(
+              (el) => el.getBoundingClientRect().width / el.parentElement!.getBoundingClientRect().width,
+            );
+          assert.ok(ratio > 0.99 && ratio < 1.01, 'Summary spans the workspace width');
+        }
+        if (width >= 1024) {
+          const batchBox = await board.getByLabel('دفعة العمل', { exact: true }).boundingBox();
+          const payrollBox = await board.getByRole('button', { name: 'المرتبات', exact: true }).boundingBox();
+          assert.ok(
+            batchBox &&
+              payrollBox &&
+              Math.abs(batchBox.y + batchBox.height / 2 - (payrollBox.y + payrollBox.height / 2)) < 12,
+            'Batch and actions share one row',
+          );
+          for (const control of [board.getByLabel('الموظف', {exact:true}), board.getByLabel('بحث في الاستلامات', {exact:true}), board.getByRole('button',{name:'كشف PDF للدفعة',exact:true}), board.getByRole('button',{name:'إغلاق ومسح الدفعة',exact:true})]) {
+            const rect=await control.boundingBox();
+            assert.ok(batchBox && rect && Math.abs(rect.y+rect.height/2-batchBox.y-batchBox.height/2)<12, 'Every desktop filter/action shares one row');
+          }
+        }
         for (const tab of tabs) {
           await page.locator('#board-tab-' + tab).click();
           await idle();

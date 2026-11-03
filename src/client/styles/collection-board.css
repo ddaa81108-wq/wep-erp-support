@@ -538,3 +538,27 @@
 .approval-cancel-dialog { width: min(95vw,510px); max-height: 90dvh; overflow: auto; }
 .approval-cancel-dialog label { display: grid; gap: 7px; font-size: 13px; }
 .approval-cancel-dialog textarea { width: 100%; min-width: 0; font: inherit; padding: 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: var(--paper); }
+
+/* Administrative filters and actions share one desktop row. */
+.admin-collections-page .collection-board .board-filters { grid-template-columns: minmax(0,1fr); gap: 10px; }
+.admin-collections-page .collection-board .board-batch-row { display: grid; grid-template-columns: minmax(120px,.9fr) minmax(120px,.9fr) minmax(150px,1.35fr) auto; align-items: end; gap: 8px; padding: 0; }
+.admin-collections-page .board-batch-row .board-search { grid-column: auto; }
+.admin-collections-page .collection-board .board-batch-actions { display: grid; grid-template-columns: .8fr 1.2fr 1fr; width: clamp(300px,23vw,340px); min-width: 0; gap: 5px; padding: 5px; }
+.admin-collections-page .board-batch-actions :is(.compact-action,.batch-close-button) { width: 100%; min-width: 0; min-height: 40px; height: 40px; padding: 5px; border-radius: 999px; font: inherit; font-size: 10px; font-weight: 800; line-height: 1.2; white-space: normal; }
+.admin-collections-page .board-close-scope { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding-top: 7px; border-top: 1px solid var(--line); }
+.admin-collections-page .board-close-scope > div:first-child { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.admin-collections-page .board-close-scope strong { font-size: 11px; }
+.admin-collections-page .board-close-scope small { font-size: 10px; color: var(--muted); }
+.admin-collections-page .collection-board-summary { width: 100%; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; align-items: stretch; }
+.admin-collections-page .collection-board-summary article { min-height: 64px; gap: 3px; padding: 7px 9px; }
+.admin-collections-page .collection-board-summary article > span { font-size: 11px; }
+.admin-collections-page .collection-board-summary strong { font-size: 18px; gap: 3px; line-height: 1.3; }
+.admin-collections-page .collection-board-summary small { font-size: 9px; }
+@media(max-width:900px) {
+ .admin-collections-page .collection-board .board-batch-row { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .admin-collections-page .board-batch-row .board-search { grid-column: 1/-1; }
+ .admin-collections-page .collection-board .board-batch-actions { width: 100%; grid-column: 1/-1; }
+}
+@media(max-width:700px) {
+ .admin-collections-page .collection-board-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}

@@ -96,6 +96,7 @@ try {
     await page.getByRole('button',{name:'قسم استلامات الديون',exact:true}).click();
     await page.locator('.collections-page').waitFor();
   }
+  await adminPage.locator('#board-tab-review').click();
   const adminCards = adminPage.locator('.board-assignment-grid > .board-assignment');
   const employeeCards = employeePage.locator('.collection-grid > .collection-card');
   await expect(adminPage.locator('.unlinked-admin-card')).toHaveCount(1);

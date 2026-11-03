@@ -45,7 +45,7 @@ export function CollectionWorkBoard({
   setError,
   load,
 }: Props) {
-  const [tab, setTab] = useState<Tab>('review'),
+  const [tab, setTab] = useState<Tab>('all'),
     [employeeId, setEmployeeId] = useState('');
   const [query, setQuery] = useState(''),
     [search, setSearch] = useState(''),
@@ -144,72 +144,86 @@ export function CollectionWorkBoard({
   );
   return (
     <div className="collection-board">
-      <header className="topbar collection-overview-header">
-        <div className="collection-heading">
-          <span className="board-eyebrow">{uiText('مراجعة التحصيل وتسليم النقدية')}</span>
-          <h1>{uiText('قسم استلامات الديون')}</h1>
-          <p>{uiText('المراجعة أولًا، والنقدية المستحقة واضحة أمامك.')}</p>
-        </div>
-        <div className="collection-toolbar-actions">
-          <button className="secondary compact-action payroll-open-button" onClick={onPayroll}>
-            {uiText('المرتبات')}
-          </button>
-          <button
-            className="compact-action"
-            disabled={busy !== '' || !batch}
-            onClick={() => batch && onExport(batch.id, batch.businessDate)}
-          >
-            {uiText('كشف PDF للدفعة')}
-          </button>
-        </div>
-      </header>
       <section className="board-filters collection-panel" aria-label={uiText('تحديد نطاق الاستلامات')}>
-        <label>
-          {uiText('دفعة العمل')}
-          <select
-            value={batchId}
-            disabled={!batch || busy !== ''}
-            onChange={(event) => {
-              onBatch(event.target.value);
-              setPage(1);
-            }}
-            aria-label={uiText('دفعة العمل')}
-          >
-            {!batch && <option value="">{uiText('لا توجد دفعات مفتوحة')}</option>}
-            {data.openBatches.map((item) => (
-              <option value={item.id} key={item.id}>
-                {item.businessDate} · {uiText('دفعة {0}', [item.batchNumber])}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {uiText('الموظف')}
-          <select
-            value={employeeId}
-            aria-label={uiText('الموظف')}
-            onChange={(event) => {
-              setEmployeeId(event.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">{uiText('كل الموظفين')}</option>
-            {employees.map((item) => (
-              <option value={item.id} key={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="board-search">
-          {uiText('بحث في العرض')}
-          <input
-            value={query}
-            aria-label={uiText('بحث في الاستلامات')}
-            placeholder={uiText('اسم العميل أو الموظف أو الهاتف')}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-        </label>
+        <div className="board-batch-row board-day-close">
+          <label>
+            {uiText('دفعة العمل')}
+            <select
+              value={batchId}
+              disabled={!batch || busy !== ''}
+              onChange={(event) => {
+                onBatch(event.target.value);
+                setPage(1);
+              }}
+              aria-label={uiText('دفعة العمل')}
+            >
+              {!batch && <option value="">{uiText('لا توجد دفعات مفتوحة')}</option>}
+              {data.openBatches.map((item) => (
+                <option value={item.id} key={item.id}>
+                  {item.businessDate} · {uiText('دفعة {0}', [item.batchNumber])}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {uiText('الموظف')}
+            <select
+              value={employeeId}
+              aria-label={uiText('الموظف')}
+              onChange={(event) => {
+                setEmployeeId(event.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">{uiText('كل الموظفين')}</option>
+              {employees.map((item) => (
+                <option value={item.id} key={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="board-search">
+            {uiText('بحث في العرض')}
+            <input
+              value={query}
+              aria-label={uiText('بحث في الاستلامات')}
+              placeholder={uiText('اسم العميل أو الموظف أو الهاتف')}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+          <div className="collection-toolbar-actions board-batch-actions">
+            <button className="secondary compact-action payroll-open-button" onClick={onPayroll}>
+              {uiText('المرتبات')}
+            </button>
+            <button
+              className={`batch-close-button ${batch && (data.assignments.some((item) => item.batchId === batch.id) || (summary?.receiptCount ?? 0) > 0) ? 'batch-occupied' : 'batch-empty'}`}
+              disabled={busy !== '' || !batch}
+              onClick={() => batch && onClose(batch.id)}
+            >
+              {uiText('إغلاق ومسح الدفعة')}
+            </button>
+            <button
+              className="compact-action"
+              disabled={busy !== '' || !batch}
+              onClick={() => batch && onExport(batch.id, batch.businessDate)}
+            >
+              {uiText('كشف PDF للدفعة')}
+            </button>
+          </div>
+        </div>
+        <div className="board-close-scope">
+          <div>
+            <strong>{uiText('إغلاق دفعة العمل')}</strong>
+            <small>{uiText('الإغلاق يشمل الدفعة كاملة، مهما كان الموظف أو البحث المختار.')}</small>
+          </div>
+          <div className="board-close-counts">
+            <span>{uiText('مراجعة: {0}', [batch?.pendingCount ?? 0])}</span>
+            <span>
+              {uiText('نقدية غير مستلمة: {0} د.ل', [collectionMoney.format(batch?.cashPendingUnits ?? 0)])}
+            </span>
+          </div>
+        </div>
       </section>
       <section className="collection-board-summary" aria-label={uiText('ملخص الدفعة والموظف')}>
         {[
@@ -236,7 +250,7 @@ export function CollectionWorkBoard({
         )}
       </p>
       <div className="board-tabs" role="tablist" aria-label={uiText('تنظيم استلامات الديون')}>
-        {(['review', 'cash', 'all', 'previous'] as Tab[]).map((name) => (
+        {(['all', 'review', 'cash', 'previous'] as Tab[]).map((name) => (
           <button
             role="tab"
             aria-selected={tab === name}
@@ -385,25 +399,6 @@ export function CollectionWorkBoard({
           )
         )}
       </section>
-      <footer className="collection-panel board-day-close">
-        <div>
-          <strong>{uiText('إغلاق دفعة العمل')}</strong>
-          <small>{uiText('الإغلاق يشمل الدفعة كاملة، مهما كان الموظف أو البحث المختار.')}</small>
-        </div>
-        <div className="board-close-counts">
-          <span>{uiText('مراجعة: {0}', [batch?.pendingCount ?? 0])}</span>
-          <span>
-            {uiText('نقدية غير مستلمة: {0} د.ل', [collectionMoney.format(batch?.cashPendingUnits ?? 0)])}
-          </span>
-        </div>
-        <button
-          className={`batch-close-button ${batch && (data.assignments.some((item) => item.batchId === batch.id) || (summary?.receiptCount ?? 0) > 0) ? 'batch-occupied' : 'batch-empty'}`}
-          disabled={busy !== '' || !batch}
-          onClick={() => batch && onClose(batch.id)}
-        >
-          {uiText('إغلاق ومسح الدفعة')}
-        </button>
-      </footer>
     </div>
   );
 }
