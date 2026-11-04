@@ -46,6 +46,9 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     pendingReviewCount: 0,
   });
   const [filter, setFilter] = useState<CustomerFilter>('smart');
+  const [cardSearchTarget, setCardSearchTarget] = useState<{ id: string; request: number } | null>(null);
+  const [searchedCustomer, setSearchedCustomer] = useState<Customer | null>(null);
+  const cardSearchRequest = useRef(0);
   const listKey = JSON.stringify([debtSection, debouncedQuery, filter]);
   const [settledListKey, setSettledListKey] = useState('');
   const listRequest = useRef(0);
@@ -102,11 +105,24 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
           result = await readPage(result.nextCursor, page);
           items.push(...result.items);
         }
+        // Reveal the exact search result even outside page one or the smart view.
+        // Keep it separate: server pagination and section totals still own the list.
+        let searched: Customer | null = null;
+        if (cardSearchTarget) {
+          try {
+            searched = items.find(item => item.id === cardSearchTarget.id)
+              ?? await getSectionAccount(debtSection, cardSearchTarget.id);
+          } catch (error) {
+            if (!(error instanceof ApiError && error.status === 404 && error.code === 'NOT_FOUND')) throw error;
+          }
+        }
         if (request !== listRequest.current) {
           if (retrySuperseded) throw new Error('Background list refresh superseded');
           return;
         }
         setCustomers((current) => (append ? appendCustomerPage(current, items) : items));
+        setSearchedCustomer(searched);
+        if (cardSearchTarget && !searched) setCardSearchTarget(null);
         setNextCursor(result.nextCursor);
         setListSummary({
           ...result.summary,
@@ -127,7 +143,7 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
         throw error;
       }
     },
-    [debtSection, debouncedQuery, filter, listKey],
+    [debtSection, debouncedQuery, filter, listKey, cardSearchTarget],
   );
 
   useEffect(
@@ -233,6 +249,8 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     setQuery('');
     setDebouncedQuery('');
     setFilter('smart');
+    setCardSearchTarget(null);
+    setSearchedCustomer(null);
     setNextCursor(null);
   }, [activeSection]);
   useEffect(() => {
@@ -339,9 +357,31 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     }
   }
 
+  const changeQuery = useCallback((value: string) => {
+    setCardSearchTarget(null);
+    setSearchedCustomer(null);
+    setQuery(value);
+  }, []);
+  const changeFilter = useCallback((value: CustomerFilter) => {
+    setCardSearchTarget(null);
+    setSearchedCustomer(null);
+    setFilter(value);
+  }, []);
+  const revealCard = useCallback((id: string) => {
+    setQuery('');
+    setDebouncedQuery('');
+    setFilter('smart');
+    setSearchedCustomer(null);
+    setCardSearchTarget({ id, request: ++cardSearchRequest.current });
+  }, []);
+  const visible = visibleCustomerCards(customers, debouncedQuery, filter);
+  const searched = searchedCustomer && cardSearchTarget?.id === searchedCustomer.id
+    ? customers.find(item => item.id === searchedCustomer.id) ?? searchedCustomer : null;
   return {
     customers,
-    visibleCustomers: visibleCustomerCards(customers, debouncedQuery, filter),
+    visibleCustomers: searched ? [searched, ...visible.filter(item => item.id !== searched.id)] : visible,
+    cardSearchTarget,
+    revealCard,
     ledger,
     closeLedger: async () => {
       if (!(await flushBeforeNavigation())) return;
@@ -349,9 +389,9 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
       setLedger(null);
     },
     query,
-    setQuery,
+    setQuery: changeQuery,
     filter,
-    setFilter,
+    setFilter: changeFilter,
     loading: loading || (canRead && activeSection === debtSection && settledListKey !== listKey),
     loadError,
     retryLoad: () => {

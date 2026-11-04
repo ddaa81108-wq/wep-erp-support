@@ -76,3 +76,9 @@
 :root[data-theme] .workspace.section-customers .customer-card-status-row { top: 8px; right: 9px; left: 38px; }
 :root[data-theme] .workspace.section-customers .customer-card .pin-customer { top: 8px; left: 9px; }
 :root[data-theme] .workspace.section-customers .customer-card .customer-card-main { padding-inline: 9px; padding-bottom: 9px; }
+/* The unified search reveals the existing card without opening its ledger. */
+.customer-card[data-search-highlight='true'] {
+  outline: 3px solid #ffda55;
+  outline-offset: 3px;
+  scroll-margin-block: 90px;
+}

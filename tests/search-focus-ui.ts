@@ -190,9 +190,13 @@ try {
       }
     }
   }
-  // Opening an actual suggestion must still navigate to its ledger correctly.
+  // A suggestion now reveals the outside card; its own button still opens the ledger.
   await search.fill('عميل بحث');
   await page.locator('.global-search-results > button').filter({ hasText: 'عميل بحث تجريبي' }).click();
+  const foundCard = page.locator('.customer-card').filter({ hasText: 'عميل بحث تجريبي' });
+  await foundCard.locator('.customer-card-main').waitFor();
+  assert.equal(await page.locator('.ledger-panel').count(), 0);
+  await foundCard.locator('.customer-card-main').click();
   await page.locator('.ledger-panel').waitFor();
   await page.getByRole('heading', { name: 'عميل بحث تجريبي', exact: true }).waitFor();
   assert.equal(
@@ -202,7 +206,7 @@ try {
   );
   assert.deepEqual(errors, []);
   console.log(
-    'PASS search focus: aligned frame, unchanged adjacent positions, opaque emerald results with readable contrast, search/clear, magnification and notifications across 10 sections, 3 widths, 2 themes and both shells; suggestion opens ledger without financial changes.',
+    'PASS search focus: aligned frame, unchanged adjacent positions, opaque emerald results with readable contrast, search/clear, magnification and notifications across 10 sections, 3 widths, 2 themes and both shells; suggestion reveals card, manual click opens ledger without financial changes.',
   );
 } finally {
   await browser.close();

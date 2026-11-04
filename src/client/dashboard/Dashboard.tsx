@@ -121,6 +121,11 @@ export function Dashboard({
   }, [activeSection, resetRouting]);
   useEffect(() => {
     if (!pendingAccount || activeSection !== pendingAccount.section || debtSection !== pendingAccount.section || !canRead) return;
+    if (pendingAccount.section === 'customers' || pendingAccount.section === 'companies') {
+      debtAccounts.revealCard(pendingAccount.id);
+      setPendingAccount(null);
+      return;
+    }
     void debtAccounts.loadLedger(pendingAccount.id)
       .then(() => setPendingAccount(null))
       .catch((error) => { setPendingAccount(null); setNotice({ kind: 'error', text: dashboardErrorText(error) }); });
@@ -160,6 +165,7 @@ export function Dashboard({
     onConfirmRouting: () => void confirmRouting(),
     onRemoveAssignment: (customer) => void removeAssignment(customer),
     cancellingAssignmentId,
+    cardSearchTarget: debtAccounts.cardSearchTarget,
     onOpenLedger: (id) => void debtAccounts.loadLedger(id)
       .catch((error) => setNotice({ kind: 'error', text: dashboardErrorText(error) })),
     onTogglePinned: (customer) => void debtAccounts.togglePinned(customer),
@@ -181,8 +187,13 @@ export function Dashboard({
         onLogout={() => void logout()}
       />
       <main className={`workspace section-${debtSection} active-section-${activeSection}`}>
-        <DashboardUtilityBar user={user} activeSection={activeSection} onOpenSection={setActiveSection} onOpenMenu={() => setMenu(true)} onOpenAccount={(section, id) => {
-          setPendingAccount({ section, id }); setActiveSection(section);
+        <DashboardUtilityBar user={user} activeSection={activeSection} onOpenSection={setActiveSection} onOpenMenu={() => setMenu(true)} onOpenAccount={async (section, id) => {
+          if (!(await flushBeforeNavigation())) return;
+          if (section === 'customers' || section === 'companies') {
+            await debtAccounts.closeLedger();
+            cancelRouting();
+          }
+          setPendingAccount({ section, id }); void setActiveSection(section);
         }} />
         <DashboardSectionContent
           activeSection={activeSection}

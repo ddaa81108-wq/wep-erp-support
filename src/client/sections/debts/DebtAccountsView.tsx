@@ -6,6 +6,7 @@ import { DebtAccountsToolbar } from './DebtAccountsToolbar.tsx';
 import { DebtTicker } from './DebtTicker.tsx';
 import { ZeroReviewButton } from './ZeroReviewButton.tsx';
 import { currencyLabel, isDepositSection } from './debtSectionUtils.ts';
+import { useEffect, useRef, useState } from 'react';
 
 type Notice = { kind: 'success' | 'error'; text: string } | null;
 type Assignee = { id: string; username: string; displayName: string };
@@ -49,6 +50,7 @@ export type DebtAccountsViewProps = {
   onOpenLedger: (id: string) => void;
   onTogglePinned: (customer: Customer) => void;
   onLoadMore: () => void;
+  cardSearchTarget?: { id: string; request: number } | null;
 };
 
 const money = new Intl.NumberFormat(displayLocale, { maximumFractionDigits: 0 });
@@ -90,6 +92,21 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
     routing, selectedCustomers, assignees, assigneeId,
   } = props;
   const labels = debtSectionText[section];
+  const grid = useRef<HTMLDivElement>(null);
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  const searchTarget = props.cardSearchTarget;
+  const targetVisible = Boolean(searchTarget && visibleCustomers.some(item => item.id === searchTarget.id));
+  useEffect(() => {
+    if (!searchTarget || !targetVisible || loading) { setHighlightedId(null); return; }
+    setHighlightedId(searchTarget.id);
+    const frame = window.requestAnimationFrame(() => {
+      const card = grid.current?.querySelector<HTMLElement>(`[data-customer-id="${CSS.escape(searchTarget.id)}"]`);
+      card?.scrollIntoView({ block: 'center', behavior: 'instant' });
+      card?.querySelector<HTMLButtonElement>('.customer-card-main')?.focus({ preventScroll: true });
+    });
+    const timer = window.setTimeout(() => setHighlightedId(null), 5000);
+    return () => { window.cancelAnimationFrame(frame); window.clearTimeout(timer); };
+  }, [searchTarget, targetVisible, loading]);
   const assignmentBadge = (customer: Customer) => !customer.activeAssigneeName ? null :
     isAdmin && customer.activeAssignmentId ? <button type="button"
       className="customer-assignee-badge cancel-assignment"
@@ -115,10 +132,10 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
             ? <div className="empty" role="alert"><p>{uiText('تعذر تحميل الحسابات. أعد المحاولة.')}</p><button onClick={props.onRetryLoad}>{uiText('إعادة المحاولة')}</button></div>
           : visibleCustomers.length === 0
             ? <div className="empty"><Users size={38} /><h3>{query ? uiText("لا توجد نتائج") : uiText("لا توجد كروت في هذا العرض")}</h3><p>{query ? uiText("البحث يشمل {0} الظاهرين والمخفيين ذكيًا.", [labels.plural]) : canWrite ? uiText("{0} أو اختر فلترًا آخر.", [labels.add]) : uiText("لا توجد حسابات مسجلة.")}</p></div>
-            : <><div className="customer-card-grid">{visibleCustomers.map((customer) => {
+            : <><div className="customer-card-grid" ref={grid}>{visibleCustomers.map((customer) => {
               const selected = selectedCustomers.includes(customer.id);
               const canRoute = canRouteDebtCard(customer);
-              return <article key={customer.id} data-balance-owner={customer.balanceUnits === 0 ? 'zero' : (section === 'libyan-deposits' ? customer.balanceUnits > 0 : customer.balanceUnits < 0) ? 'customer' : 'system'} className={`customer-card ${sectionCardState(section, customer)} ${customer.systemManaged ? 'system-linked-card' : ''} ${selected ? 'selected-routing' : ''} ${customer.activeAssigneeName ? 'has-assignee' : ''} ${routing && !canRoute ? 'routing-unavailable' : ''}`}>
+              return <article key={customer.id} data-customer-id={customer.id} data-search-highlight={highlightedId === customer.id || undefined} data-balance-owner={customer.balanceUnits === 0 ? 'zero' : (section === 'libyan-deposits' ? customer.balanceUnits > 0 : customer.balanceUnits < 0) ? 'customer' : 'system'} className={`customer-card ${sectionCardState(section, customer)} ${customer.systemManaged ? 'system-linked-card' : ''} ${selected ? 'selected-routing' : ''} ${customer.activeAssigneeName ? 'has-assignee' : ''} ${routing && !canRoute ? 'routing-unavailable' : ''}`}>
                 {routing && canRoute && <label className="routing-select"><input type="checkbox" checked={selected} onChange={(event) => props.onCustomerSelection(customer.id, event.target.checked)} /><span><Check size={16} /></span></label>}
                 {section === 'customers' ? <div className="customer-card-status-row">{assignmentBadge(customer)}{isAdmin && !routing && <ZeroReviewButton customer={customer} onReview={props.onReviewZero} />}</div> : section === 'companies' && assignmentBadge(customer)}
                 <button className="customer-card-main" onClick={() => routing ? canRoute && props.onCustomerSelection(customer.id, !selected) : props.onOpenLedger(customer.id)}><span className="customer-card-label">{customer.systemManaged ? uiText("مرتبط تلقائيًا") : cardLabel(section, customer)}</span><strong className="customer-name-line"><span>{customer.name}</span></strong><b><span className="customer-balance-amount">{money.format(Math.abs(customer.balanceUnits))}</span> <small>{currencyLabel(section)}</small></b><small className="customer-last-movement">{uiText("آخر حركة: ")}{movementTime.format(new Date(customer.updatedAt ?? customer.createdAt))}</small></button>
