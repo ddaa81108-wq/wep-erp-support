@@ -66,7 +66,10 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     a.status, a.business_date AS businessDate, a.batch_id AS batchId, a.assigned_at AS assignedAt, c.name AS customerName, c.phone, c.version AS customerVersion,
     u.display_name AS assigneeName,
     c.current_balance_units AS balanceUnits,
-    a.assigned_balance_units AS assignedBalanceUnits,
+    CASE WHEN NOT EXISTS(SELECT 1 FROM collection_submissions first WHERE first.assignment_id=a.id)
+      THEN c.current_balance_units
+      ELSE COALESCE(a.first_submission_balance_units,a.assigned_balance_units)
+    END AS assignedBalanceUnits,
     EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending') AS hasPending,
     EXISTS(SELECT 1 FROM collection_submissions s WHERE s.assignment_id=a.id AND s.status='pending' AND s.mode='full') AS hasPendingFull,
     (SELECT s.mode FROM collection_submissions s WHERE s.assignment_id=a.id AND NOT (s.status='rejected' AND s.approved_transaction_id IS NOT NULL) ORDER BY s.submitted_at DESC, s.rowid DESC LIMIT 1) AS latestMode,
@@ -421,6 +424,11 @@ export function submitCollection(db: AppDatabase, actor: AuthenticatedUser, assi
       WHERE customer_id=? AND batch_id=? AND mode=? AND amount_units=? AND status='approved' LIMIT 1`)
       .get(String(row.customer_id), String(row.batch_id), mode, amount)));
     const id = randomUUID(); const submittedAt = nowIso();
+    // Freeze only on the first successful submission, inside this same transaction.
+    // Replays return above; rejected/approved receipts still count as prior submissions.
+    db.prepare(`UPDATE debt_assignments SET first_submission_balance_units=?
+      WHERE id=? AND NOT EXISTS(SELECT 1 FROM collection_submissions WHERE assignment_id=?)`)
+      .run(currentDebt,assignmentId,assignmentId);
     db.prepare(`INSERT INTO collection_submissions(id,assignment_id,customer_id,collector_user_id,mode,amount_units,status,submitted_at,business_date,batch_id)
       VALUES(?,?,?,?,?,?,'pending',?,?,?)`).run(id, assignmentId, String(row.customer_id), String(row.assignee_user_id), mode, amount, submittedAt, String(row.business_date), String(row.batch_id));
     audit(db, actor.id, actor.organizationId, 'collection.submit', id, correlationId, {
@@ -431,6 +439,7 @@ export function submitCollection(db: AppDatabase, actor: AuthenticatedUser, assi
       mode,
       paymentMode: mode,
       amountUnits: amount,
+      balanceAtSubmissionUnits: currentDebt,
     });
     const eventSequence = emitCollectionEvent(db, assignmentId, actor.id, actor.organizationId, 'submitted', { submissionId: id });
     const body = { id, status: 'pending', amountUnits: amount };

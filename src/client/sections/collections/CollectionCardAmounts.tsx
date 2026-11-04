@@ -2,7 +2,7 @@ import type { CollectionAssignment } from '../../api.ts';
 import { uiText } from '../../i18n/language.ts';
 import { collectionMoney } from './useCollectionsDashboard.ts';
 
-/** The assigned debt is a fixed snapshot; the current balance remains authoritative. */
+/** Assigned debt follows the balance until the first receipt, then stays frozen. */
 export function CollectionCardAmounts({ assignment }: { assignment: CollectionAssignment }) {
   return (
     <div className="collection-card-amounts">

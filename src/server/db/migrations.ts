@@ -18,6 +18,7 @@ import { collectionInstallmentMigrations } from './migrationsCollectionInstallme
 import { unlinkedCurrencyMigrations } from './migrationsUnlinkedCurrency.ts';
 import { notificationSpeechMigrations } from './migrationsNotificationSpeech.ts';
 import { collectionAssignedAmountMigrations } from './migrationsCollectionAssignedAmount.ts';
+import { collectionSubmissionBalanceMigrations } from './migrationsCollectionSubmissionBalance.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -40,4 +41,5 @@ export const migrations: Migration[] = [
   ...unlinkedCurrencyMigrations,
   ...notificationSpeechMigrations,
   ...collectionAssignedAmountMigrations,
+  ...collectionSubmissionBalanceMigrations,
 ];

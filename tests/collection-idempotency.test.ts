@@ -71,7 +71,8 @@ test('schema 50 upgrades pending receipts to independent installments without de
   try {
     const body={mode:'partial',amountUnits:15,requestId:'pre-upgrade-pending-key'};
     const first=submitCollection(db,collector,assignments[0],body,'test');
-    db.exec(`ALTER TABLE debt_assignments DROP COLUMN assigned_balance_units;
+    db.exec(`ALTER TABLE debt_assignments DROP COLUMN first_submission_balance_units;
+      ALTER TABLE debt_assignments DROP COLUMN assigned_balance_units;
       DROP TABLE notification_speech_settings;
       ALTER TABLE collection_unlinked_receipts DROP COLUMN currency;
       DROP INDEX idx_pending_collection_assignment;
@@ -167,6 +168,7 @@ test('failure to store replay acknowledgement rolls back submission, audit and e
     const body={mode:'partial',amountUnits:20,requestId:'rollback-submit-key'};
     assert.throws(() => submitCollection(db,collector,assignments[0],body,'test'),/test key storage failure/);
     assert.deepEqual(count(),before);
+    assert.equal(db.prepare('SELECT first_submission_balance_units n FROM debt_assignments WHERE id=?').get(assignments[0])!.n,null);
     db.exec('DROP TRIGGER reject_collection_key');
     assert.equal(submitCollection(db,collector,assignments[0],body,'test').replayed,false);
   } finally { db.close(); }
