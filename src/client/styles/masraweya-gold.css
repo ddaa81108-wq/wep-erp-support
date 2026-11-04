@@ -77,3 +77,179 @@
   background: var(--mas-paper); color: var(--mas-ink); border-color: #b49745; border-radius: 999px;
 }
 :root[data-theme] .masraweya-page button:disabled { opacity: .5; }
+
+/* Phone presentation only. Keep the existing table, save flow and desktop layout. */
+@media (max-width: 700px) {
+  :root[data-theme] .masraweya-page {
+    min-width: 0;
+    gap: 8px;
+    padding: 5px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-header > div:first-child {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-header h1 {
+    padding: 4px 10px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-status {
+    grid-column: 2;
+    grid-row: 1;
+    padding: 5px 8px;
+    font-size: 9px;
+    text-align: center;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-header label {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    font-size: 10px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-header input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    flex: none;
+    padding: 4px 8px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-header > button {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: end;
+    min-height: 40px;
+    padding: 6px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-panel {
+    padding: 9px;
+    border-radius: 14px;
+  }
+
+  :root[data-theme] .masraweya-page .panel-title {
+    min-height: 40px;
+    margin-bottom: 7px;
+  }
+
+  :root[data-theme] .masraweya-page .panel-title h2 {
+    padding: 3px 12px;
+    font-size: 13px;
+  }
+
+  :root[data-theme] .masraweya-page .panel-title button {
+    min-height: 40px;
+    padding: 7px 11px;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-summary-date {
+    padding: 8px 10px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-summary-sheet :is(th, td) {
+    padding: 8px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-summary-sheet th {
+    width: 47%;
+    font-size: 11px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-summary-sheet td {
+    font-size: 17px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-summary-sheet small {
+    margin-top: 2px;
+    font-size: 9px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-summary-sheet input {
+    height: 40px;
+    padding: 4px 6px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-summary-sheet .final-row :is(th, td) {
+    padding-block: 12px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-table-scroll {
+    border-radius: 12px;
+    overscroll-behavior-inline: contain;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-work-table {
+    table-layout: fixed;
+    min-width: 340px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-work-table thead th:nth-child(1) { width: 14%; }
+  :root[data-theme] .masraweya-page .masraweya-work-table thead th:nth-child(2) { width: 31%; }
+  :root[data-theme] .masraweya-page .masraweya-work-table thead th:nth-child(3) { width: 25%; }
+  :root[data-theme] .masraweya-page .masraweya-work-table thead th:nth-child(4) { width: 30%; }
+
+  :root[data-theme] .masraweya-page .masraweya-work-table :is(th, td) {
+    height: 46px;
+    padding: 3px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-work-table thead th {
+    height: 34px;
+    font-size: 10px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-work-table tbody input {
+    min-width: 0;
+    height: 40px;
+    padding: 3px;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-work-table tbody td:last-child {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  :root[data-theme] .masraweya-page .masraweya-actions {
+    position: static;
+    justify-content: flex-start;
+    gap: 3px 8px;
+    padding: 7px 10px;
+  }
+
+  :root[data-theme][data-royal-shell='03'] .masraweya-page .masraweya-header label {
+    color: var(--rs-text, #fff);
+  }
+}
