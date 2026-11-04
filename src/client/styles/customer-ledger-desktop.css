@@ -1,3 +1,39 @@
+.ledger-panel > header .ledger-edit-details .ledger-edit-label { font: inherit; color: inherit; }
+
+/* Phone customer/company headers reserve separate touch targets and a flexible name. */
+@media (max-width: 900px) {
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header {
+    display: grid; grid-template-columns: 44px 44px minmax(0,1fr);
+    direction: ltr; gap: 6px; padding: 5px; min-height: 56px; box-sizing: border-box;
+  }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header .ledger-customer-title {
+    position: static; transform: none; grid-column: 3; grid-row: 1; justify-self: stretch;
+    width: 100%; min-width: 0; max-width: none; height: 44px; min-height: 44px;
+    box-sizing: border-box; display: flex; align-items: center; justify-content: center;
+    padding: 4px 9px; direction: rtl;
+  }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header .ledger-customer-title > span { display: none; }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header .ledger-customer-title h2 {
+    margin: 0; font-size: 12px; line-height: 1.45; min-width: 0; max-width: 100%;
+    white-space: normal; overflow-wrap: anywhere; display: -webkit-box;
+    -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header .ledger-edit-details {
+    position: static; transform: none; grid-column: 2; grid-row: 1; justify-self: stretch;
+    width: 44px; min-width: 44px; max-width: 44px; height: 44px; min-height: 44px;
+    padding: 0; display: flex; align-items: center; justify-content: center;
+  }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header .ledger-edit-label { display: none; }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header .ledger-edit-details svg { width: 18px; height: 18px; flex-shrink: 0; }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header .icon-button {
+    position: static; transform: none; grid-column: 1; grid-row: 1; justify-self: start;
+    width: 44px; min-width: 44px; max-width: 44px; height: 44px; min-height: 44px;
+    padding: 0; display: flex; align-items: center; justify-content: center;
+  }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header.ledger-header-readonly { grid-template-columns: 44px minmax(0,1fr); }
+  :root[data-theme] .ledger-panel.permanent-ledger:is(.section-customers,.section-companies) > header.ledger-header-readonly .ledger-customer-title { grid-column: 2; }
+}
+
 @media (min-width: 901px) {
   .ledger-panel:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) > header {
     min-height: 44px; padding: 4px 8px; gap: 20px; justify-content: space-between;
