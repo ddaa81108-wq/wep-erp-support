@@ -2,6 +2,8 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'فلترة الأمانات الليبية': 'Filter Libyan deposits',
+  'سعر التحويل': 'Rate',
   'حذف الكارت': 'Delete account',
   'تعذر حذف الكارت.': 'Could not delete the account.',
   'الرصيد الحالي: {0} {1}': 'Current balance: {0} {1}',

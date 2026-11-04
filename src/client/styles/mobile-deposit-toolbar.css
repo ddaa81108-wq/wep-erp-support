@@ -1,0 +1,92 @@
+.deposit-mobile-active-toggle,
+.deposit-mobile-rate-title,
+.deposit-mobile-rate-feedback { display: none; }
+
+@media (max-width: 900px) {
+  :root[data-theme] .workspace:is(.section-libyan-deposits,.section-egyptian-deposits) .debts-toolbar.deposit-mobile-toolbar {
+    display: grid; grid-template-columns: 92px max-content minmax(0,1fr);
+    position: relative; z-index: 5; overflow: visible;
+    grid-template-areas: none; direction: ltr; gap: 7px 6px; align-items: center;
+    padding: 6px; margin-block: 9px; min-width: 0; height: auto; max-height: none;
+    background: linear-gradient(165deg,#423d2d,#11100c 45%,#090907);
+    border: 1px solid #d3ae49; border-radius: 15px;
+    box-shadow: inset 0 1px 2px #fff2a255,0 2px 7px #0002;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > :is(.debt-total-card,.active-cards-card,.add-customer-card) {
+    position: relative; grid-row: 1; min-width: 0; min-height: 44px; height: 44px; max-height: none;
+    margin: 0; box-sizing: border-box; border: 1px solid #e8c45a; border-radius: 999px;
+    direction: rtl; box-shadow: inset 0 1px 2px #fff3ab88;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .add-customer-card {
+    grid-column: 1; justify-self: start; width: 92px; padding: 0 6px;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    background: linear-gradient(#fff2ad,#e7bd35 55%,#d49b12); color: #201b08; font-size: 10px;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .add-customer-card svg { width: 14px; height: 14px; flex: none; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .active-cards-card {
+    overflow: visible;
+    grid-column: 2; width: max-content; justify-self: center; padding: 0 8px;
+    display: flex; align-items: center; gap: 4px; background: linear-gradient(#393426,#0c0b08); color: #fff4c6;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .active-cards-count { display: none; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .deposit-mobile-active-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    min-height: 42px; padding: 0; border: 0; background: transparent; color: inherit;
+    font: inherit; cursor: pointer; border-radius: inherit;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .active-cards-card :is(span,strong) { line-height: 1.2; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .active-cards-card span { font-size: 10px; color: inherit; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .active-cards-card strong { font-size: 13px; color: #ffe28b; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .active-cards-card > .compact-filters { display: none; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .active-cards-card > .compact-filters[data-mobile-open='true'] {
+    display: grid; grid-template-columns: repeat(2,minmax(0,1fr));
+    position: absolute; top: calc(100% + 8px); left: -90px; right: auto; z-index: 30;
+    width: 220px; max-width: calc(100vw - 24px); padding: 8px; gap: 6px;
+    background: var(--paper,#141414); border: 1px solid #d3ae49; border-radius: 12px;
+    box-shadow: 0 5px 18px #0004;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .compact-filters button { min-height: 36px; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .debt-total-card {
+    grid-column: 3; justify-self: stretch; width: 100%; max-width: none; padding: 4px 8px;
+    display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: auto auto;
+    justify-content: center; align-content: center; text-align: center; gap: 2px;
+    background: linear-gradient(#3a3528,#0d0c09); color: #fff4c6;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .debt-total-card .summary-icon { display: none; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .debt-total-card > :is(span,strong) {
+    position: static; grid-column: 1; grid-row: auto; width: auto; min-width: 0; margin: 0; color: inherit;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .debt-total-card > span { font-size: 9px; white-space: nowrap; line-height: 1.2; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .debt-total-card > strong { font-size: clamp(10px,3.5vw,15px); line-height: 1.2; white-space: normal; overflow-wrap: anywhere; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .debt-total-card small { font-size: 9px; color: inherit; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .dashboard-search { display: none; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar > .exchange-rate-card {
+    grid-column: 1/-1; grid-row: 2; justify-self: start; width: 100%; max-width: none; min-width: 0;
+    min-height: 44px; height: auto; max-height: none; padding: 4px 6px; direction: rtl;
+    display: grid; grid-template-columns: max-content minmax(0,1fr); align-items: center; gap: 4px 5px;
+    background: #19170f; border: 1px solid #b99c4a; border-radius: 12px; box-sizing: border-box;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-card-head { display: block; min-width: 0; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-card-head :is(.deposit-desktop-rate-title,small) { display: none; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-card-head .deposit-mobile-rate-title { display: block; font-size: 9px; line-height: 1.4; color: #f7e7ad; white-space: nowrap; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-editor {
+    display: grid; grid-template-columns: max-content 8px minmax(42px,1fr) max-content 44px;
+    gap: 5px; align-items: center; min-width: 0; width: 100%; max-width: none; margin: 0;
+  }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-editor input { width: 100%; min-width: 0; height: 30px; min-height: 30px; padding: 2px 4px; font-size: 12px; text-align: center; border-radius: 7px; background: #fffaf0; color: #2a2313; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-editor .rate-unit { font-size: 10px; min-width: 0; color: #fff3c4; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-editor button { min-width: 0; min-height: 30px; height: 30px; padding: 0 5px; display: flex; gap: 3px; align-items: center; justify-content: center; font-size: 10px; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-editor button svg { flex: none; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .deposit-mobile-rate-feedback[data-visible='true'] { display: block; grid-column: 1/-1; font-size: 9px; line-height: 1.4; color: #fff2bb; overflow-wrap: anywhere; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar.deposit-mobile-readonly { grid-template-columns: max-content minmax(0,1fr); }
+  :root[data-theme] .workspace .deposit-mobile-readonly > .active-cards-card { grid-column: 1; }
+  :root[data-theme] .workspace .deposit-mobile-readonly > .debt-total-card { grid-column: 2; }
+  :root[data-theme] .workspace .deposit-mobile-readonly .active-cards-card > .compact-filters[data-mobile-open='true'] { left: 0; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .deposit-rate-readonly .rate-editor { grid-template-columns: max-content 8px minmax(42px,1fr) max-content; }
+  .deposit-mobile-active-toggle:focus-visible { outline: 2px solid #ffe087; outline-offset: 3px; }
+}
+
+@media (max-width: 360px) {
+  :root[data-theme] .workspace .deposit-mobile-toolbar .exchange-rate-card > .rate-card-head { display: none; }
+  :root[data-theme] .workspace .deposit-mobile-toolbar .rate-editor { grid-column: 1/-1; }
+}
