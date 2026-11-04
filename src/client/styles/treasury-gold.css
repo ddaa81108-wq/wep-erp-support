@@ -95,3 +95,134 @@
   :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) span::before { color: #fff; }
 }
 :root[data-theme] .workspace.active-section-treasury .global-search-desktop-label { display: none; }
+
+/* Phone presentation only; preserve the desktop ledger and cash calculations. */
+@media (max-width: 700px) {
+  :root[data-theme] .active-section-treasury .treasury-page { min-width: 0; gap: 8px; padding: 5px; }
+  :root[data-theme] .active-section-treasury .treasury-head { padding: 8px 10px; border-radius: 12px; }
+  :root[data-theme] .active-section-treasury .treasury-head h1 { font-size: 16px; }
+  :root[data-theme] .active-section-treasury .treasury-head p { display: none; }
+  :root[data-theme] .active-section-treasury .treasury-head button { width: 40px; height: 40px; flex-shrink: 0; }
+  :root[data-theme] .active-section-treasury .treasury-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 6px;
+    border-radius: 16px;
+  }
+  :root[data-theme] .active-section-treasury .treasury-card {
+    min-height: 90px;
+    gap: 4px;
+    padding: 9px;
+    border-radius: 12px;
+    align-content: center;
+    text-align: center;
+  }
+  :root[data-theme] .active-section-treasury .treasury-card span { font-size: 10px; }
+  :root[data-theme] .active-section-treasury .treasury-card b {
+    font-size: 17px;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
+  }
+  :root[data-theme] .active-section-treasury .treasury-card small {
+    font-size: 9px;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+  }
+  :root[data-theme] .active-section-treasury .treasury-card.net { grid-column: 1 / -1; min-height: 78px; }
+  :root[data-theme] .active-section-treasury .treasury-card.net b { font-size: 22px; }
+  :root[data-theme] .active-section-treasury .treasury-cash-panel { min-width: 0; padding: 8px; border-radius: 14px; }
+  :root[data-theme] .active-section-treasury .treasury-panel-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+    padding: 8px;
+    border-radius: 12px;
+  }
+  :root[data-theme] .active-section-treasury .treasury-panel-head h2 {
+    display: inline-block;
+    font-size: 13px;
+    padding: 4px 10px;
+  }
+  :root[data-theme] .active-section-treasury .treasury-panel-head small { display: block; font-size: 9px; margin-top: 3px; }
+  :root[data-theme] .active-section-treasury .treasury-cash-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; gap: 6px; }
+  :root[data-theme] .active-section-treasury .treasury-cash-actions button { min-height: 40px; font-size: 12px; }
+  :root[data-theme] .active-section-treasury .treasury-entry-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+  :root[data-theme] .active-section-treasury .treasury-entry-form :is(strong, label) { grid-column: 1 / -1; min-width: 0; }
+  :root[data-theme] .active-section-treasury .treasury-entry-form strong { font-size: 12px; }
+  :root[data-theme] .active-section-treasury .treasury-entry-form label { font-size: 11px; }
+  :root[data-theme] .active-section-treasury .treasury-entry-form input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    font-size: 16px;
+    border-radius: 9px;
+  }
+  :root[data-theme] .active-section-treasury .treasury-entry-form button { min-height: 40px; font-size: 12px; }
+  :root[data-theme] .active-section-treasury .treasury-ledger {
+    display: grid;
+    gap: 7px;
+    min-width: 0;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row.head { display: none; }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) {
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    border: 1px solid #b49745;
+    border-inline-start-width: 4px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) > span {
+    display: grid;
+    min-width: 0;
+    min-height: 44px;
+    align-content: center;
+    justify-items: center;
+    gap: 3px;
+    padding: 7px;
+    border: 0;
+    border-bottom: 1px solid #ffffff44;
+    font-size: 12px;
+    text-align: center;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) > span::before {
+    content: attr(data-label);
+    font: 700 10px/1.5 Cairo, sans-serif;
+    direction: rtl;
+  }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) > span:nth-child(2) { grid-column: 2 / -1; }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) > span:nth-child(7) {
+    grid-column: 3;
+    grid-row: 2;
+    background: #0002;
+    font-size: 17px;
+    font-weight: 900;
+  }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) > span:nth-child(4) { font-size: 17px; font-weight: 900; }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) > span:nth-child(5) { grid-column: 1 / -1; text-align: start; justify-items: start; }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row:not(.head) > span:nth-child(6) {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-start;
+    min-height: 32px;
+    font-size: 10px;
+    border-bottom: 0;
+  }
+  :root[data-theme] .active-section-treasury .treasury-date-phone { font-size: 11px; }
+  :root[data-theme] .active-section-treasury :is(.treasury-older, .treasury-new-movements) { min-height: 40px; font-size: 11px; max-width: 100%; }
+}

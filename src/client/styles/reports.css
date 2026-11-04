@@ -125,3 +125,73 @@
 .closing-audit-list>article{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:11px}.closing-audit-list article>div{display:grid;gap:4px;min-width:0}.closing-audit-list small{font-size:9px;color:var(--muted)}.closing-audit-values{justify-items:end}.closing-audit-values>span{font-size:10px}.closing-audit-values>b{font:700 12px 'JetBrains Mono',monospace}
 @media(max-width:1180px){.report-overview-layout{grid-template-columns:1fr}.report-overview-side .report-position-card>strong{font-size:19px}.report-overview-side .report-sources{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:620px){.financial-overview{padding:6px}.financial-overview-head{gap:7px}.financial-overview h1{font-size:18px}.financial-overview .report-closing-compact{padding:9px}.closing-compact-head h2{font-size:12px}.closing-compact-head>span{font-size:8px}.closing-compact-current{gap:6px;padding:7px;font-size:9px}.closing-compact-current b{font-size:11px}.closing-comparison-table th:first-child{width:83px}.closing-comparison-table th:last-child{width:38px}.closing-comparison-table td{font-size:10px;padding:5px 2px}.closing-comparison-table th{font-size:9px}.report-overview-side .report-position-net{grid-column:auto}.report-overview-side .report-position-card{padding:8px}.report-overview-side .report-position-card>strong{font-size:12px}.report-overview-side .report-position-card>span{font-size:8px}.report-overview-side .report-position-card>p{font-size:8px}.report-overview-side .report-source>strong{font-size:11px}.report-overview-side .report-middle-grid{grid-template-columns:1fr}.closing-audit-list>article{flex-direction:column;gap:7px}.closing-audit-values{justify-items:start}.closing-journal-summary{font-size:10px;gap:10px}}
+
+/* Phone layout only: keep report calculations, snapshot history and desktop intact. */
+@media (max-width: 700px) {
+  .financial-overview { padding: 6px; gap: 9px; border-radius: 12px; }
+  .report-preview-switch { padding: 6px 8px; gap: 6px; font-size: 10px; }
+  .report-preview-switch button { min-height: 40px; padding: 5px 8px; }
+  .financial-overview .financial-overview-head { flex-direction: column; align-items: stretch; gap: 7px; padding: 9px; border-radius: 12px; }
+  .financial-overview h1 { font-size: 19px; margin: 3px 0; }
+  .financial-overview .report-eyebrow { font-size: 11px; }
+  .financial-overview .financial-overview-head p { font-size: 10px; }
+  .financial-overview .report-live-status { width: 100%; grid-template-columns: minmax(0, 1fr) auto 40px; gap: 6px; font-size: 10px; }
+  .financial-overview .report-live-status time { grid-column: 2; grid-row: 1; font-size: 10px; }
+  .financial-overview .report-live-status button { grid-column: 3; grid-row: 1; height: 40px; }
+  .financial-overview .report-read-only { align-items: flex-start; font-size: 10px; line-height: 1.7; }
+  .financial-overview .report-read-only svg { flex-shrink: 0; margin-top: 3px; }
+  .financial-overview .report-overview-layout,
+  .financial-overview .report-middle-grid { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+  .financial-overview .report-block { padding: 9px; border-radius: 12px; }
+  .financial-overview .report-block h2 { font-size: 13px; }
+  .financial-overview .report-block-head { flex-wrap: wrap; gap: 7px; margin-bottom: 9px; }
+  .financial-overview .report-block-head p { font-size: 10px; }
+  .financial-overview .report-closing-compact { padding: 9px; }
+  .financial-overview .closing-compact-head { flex-wrap: wrap; gap: 4px; }
+  .financial-overview .closing-compact-head h2 { font-size: 13px; }
+  .financial-overview .closing-compact-head > span { font-size: 9px; }
+  .financial-overview .closing-compact-current { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); padding: 9px; gap: 7px; font-size: 11px; }
+  .financial-overview .closing-compact-current b { font-size: 18px; letter-spacing: 0; }
+  .financial-overview .closing-compact-current small { font-size: 10px; }
+  .financial-overview .closing-table-caption { font-size: 10px; line-height: 1.8; }
+  .financial-overview .closing-comparison-table table { width: 100%; }
+  .financial-overview .closing-comparison-table th { padding: 8px 2px; font-size: 10px; }
+  .financial-overview .closing-comparison-table th:first-child { width: 80px; }
+  .financial-overview .closing-comparison-table th:last-child { width: 40px; }
+  .financial-overview .closing-comparison-table td { height: 38px; padding: 3px 2px; font-size: 11px; }
+  .financial-overview .closing-comparison-table button { box-sizing: border-box; width: 36px; min-height: 36px; height: 36px; padding: 2px; font-size: 11px; }
+  .financial-overview .report-closing-archive > summary,
+  .financial-overview .report-activity-disclosure > summary { padding-block: 11px; min-height: 40px; box-sizing: border-box; font-size: 11px; }
+  .financial-overview .report-position-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .financial-overview .report-position-grid .report-position-net { grid-column: 1 / -1; }
+  .financial-overview .report-position-grid .report-position-card { padding: 11px; gap: 7px; border-radius: 12px; }
+  .financial-overview .report-position-grid .report-position-card > span { font-size: 11px; }
+  .financial-overview .report-position-grid .report-position-card > strong { font-size: 17px; letter-spacing: 0; }
+  .financial-overview .report-position-grid .report-position-net > strong { font-size: 24px; }
+  .financial-overview .report-position-grid .report-position-card > p { font-size: 10px; }
+  .financial-overview .report-overview-side .report-sources { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .financial-overview .report-source { padding: 10px; gap: 7px; border-radius: 10px; }
+  .financial-overview .report-source > span { font-size: 11px; }
+  .financial-overview .report-overview-side .report-source > strong { font-size: 15px; }
+  .financial-overview .report-source > small { font-size: 10px; }
+  .financial-overview .report-daily-grid { gap: 0 10px; }
+  .financial-overview .report-daily-grid article { gap: 6px; padding-block: 10px; }
+  .financial-overview .report-daily-grid article strong { font-size: 16px; }
+  .financial-overview .report-daily-grid article span,
+  .financial-overview .report-footnote,
+  .financial-overview .report-exchange { font-size: 10px; }
+  .financial-overview .report-activity select { min-width: 0; max-width: 100%; min-height: 40px; font-size: 16px; }
+  .financial-overview .report-pager button,
+  .financial-overview .closing-more { min-height: 40px; }
+  .closing-journal-modal .closing-journal-content,
+  .report-details-modal .report-details-content { padding: 10px; }
+  .closing-journal-modal .closing-journal-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding: 9px; }
+  .closing-journal-modal .closing-journal-summary > span { min-width: 0; overflow-wrap: anywhere; }
+  .closing-journal-modal .closing-journal-summary > span:last-child { grid-column: 1 / -1; }
+  .closing-journal-modal .closing-journal-summary b { font-size: 15px; overflow-wrap: anywhere; }
+  .closing-journal-modal .closing-audit-list > article { flex-direction: column; gap: 7px; }
+  .closing-journal-modal .closing-audit-values { justify-items: start; overflow-wrap: anywhere; }
+  .closing-journal-modal .report-pager button { min-height: 40px; }
+  .report-details-modal .report-details-list > div { flex-wrap: wrap; gap: 7px; }
+  .report-details-modal .report-details-list strong { white-space: normal; overflow-wrap: anywhere; }
+}

@@ -63,11 +63,13 @@ try {
   await page.screenshot({path:'artifacts/purchase-running/after-finalize.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await page.screenshot({path:'artifacts/purchase-running/mobile.png',fullPage:true});
-  const align=await page.locator('.purchase-grid-head > span').nth(7).boundingBox();
+  await expect(page.locator('.purchase-grid-head')).toBeHidden();
+  await opening.last().scrollIntoViewIfNeeded();
   const carry=await opening.last().boundingBox();
-  assert.ok(align&&carry);assert.ok(Math.abs(align.x-carry.x)<2,'Carry stays in the remaining column on mobile.');
+  assert.ok(carry && carry.x >= 0 && carry.x + carry.width <= 390, 'Carried balance remains visible inside the phone card.');
+  assert.ok(await page.locator('.purchase-register').evaluate(el=>el.scrollWidth<=el.clientWidth+1), 'Phone cards do not require horizontal scrolling.');
   assert.deepEqual(errors,[]);
-  console.log('PASS running purchase UI: carried1000, purchase1300, payment1100, combined1500, reload/finalize carry and mobile column alignment.');
+  console.log('PASS running purchase UI: carried1000, purchase1300, payment1100, combined1500, reload/finalize carry and phone cards.');
   await context.close();
 } finally {
   await browser.close();server.closeRealtimeConnections();server.closeAllConnections();

@@ -52,3 +52,189 @@
   background: var(--purchases-gold); color: #261c00; border-color: #fff0a1; border-radius: 999px;
   box-shadow: inset 0 1px 1px #fffbe0;
 }
+
+/* Phone-only purchase cards. The desktop register and financial handlers stay intact. */
+@media (max-width: 700px) {
+  :root[data-theme] .purchases-page {
+    min-width: 0;
+    padding: 5px;
+    gap: 8px;
+  }
+  :root[data-theme] .purchases-page .purchase-workbar {
+    display: flex;
+    flex-direction: column;
+    grid-row: 1;
+    gap: 7px;
+    padding: 7px;
+    min-width: 0;
+  }
+  :root[data-theme] .purchases-page .purchase-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    width: 100%;
+  }
+  :root[data-theme] .purchases-page .purchase-metrics article {
+    min-width: 0;
+    min-height: 54px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+  :root[data-theme] .purchases-page .purchase-metrics article.vodafone { grid-column: 1 / -1; }
+  :root[data-theme] .purchases-page .purchase-metrics span { font-size: 10px; }
+  :root[data-theme] .purchases-page .purchase-metrics b { font-size: 15px; overflow-wrap: anywhere; }
+  :root[data-theme] .purchases-page .purchase-action-dock {
+    position: static;
+    transform: none;
+    order: -1;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    padding: 6px;
+    border-radius: 12px;
+  }
+  :root[data-theme] .purchases-page .purchase-action-dock .purchase-head-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+  }
+  :root[data-theme] .purchases-page .purchase-head-actions .purchase-dock-day {
+    grid-column: 1 / -1;
+    min-height: 24px;
+    height: auto;
+    padding: 3px;
+  }
+  :root[data-theme] .purchases-page .purchase-head-actions button {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 5px;
+    font-size: 11px;
+  }
+  :root[data-theme] .purchases-page .purchase-register {
+    min-width: 0;
+    max-height: none;
+    height: auto;
+    overflow: visible;
+    padding: 6px;
+    scrollbar-gutter: auto;
+  }
+  :root[data-theme] .purchases-page .purchase-day-entry { min-width: 0; }
+  :root[data-theme] .purchases-page .purchase-register .purchase-grid {
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+  :root[data-theme] .purchases-page .purchase-register .purchase-grid-head { display: none; }
+  :root[data-theme] .purchases-page .purchase-day-separator {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 5px;
+    margin-block: 8px 5px;
+    border-radius: 10px;
+  }
+  :root[data-theme] .purchases-page .purchase-day-separator > * { padding: 4px 7px; font-size: 10px; }
+  :root[data-theme] .purchases-page .purchase-day-separator button { min-height: 40px; }
+  :root[data-theme] .purchases-page .purchase-register :is(.purchase-row, .purchase-inline-editor) {
+    padding: 7px;
+    margin-block: 7px;
+    border: 1px solid #a68b46;
+    border-radius: 12px;
+  }
+  :root[data-theme] .purchases-page .purchase-register :is(.purchase-row, .purchase-inline-editor) > span {
+    min-width: 0;
+    min-height: 46px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 5px;
+    box-sizing: border-box;
+    border: 1px solid #8f793e66;
+    border-radius: 8px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  :root[data-theme] .purchases-page .purchase-register :is(.purchase-row, .purchase-inline-editor) > span[data-label]::before,
+  :root[data-theme] .purchases-page .purchase-register .purchase-register-total > span[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    width: 100%;
+    flex-basis: 100%;
+    font: 700 10px/1.5 Cairo, sans-serif;
+    direction: rtl;
+    color: inherit;
+  }
+  :root[data-theme] .purchases-page .purchase-register :is(.purchase-row, .purchase-inline-editor) > span:nth-child(2) {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  :root[data-theme] .purchases-page .purchase-register .purchase-inline-editor > span:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  :root[data-theme] .purchases-page .purchase-inline-editor > .purchase-sequence { grid-column: 1 / -1; min-height: 28px; }
+  :root[data-theme] .purchases-page .purchase-register :is(.purchase-row, .purchase-inline-editor) > span:nth-child(9) { grid-column: 1 / 3; }
+  :root[data-theme] .purchases-page .purchase-register .purchase-row :is(.purchase-type-badge, .operation-actor) {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    min-height: 22px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  :root[data-theme] .purchases-page .purchase-inline-editor input {
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    padding: 3px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  :root[data-theme] .purchases-page .purchase-inline-editor .inline-types input { width: 95px; }
+  :root[data-theme] .purchases-page .purchase-inline-editor .inline-types button { min-height: 40px; font-size: 10px; padding: 5px 9px; }
+  :root[data-theme] .purchases-page .purchase-register .purchase-actions button,
+  :root[data-theme] .purchases-page .operation-buttons button { width: 40px; height: 40px; min-height: 40px; }
+  :root[data-theme] .purchases-page .purchase-register .operation-buttons { column-gap: 3px; }
+  :root[data-theme] .purchases-page .purchase-register :is(.purchase-day-opening, .purchase-day-closing) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 7px;
+    border-radius: 8px;
+    margin-block: 5px;
+  }
+  :root[data-theme] .purchases-page :is(.purchase-carry-label, .purchase-day-closing-label) {
+    grid-column: 1;
+    padding: 0;
+    font-size: 10px;
+    justify-self: start;
+  }
+  :root[data-theme] .purchases-page :is(.purchase-carry-value, .purchase-day-closing-value) {
+    grid-column: 2;
+    min-width: 65px;
+    max-width: 145px;
+    overflow-wrap: anywhere;
+    padding: 5px;
+    font-size: 15px;
+  }
+  :root[data-theme] .purchases-page .purchase-register .purchase-register-grand-total {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 7px;
+    border-radius: 12px;
+    gap: 5px;
+  }
+  :root[data-theme] .purchases-page .purchase-register .purchase-register-grand-total > strong { grid-column: 1 / -1; }
+  :root[data-theme] .purchases-page .purchase-register .purchase-register-grand-total > span {
+    grid-column: auto;
+    min-width: 0;
+    padding: 6px;
+    font-size: 16px;
+    overflow-wrap: anywhere;
+    border-radius: 8px;
+  }
+}

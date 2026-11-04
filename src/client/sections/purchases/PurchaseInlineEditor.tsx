@@ -43,8 +43,8 @@ export function PurchaseInlineEditor({
   const runningBalance = purchasePreviewBalance(balanceBeforeUnits, remaining);
   return (
     <div className="purchase-grid purchase-inline-editor">
-      <span className="purchase-sequence">{entry ? entry.sequence : uiText("جديد")}</span>
-      <span className="inline-types">
+      <span className="purchase-sequence" data-label={uiText("التسلسل")}>{entry ? entry.sequence : uiText("جديد")}</span>
+      <span className="inline-types" data-label={uiText("النوع")}>
         {PURCHASE_TYPES.map(([code, label]) => (
           <button
             type="button"
@@ -64,7 +64,7 @@ export function PurchaseInlineEditor({
           onChange={(event) => choose('custom', event.target.value)}
         />
       </span>
-      <span>
+      <span data-label={uiText("القيمة ج.م")}>
         <input
           aria-label={uiText("القيمة ج.م")}
           data-new-value={!entry || undefined}
@@ -74,7 +74,7 @@ export function PurchaseInlineEditor({
           onKeyDown={keys}
         />
       </span>
-      <span className="operation-buttons">
+      <span className="operation-buttons" data-label={uiText("العملية")}>
         <button
           type="button"
           className={draft.mode === 'multiply' ? 'active' : ''}
@@ -94,7 +94,7 @@ export function PurchaseInlineEditor({
           ÷
         </button>
       </span>
-      <span>
+      <span data-label={uiText("السعر")}>
         <input
           aria-label={uiText("سعر الصرف")}
           inputMode="decimal"
@@ -103,10 +103,10 @@ export function PurchaseInlineEditor({
           onKeyDown={keys}
         />
       </span>
-      <span className="calculated" dir="ltr">
+      <span className="calculated" dir="ltr" data-label={uiText("الناتج")}>
         {purchaseNumber.format(result)}
       </span>
-      <span>
+      <span data-label={uiText("المسدد")}>
         <input
           aria-label={uiText("المسدد")}
           inputMode="numeric"
@@ -115,10 +115,10 @@ export function PurchaseInlineEditor({
           onKeyDown={keys}
         />
       </span>
-      <span className="calculated purchase-running-balance" dir="ltr" title={uiText('الرصيد التراكمي بعد المعاملة')}>
+      <span className="calculated purchase-running-balance" dir="ltr" data-label={uiText("الباقي")} title={uiText('الرصيد التراكمي بعد المعاملة')}>
         {runningBalance === null ? '—' : purchaseNumber.format(runningBalance)}
       </span>
-      <span>
+      <span data-label={uiText("مستهلك فودافون")}>
         <input
           aria-label={uiText("مستهلك فودافون")}
           inputMode="numeric"

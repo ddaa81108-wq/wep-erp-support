@@ -98,17 +98,25 @@ try {
       await page.setViewportSize({width,height:1000});
       if(width<760 && await page.locator('.sidebar.open').count()>0) await page.getByRole('button',{name:'إغلاق القائمة الرئيسية',exact:true}).click();
       await page.waitForTimeout(400);
+      await page.evaluate(()=>window.scrollTo(0,0));
       await register.evaluate(e=>e.scrollTop=0);
       await expect(page.locator('.dashboard-utility-bar')).toBeInViewport();
       for(let tone=0;tone<5;tone++) {
         const cell=page.locator(`.purchase-day-tone-${tone} .purchase-row > span`).first();
-        await expect(cell).toHaveCSS('border-radius','0px');
+        await expect(cell).toHaveCSS('border-radius',width<=700?'8px':'0px');
         await expect(cell).toHaveCSS('color',theme === 'light' ? 'rgb(48, 40, 24)' : 'rgb(255, 255, 255)');
       }
       await page.screenshot({path:`artifacts/purchase-six/${theme}-${width}.png`,fullPage:true});
       await register.evaluate(e=>e.scrollTop=e.scrollHeight);
-      await expect(page.locator('.dashboard-utility-bar')).toBeInViewport();
-      await expect(page.locator('.purchase-grid-head')).toBeInViewport();
+      if(width<=700) {
+        await expect(page.locator('.purchase-grid-head')).toBeHidden();
+        assert.ok(await register.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'Phone register fits the viewport.');
+        await page.locator('.purchase-inline-editor').scrollIntoViewIfNeeded();
+        await expect(page.getByRole('button',{name:'اعتماد الصف',exact:true})).toBeInViewport();
+      } else {
+        await expect(page.locator('.dashboard-utility-bar')).toBeInViewport();
+        await expect(page.locator('.purchase-grid-head')).toBeInViewport();
+      }
       await page.screenshot({path:`artifacts/purchase-six/${theme}-${width}-entry.png`,fullPage:true});
     }
   }
