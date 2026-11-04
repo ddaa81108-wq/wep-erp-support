@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>عارض النسخ الاحتياطية — Abdo ERP</title>
+<link rel="stylesheet" href="./style.css">
+<header><div><small>ABDO ERP · BACKUP VIEWER</small><h1>محتوى النسخة الاحتياطية</h1><p>نسخة مستقلة للقراءة فقط، دون تشغيل المنظومة أو استعادة بياناتها.</p></div><button id="close">إغلاق وحذف المعاينة المؤقتة</button></header>
+<main>
+<section class="metadata" id="metadata" aria-label="معلومات النسخة"></section>
+<p class="notice">عرض تقني للقيم المحفوظة كما هي، دون تحويل وحدات أو إعادة حساب أرصدة. بعض جداول الدخول وأعمدة الأسرار مستبعدة من العرض.</p>
+<section class="toolbar"><label>الجدول<select id="tables"></select></label><form id="search-form"><label>بحث داخل الجدول<input id="search" maxlength="120" placeholder="اسم، رقم، أو وصف"></label><button>بحث</button></form></section>
+<p id="status" role="status">جارٍ قراءة النسخة…</p>
+<div class="table-wrap"><table id="data"><thead></thead><tbody></tbody></table></div>
+<nav aria-label="صفحات السجل"><button id="previous">السابق</button><span id="page"></span><button id="next">التالي</button></nav>
+<details id="cell-details"><summary>عرض محتوى خلية طويلة</summary><p>اضغط خلية في الجدول لعرض محتواها كاملًا.</p><pre id="cell-value"></pre></details>
+</main><script src="./app.js"></script>
+</html>
