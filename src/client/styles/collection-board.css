@@ -568,3 +568,32 @@
 @media(max-width:700px) {
  .admin-collections-page .collection-board-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+/* Transient locks keep their appearance; only the pressed financial action spins. */
+.admin-collections-page .collection-board button:disabled {
+  opacity: 1;
+}
+.collection-board button[aria-busy='true'] {
+  position: relative;
+  cursor: wait;
+}
+.collection-board button[aria-busy='true'] > .collection-action-label {
+  opacity: 0;
+}
+.collection-board button[aria-busy='true']::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  inset: 0;
+  margin: auto;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  animation: collection-action-progress .8s linear infinite;
+}
+@keyframes collection-action-progress {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .collection-board button[aria-busy='true']::after { animation: none; }
+}

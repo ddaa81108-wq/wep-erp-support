@@ -144,7 +144,7 @@ export function CollectionWorkBoard({
     </div>
   );
   return (
-    <div className="collection-board">
+    <div className="collection-board" data-refreshing={refreshing || undefined}>
       <section className="board-filters collection-panel" aria-label={uiText('تحديد نطاق الاستلامات')}>
         <div className="board-batch-row board-day-close">
           <label>

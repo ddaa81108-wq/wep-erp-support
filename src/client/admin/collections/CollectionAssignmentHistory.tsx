@@ -45,12 +45,12 @@ export function CollectionAssignmentHistory({
     return () => controller.abort();
   }, [assignment.batchId, assignment.id, page, open, revision]);
   return (
-    <details className="board-card-history" open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
+    <details className="board-card-history" aria-busy={loading} open={open} onToggle={(event) => setOpen(event.currentTarget.open)}>
       <summary>{uiText('تفاصيل الاستلامات')}</summary>
       {open && (
         <>
           {error && <p role="alert">{error}</p>}
-          {loading && <p role="status">{uiText('جارٍ التحميل…')}</p>}
+          {loading && !result && <p role="status">{uiText('جارٍ التحميل…')}</p>}
           {!loading && !error && result?.items.length === 0 && (
             <p>{uiText('لم يسجل الموظف استلامًا بعد.')}</p>
           )}

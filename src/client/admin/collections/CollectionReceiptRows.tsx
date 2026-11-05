@@ -1,5 +1,5 @@
 import { api, type CollectionWorkspaceReceipt } from '../../api.ts';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { displayLocale, uiText } from '../../i18n/language.ts';
 import { collectionError, collectionMoney } from '../../sections/collections/useCollectionsDashboard.ts';
 
@@ -10,6 +10,15 @@ type Props = {
 };
 const date = new Intl.DateTimeFormat(displayLocale, { dateStyle: 'short', timeStyle: 'short' });
 export function CollectionReceiptRows({ items, busy, run }: Props) {
+  const [activeAction, setActiveAction] = useState('');
+  const actionLock = useRef(false);
+  async function perform(key: string, id: string, operation: () => Promise<unknown>) {
+    if (busy || actionLock.current) return false;
+    actionLock.current = true;
+    setActiveAction(key);
+    try { return await run(id, operation); }
+    finally { actionLock.current = false; setActiveAction(''); }
+  }
   const [cancelling, setCancelling] = useState<{
     receipt: CollectionWorkspaceReceipt;
     requestId: string;
@@ -20,7 +29,7 @@ export function CollectionReceiptRows({ items, busy, run }: Props) {
     if (!cancelling?.receipt.approvedTransactionId) return;
     const { receipt, requestId } = cancelling;
     setFailure('');
-    const success = await run(receipt.id, async () => {
+    const success = await perform('cancel:' + receipt.id, receipt.id, async () => {
       try {
         await api.cancelCollectionApproval(receipt.kind, receipt.id, {
           requestId,
@@ -65,16 +74,18 @@ export function CollectionReceiptRows({ items, busy, run }: Props) {
                 <button
                   disabled={busy}
                   className="board-approve"
-                  onClick={() => void run(item.id, () => api.decideCollection(item.id, 'approve'))}
+                  aria-busy={activeAction === 'approve:' + item.id}
+                  onClick={() => void perform('approve:' + item.id, item.id, () => api.decideCollection(item.id, 'approve'))}
                 >
-                  {uiText('اعتماد')}
+                  <span className="collection-action-label">{uiText('اعتماد')}</span>
                 </button>
                 <button
                   disabled={busy}
                   className="board-reject"
-                  onClick={() => void run(item.id, () => api.decideCollection(item.id, 'reject'))}
+                  aria-busy={activeAction === 'reject:' + item.id}
+                  onClick={() => void perform('reject:' + item.id, item.id, () => api.decideCollection(item.id, 'reject'))}
                 >
-                  {uiText('رفض')}
+                  <span className="collection-action-label">{uiText('رفض')}</span>
                 </button>
               </div>
             ) : item.status === 'approved' && !item.cashReceivedAt ? (
@@ -82,15 +93,16 @@ export function CollectionReceiptRows({ items, busy, run }: Props) {
                 <button
                   disabled={busy}
                   className="board-cash"
+                  aria-busy={activeAction === 'cash:' + item.id}
                   onClick={() =>
-                    void run(item.id, () =>
+                    void perform('cash:' + item.id, item.id, () =>
                       item.kind === 'linked'
                         ? api.receiveCollectionCash(item.id)
                         : api.receiveUnlinkedCollectionCash(item.id),
                     )
                   }
                 >
-                  {uiText('تأكيد استلام النقدية')}
+                  <span className="collection-action-label">{uiText('تأكيد استلام النقدية')}</span>
                 </button>
                 <button
                   className="board-reject"
@@ -169,10 +181,11 @@ export function CollectionReceiptRows({ items, busy, run }: Props) {
               </button>
               <button
                 className="danger"
+                aria-busy={activeAction === 'cancel:' + cancelling.receipt.id}
                 disabled={busy || reason.trim().length < 5}
                 onClick={() => void cancelApproval()}
               >
-                {uiText('إلغاء الاعتماد وتصحيح الرصيد')}
+                <span className="collection-action-label">{uiText('إلغاء الاعتماد وتصحيح الرصيد')}</span>
               </button>
             </div>
           </section>
