@@ -206,7 +206,7 @@ test('schema 54 upgrade preserves historical submitted amounts and exposes live 
     submitCollection(db, collector, assignments[0], { mode: 'partial', amountUnits: 10, requestId: 'historical-submitted' }, 'test');
     addCustomerTransaction(db, admin, ids[1], { type: 'debt', inputValue: 25, expectedVersion: 1, requestId: 'historical-unsubmitted' }, 'test');
     const financialRows = db.prepare('SELECT * FROM debt_transactions ORDER BY id').all();
-    db.exec('ALTER TABLE debt_assignments DROP COLUMN first_submission_balance_units; DELETE FROM schema_migrations WHERE version=55;');
+    db.exec('ALTER TABLE debt_assignments DROP COLUMN first_submission_balance_units; DELETE FROM schema_migrations WHERE version>=55;');
     db.close();
     const reopened = openDatabase(path);
     try {

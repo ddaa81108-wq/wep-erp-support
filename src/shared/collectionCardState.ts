@@ -33,7 +33,8 @@ export function collectionCardTone(card: CollectionCardState) {
 
 function rank(card: CollectionCardState) {
   const tone = collectionCardTone(card);
-  if (tone === 'collection-rejected') return 5;
+  // Rejection is a receipt status, not proof that this account is settled.
+  if (tone === 'collection-rejected') return card.balanceUnits > 0 ? 0 : card.balanceUnits < 0 ? 2 : 3;
   if (tone === 'collection-red') return 4;
   if (card.balanceUnits === 0) return 3;
   if (hasAdministrativeMovement(card)) return 0;

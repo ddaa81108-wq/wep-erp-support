@@ -9,6 +9,7 @@ import { addCustomerTransaction, createCustomer } from './customers.ts';
 import { asPositiveWholeUnits, normalizePartyName } from './customerMoney.ts';
 import { validateRequestId, readIdempotent, rememberIdempotent } from './customerTransactionSupport.ts';
 import { isValidCalendarDate } from './dates.ts';
+import { releaseUnusedCollectionBalance } from './collectionAssignmentBalance.ts';
 
 const MAX_ASSIGNMENT_CARDS = 500;
 
@@ -66,7 +67,7 @@ export function listCollections(db: AppDatabase, actor: AuthenticatedUser) {
     a.status, a.business_date AS businessDate, a.batch_id AS batchId, a.assigned_at AS assignedAt, c.name AS customerName, c.phone, c.version AS customerVersion,
     u.display_name AS assigneeName,
     c.current_balance_units AS balanceUnits,
-    CASE WHEN NOT EXISTS(SELECT 1 FROM collection_submissions first WHERE first.assignment_id=a.id)
+    CASE WHEN NOT EXISTS(SELECT 1 FROM collection_submissions first WHERE first.assignment_id=a.id AND first.status IN ('pending','approved'))
       THEN c.current_balance_units
       ELSE COALESCE(a.first_submission_balance_units,a.assigned_balance_units)
     END AS assignedBalanceUnits,
@@ -425,9 +426,9 @@ export function submitCollection(db: AppDatabase, actor: AuthenticatedUser, assi
       .get(String(row.customer_id), String(row.batch_id), mode, amount)));
     const id = randomUUID(); const submittedAt = nowIso();
     // Freeze only on the first successful submission, inside this same transaction.
-    // Replays return above; rejected/approved receipts still count as prior submissions.
+    // Replays return above. Only pending/approved receipts keep the snapshot locked.
     db.prepare(`UPDATE debt_assignments SET first_submission_balance_units=?
-      WHERE id=? AND NOT EXISTS(SELECT 1 FROM collection_submissions WHERE assignment_id=?)`)
+      WHERE id=? AND NOT EXISTS(SELECT 1 FROM collection_submissions WHERE assignment_id=? AND status IN ('pending','approved'))`)
       .run(currentDebt,assignmentId,assignmentId);
     db.prepare(`INSERT INTO collection_submissions(id,assignment_id,customer_id,collector_user_id,mode,amount_units,status,submitted_at,business_date,batch_id)
       VALUES(?,?,?,?,?,?,'pending',?,?,?)`).run(id, assignmentId, String(row.customer_id), String(row.assignee_user_id), mode, amount, submittedAt, String(row.business_date), String(row.batch_id));
@@ -463,6 +464,7 @@ export function decideCollection(db: AppDatabase, actor: AuthenticatedUser, subm
     const decidedAt = nowIso(); const note = typeof input.note === 'string' ? input.note.trim().slice(0, 500) : '';
     if (decision === 'reject') {
       db.prepare("UPDATE collection_submissions SET status='rejected',decided_by_user_id=?,decided_at=?,decision_note=? WHERE id=?").run(actor.id, decidedAt, note, submissionId);
+      releaseUnusedCollectionBalance(db, String(row.assignment_id));
       // Reject this receipt only. Ending the employee's assignment is a separate admin action.
       audit(db, actor.id, actor.organizationId, 'collection.reject', submissionId, correlationId, { note, assignmentId: row.assignment_id });
       const collectionEvent = emitCollectionEvent(db, submissionId, actor.id, actor.organizationId, 'rejected');

@@ -4,6 +4,7 @@ import type { AuthenticatedUser } from '../security/sessions.ts';
 import { badRequest, conflict, forbidden, notFound } from '../http/errors.ts';
 import { cancelCustomerTransaction } from './customers.ts';
 import type { DebtPartyKind } from './customerProfiles.ts';
+import { releaseUnusedCollectionBalance } from './collectionAssignmentBalance.ts';
 import {
   audit,
   emitEvent,
@@ -114,6 +115,7 @@ export function cancelCollectionApproval(
       reason,
       receiptId,
     );
+    if (kind === 'linked') releaseUnusedCollectionBalance(db, String(row.assignment_id));
     audit(
       db,
       actor.id,

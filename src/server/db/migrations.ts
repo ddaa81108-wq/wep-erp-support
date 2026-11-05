@@ -19,6 +19,7 @@ import { unlinkedCurrencyMigrations } from './migrationsUnlinkedCurrency.ts';
 import { notificationSpeechMigrations } from './migrationsNotificationSpeech.ts';
 import { collectionAssignedAmountMigrations } from './migrationsCollectionAssignedAmount.ts';
 import { collectionSubmissionBalanceMigrations } from './migrationsCollectionSubmissionBalance.ts';
+import { collectionRejectedBalanceMigrations } from './migrationsCollectionRejectedBalance.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -42,4 +43,5 @@ export const migrations: Migration[] = [
   ...notificationSpeechMigrations,
   ...collectionAssignedAmountMigrations,
   ...collectionSubmissionBalanceMigrations,
+  ...collectionRejectedBalanceMigrations,
 ];

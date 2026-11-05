@@ -2,7 +2,7 @@ import type { CollectionAssignment } from '../../api.ts';
 import { uiText } from '../../i18n/language.ts';
 import { collectionMoney } from './useCollectionsDashboard.ts';
 
-/** Assigned debt follows the balance until the first receipt, then stays frozen. */
+/** Assigned debt follows the balance unless pending/approved receipts lock it. */
 export function CollectionCardAmounts({ assignment }: { assignment: CollectionAssignment }) {
   return (
     <div className="collection-card-amounts">

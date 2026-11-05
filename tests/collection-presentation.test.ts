@@ -34,9 +34,11 @@ test('new assignments and administrative financial changes lead; employee paymen
   const fresh = card('new', { assignedAt: '2026-01-02T08:00:00.000Z' });
   const credit = card('credit', { balanceUnits: -5 });
   const sorted = (cards: CollectionCardState[]) => [...cards].sort(compareCollectionCards).map(c => c.id);
-  assert.deepEqual(sorted([zero, partial, rejected, credit, fresh]), ['new', 'partial', 'credit', 'zero', 'rejected']);
-  assert.deepEqual(sorted([zero, {...partial, latestSubmissionAt: '2026-01-04', latestCashReceivedAt:'2026-01-05'}, rejected, credit, fresh]), ['new', 'partial', 'credit', 'zero', 'rejected']);
-  assert.deepEqual(sorted([zero, {...partial, externalFinancialUpdatedAt:'2026-01-06'}, rejected, credit, fresh]), ['partial', 'new', 'credit', 'zero', 'rejected']);
+  assert.deepEqual(sorted([zero, partial, rejected, credit, fresh]), ['new', 'rejected', 'partial', 'credit', 'zero']);
+  assert.deepEqual(sorted([zero, {...partial, latestSubmissionAt: '2026-01-04', latestCashReceivedAt:'2026-01-05'}, rejected, credit, fresh]), ['new', 'rejected', 'partial', 'credit', 'zero']);
+  assert.deepEqual(sorted([zero, {...partial, externalFinancialUpdatedAt:'2026-01-06'}, rejected, credit, fresh]), ['partial', 'new', 'rejected', 'credit', 'zero']);
+  assert.ok(compareCollectionCards({...rejected,balanceUnits:-10},zero)<0);
+  assert.ok(compareCollectionCards({...rejected,balanceUnits:0},fresh)>0);
   assert.equal(sorted([{...zero, externalFinancialUpdatedAt:'2026-01-07'},fresh])[0], 'new');
   const red = {...zero, id:'red', latestCashReceivedAt:'2026-01-08'};
   assert.deepEqual(sorted([red, {...zero, externalFinancialUpdatedAt:'2026-01-07'}, fresh]), ['new','zero','red']);
