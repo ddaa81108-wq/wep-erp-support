@@ -5,7 +5,7 @@ import {
 } from '../../shared/notificationSpeech.ts';
 import { request } from '../apiTransport.ts';
 import { displayLocale, uiText } from '../i18n/language.ts';
-import { enqueueNotificationSpeech, egyptianVoices, selectEgyptianVoice } from './notificationSpeech.ts';
+import { enqueueNotificationSpeech, egyptianVoices, selectEgyptianVoice, resetNotificationSpeech, speechPlaybackMessage, SPEECH_PLAYBACK_EVENT, type SpeechPlaybackStatus } from './notificationSpeech.ts';
 
 export function useAdminNotificationSpeech(enabled: boolean) {
   const [settings, setSettings] = useState({ ...defaultNotificationSpeech });
@@ -16,6 +16,13 @@ export function useAdminNotificationSpeech(enabled: boolean) {
   const saving = useRef(false);
   const revision = useRef(0);
   const [error, setError] = useState('');
+  const [playback, setPlayback] = useState<SpeechPlaybackStatus | null>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    const update = (event: Event) => setPlayback((event as CustomEvent<SpeechPlaybackStatus>).detail);
+    window.addEventListener(SPEECH_PLAYBACK_EVENT, update);
+    return () => window.removeEventListener(SPEECH_PLAYBACK_EVENT, update);
+  }, [enabled]);
   useEffect(() => {
     if (!enabled) return;
     let active = true;
@@ -73,18 +80,17 @@ export function useAdminNotificationSpeech(enabled: boolean) {
   };
   const speak = useCallback((text: string) => {
     if (current.current.profile === 'default') return false;
-    if (!('speechSynthesis' in window)) return false;
     const voice =
       current.current.profile === 'egyptian'
-        ? selectEgyptianVoice(window.speechSynthesis.getVoices(), current.current.voiceURI)
+        ? selectEgyptianVoice(window.speechSynthesis?.getVoices() ?? [], current.current.voiceURI)
         : undefined;
-    return enqueueNotificationSpeech(text, voice ? 'ar-EG' : displayLocale, current.current.rate, voice);
+    enqueueNotificationSpeech(text, voice ? 'ar-EG' : displayLocale, current.current.rate, voice);
+    return true; // A reported failure must not trigger a second fallback speech request.
   }, []);
   const preview = () => {
-    if (!('speechSynthesis' in window)) return;
     const voice =
       settings.profile === 'egyptian'
-        ? selectEgyptianVoice(window.speechSynthesis.getVoices(), settings.voiceURI)
+        ? selectEgyptianVoice(window.speechSynthesis?.getVoices() ?? [], settings.voiceURI)
         : undefined;
     if (settings.profile === 'egyptian' && !voice) return;
     const text =
@@ -93,8 +99,7 @@ export function useAdminNotificationSpeech(enabled: boolean) {
         : uiText(
             'هذه تجربة وضوح النطق بالصوت الحالي. الموظف أحمد سجّل تسديدًا جزئيًا للعميل محمد بقيمة 1,500 د.ل. وسجّل استهلاك فودافون بقيمة 250 ج.م. هذه بيانات تجريبية فقط.',
           );
-    if (!enqueueNotificationSpeech(text, voice ? 'ar-EG' : displayLocale, settings.rate, voice))
-      setError(uiText('تعذر تشغيل تجربة الصوت على هذا الجهاز.'));
+    enqueueNotificationSpeech(text, voice ? 'ar-EG' : displayLocale, settings.profile === 'default' ? 1 : settings.rate, voice, { watchStart: true });
   };
   return {
     settings,
@@ -105,6 +110,9 @@ export function useAdminNotificationSpeech(enabled: boolean) {
     save,
     speak,
     preview,
+    retryPreview: () => { if (resetNotificationSpeech()) preview(); },
+    playback,
+    playbackMessage: playback ? uiText(speechPlaybackMessage(playback)) : '',
     supported: typeof window !== 'undefined' && 'speechSynthesis' in window,
   };
 }

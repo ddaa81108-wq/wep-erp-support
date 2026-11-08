@@ -1,7 +1,7 @@
 import { uiText, displayLocale } from '../i18n/language.ts';
 import { BrowserPushControls } from './BrowserPushControls.tsx';
 import { Bell, BellRing, CheckCheck, ChevronLeft, MessageSquareText, Volume2, VolumeX, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { User } from '../api.ts';
 import { isMainSection, type MainSection } from '../../shared/sections.ts';
 import { useNotifications } from './useNotifications.ts';
@@ -20,6 +20,8 @@ export function NotificationCenter({
 }) {
   const enabled = user.role === 'admin' || user.permissions?.includes('collections.read') === true;
   const [open, setOpen] = useState(false);
+  const [speechSettingsOpen, setSpeechSettingsOpen] = useState(false);
+  useEffect(() => { if (!open) setSpeechSettingsOpen(false); }, [open]);
   const speech = useAdminNotificationSpeech(user.role === 'admin');
   const notifications = useNotifications(enabled, user.role === 'admin' ? speech.speak : undefined);
   const insight = useMemo(() => {
@@ -102,11 +104,12 @@ export function NotificationCenter({
               <span>{uiText("النطق")}<strong>{!notifications.preferencesReady ? uiText("جارٍ التحميل…") : notifications.preferences.speechEnabled ? uiText("مفعّل") : uiText("متوقف")}</strong></span>
             </button>
           </div>
-          {user.role === 'admin' && <AdminNotificationSpeech speech={speech} />}
+          {user.role === 'admin' && <AdminNotificationSpeech speech={speech} onToggle={setSpeechSettingsOpen} />}
           <BrowserPushControls />
           {notifications.preferencesSaving && <p className="notification-preference-status" role="status">{uiText("جارٍ حفظ إعدادات التنبيه…")}</p>}
           {notifications.preferencesError && <p className="notification-error" role="alert">{notifications.preferencesError}</p>}
           {notifications.error && <p className="notification-error">{notifications.error}</p>}
+          {speech.playback?.phase === 'error' && !speechSettingsOpen && <p className="notification-error" role="alert">{speech.playbackMessage}</p>}
           <div className="notification-list-heading"><strong>{uiText("آخر الحركات")}</strong><span>{uiText("الأحدث أولًا")}</span></div>
           <div className="notification-list">
             {notifications.loading && <p>{uiText("جارٍ تحميل الإشعارات…")}</p>}

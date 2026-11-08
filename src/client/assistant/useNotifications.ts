@@ -4,6 +4,7 @@ import { api, type NotificationItem, type NotificationPreferences } from '../api
 import { useRealtimeRefresh } from '../realtime/useRealtimeRefresh.ts';
 import { RefreshQueue } from '../realtime/queuedRefresh.ts';
 import { notificationSentence } from './notificationModel.ts';
+import { enqueueNotificationSpeech } from './notificationSpeech.ts';
 import {
   NOTIFICATION_REALTIME_TOPICS,
   NOTIFICATION_SAFETY_POLL_INTERVAL_MS,
@@ -92,13 +93,11 @@ export function useNotifications(enabled: boolean, speakForAccount?: (text: stri
         if (announcementTimer.current) window.clearTimeout(announcementTimer.current);
         announcementTimer.current = window.setTimeout(() => setAnnouncement(null), 8_000);
         if (preferencesRef.current.soundEnabled) void playNoticeTone();
-        if (preferencesRef.current.speechEnabled && 'speechSynthesis' in window) {
+        if (preferencesRef.current.speechEnabled) {
           const text = notificationSentence(result.items[0]);
           try {
             if (!speakForAccount?.(text)) {
-              const speech = new SpeechSynthesisUtterance(text);
-              speech.lang = displayLocale;
-              window.speechSynthesis.speak(speech);
+              enqueueNotificationSpeech(text, displayLocale, 1);
             }
           } catch {
             // Optional speech must not invalidate successfully loaded notices.

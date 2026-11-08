@@ -8,6 +8,10 @@ import {
   selectEgyptianVoice,
   spokenNotificationText,
   notificationSpeechParts,
+  selectSpeechVoice,
+  enqueueNotificationSpeech,
+  resetNotificationSpeech,
+  type SpeechPlaybackStatus,
 } from '../src/client/assistant/notificationSpeech.ts';
 
 test('Egyptian speech is opt-in, account-scoped, admin-only and validates settings', () => {
@@ -39,6 +43,69 @@ test('Egyptian speech is opt-in, account-scoped, admin-only and validates settin
     assert.equal(getNotificationSpeech(db, other).profile, 'default');
   } finally {
     db.close();
+  }
+});
+
+test('speech locale resolves to an available voice of the same language without substituting a different language', () => {
+  const voices = [{ lang: 'en-US', voiceURI: 'en', default: true }, { lang: 'ar-SA', voiceURI: 'ar' }];
+  assert.equal(selectSpeechVoice(voices, 'ar-LY')?.voiceURI, 'ar');
+  assert.equal(selectSpeechVoice(voices, 'en-GB')?.voiceURI, 'en');
+  assert.equal(selectSpeechVoice(voices, 'fr-FR'), undefined);
+});
+
+test('speech reports asynchronous failures and real playback events; explicit reset ignores stale callbacks without replay', () => {
+  const savedWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  const savedUtterance = Object.getOwnPropertyDescriptor(globalThis, 'SpeechSynthesisUtterance');
+  const states: SpeechPlaybackStatus[] = [];
+  class Utterance {
+    text: string; lang = ''; rate = 1; voice: unknown;
+    onstart?: () => void; onend?: () => void; onerror?: (event: { error: string }) => void;
+    constructor(text: string) { this.text = text; }
+  }
+  const spoken: Utterance[] = [];
+  const timers = new Map<number, () => void>();
+  let timerId = 0, cancels = 0, resumes = 0, failSync = false;
+  const synth = {
+    getVoices: () => [{ lang: 'ar-SA', voiceURI: 'test-ar' }],
+    speak: (u: Utterance) => { if (failSync) throw new Error('engine failure'); spoken.push(u); },
+    cancel: () => { cancels++; spoken.forEach(u => u.onerror?.({ error: 'canceled' })); },
+    resume: () => { resumes++; },
+  };
+  Object.defineProperty(globalThis, 'window', { configurable: true, value: {
+    speechSynthesis: synth,
+    dispatchEvent: (event: CustomEvent<SpeechPlaybackStatus>) => { states.push(event.detail); return true; },
+    setTimeout: (callback: () => void) => { timers.set(++timerId, callback); return timerId; },
+    clearTimeout: (id: number) => { timers.delete(id); },
+  } });
+  Object.defineProperty(globalThis, 'SpeechSynthesisUtterance', { configurable: true, value: Utterance });
+  try {
+    assert.equal(enqueueNotificationSpeech('تجربة صوت', 'ar-LY', 1, undefined, { watchStart: true }), true);
+    assert.equal(spoken[0].lang, 'ar-SA');
+    spoken[0].onerror?.({ error: 'not-allowed' });
+    assert.deepEqual(states.at(-1), { phase: 'error', code: 'not-allowed' });
+    assert.equal(spoken.length, 1, 'A playback error must not silently retry or duplicate the sentence');
+    assert.equal(cancels, 0, 'New notifications do not cancel existing speech');
+    resetNotificationSpeech();
+    assert.equal(cancels, 1); assert.equal(resumes, 1);
+    assert.equal(states.at(-1)!.phase, 'reset');
+    enqueueNotificationSpeech('تجربة جديدة', 'ar-LY', 1);
+    spoken[1].onstart?.();
+    spoken[0].onerror?.({ error: 'network' });
+    spoken[0].onend?.();
+    assert.equal(states.at(-1)!.phase, 'started', 'Callbacks from cancelled work cannot overwrite the new test');
+    spoken[1].onend?.();
+    assert.equal(states.at(-1)!.phase, 'finished');
+    enqueueNotificationSpeech('تجربة انتظار', 'ar-LY', 1, undefined, { watchStart: true });
+    for (const timer of timers.values()) timer();
+    assert.equal(states.at(-1)!.phase, 'waiting');
+    assert.equal(spoken.length, 3, 'A start timeout reports state but does not replay text');
+    failSync = true;
+    assert.equal(enqueueNotificationSpeech('تجربة فشل', 'ar-LY', 1), false);
+    assert.deepEqual(states.at(-1), { phase: 'error', code: 'synthesis-failed' });
+    resetNotificationSpeech();
+  } finally {
+    if (savedWindow) Object.defineProperty(globalThis, 'window', savedWindow); else Reflect.deleteProperty(globalThis, 'window');
+    if (savedUtterance) Object.defineProperty(globalThis, 'SpeechSynthesisUtterance', savedUtterance); else Reflect.deleteProperty(globalThis, 'SpeechSynthesisUtterance');
   }
 });
 

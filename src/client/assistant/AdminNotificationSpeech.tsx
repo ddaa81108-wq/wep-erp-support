@@ -4,13 +4,15 @@ import type { useAdminNotificationSpeech } from './useAdminNotificationSpeech.ts
 
 export function AdminNotificationSpeech({
   speech,
+  onToggle,
 }: {
   speech: ReturnType<typeof useAdminNotificationSpeech>;
+  onToggle?: (open: boolean) => void;
 }) {
   const { settings, voices, ready, busy } = speech;
   const selected = selectEgyptianVoice(voices, settings.voiceURI);
   return (
-    <details className="admin-notification-speech">
+    <details className="admin-notification-speech" onToggle={event => onToggle?.(event.currentTarget.open)}>
       <summary>{uiText('صوت الإشعارات لحسابي')}</summary>
       <p>{uiText('يُحفظ لحسابك فقط ويُستخدم أينما تسجّل الدخول؛ لا يغيّر إعدادات الموظفين.')}</p>
       <label>
@@ -79,11 +81,19 @@ export function AdminNotificationSpeech({
       </label>
       <button
         type="button"
-        disabled={!ready || busy || settings.profile === 'default' || !speech.supported || (settings.profile === 'egyptian' && !selected)}
+        disabled={!ready || busy || !speech.supported || (settings.profile === 'egyptian' && !selected)}
         onClick={speech.preview}
       >
         {settings.profile === 'egyptian' ? uiText('تجربة الصوت المصري') : uiText('تجربة وضوح النطق الحالي')}
       </button>
+      <button type="button" disabled={!ready || busy || !speech.supported || (settings.profile === 'egyptian' && !selected)} onClick={speech.retryPreview}>
+        {uiText('إعادة تهيئة الصوت وتجربته')}
+      </button>
+      <small>{uiText('يوقف طابور النطق الحالي على هذا الجهاز ثم يشغّل تجربة جديدة؛ لا يعيد الإشعارات القديمة ولا يغيّر إعداد حسابك.')}</small>
+      {speech.playback && <p className={speech.playback.phase === 'error' ? 'notification-error' : 'notification-preference-status'} role={speech.playback.phase === 'error' ? 'alert' : 'status'} data-speech-phase={speech.playback.phase} data-speech-error={speech.playback.code}>
+        {speech.playbackMessage}
+      </p>}
+      {!speech.supported && !speech.playback && <p className="notification-error" role="alert">{uiText('هذا المتصفح لا يوفّر محرك النطق. جرّب متصفحًا يدعم النطق على هذا الجهاز.')}</p>}
       <small>
         {uiText('التجربة لا تسجّل معاملة ولا تفعّل النطق تلقائيًا. فعّل «النطق» لتسمع الإشعارات الجديدة.')}
       </small>
