@@ -77,7 +77,13 @@ try {
   await page.getByLabel('طريقة النطق', { exact: true }).selectOption('egyptian');
   await expect(page.getByText(/لا يتوفر صوت مصري/)).toBeVisible();
   const preview = page.getByRole('button', { name: 'تجربة الصوت المصري', exact: true });
-  await expect(preview).toBeDisabled();
+  await expect(preview).toBeEnabled();
+  await expect(page.getByText('التجربة ستستخدم صوت الجهاز المتاح دون تغيير اختيار الصوت المحفوظ لحسابك.', { exact: true })).toBeVisible();
+  await preview.click();
+  const fallbackSpeech = await page.evaluate(() => (window as unknown as { spoken: { text: string; lang: string }[] }).spoken);
+  assert.ok(fallbackSpeech.length > 0, 'Missing Egyptian voice must not silently disable testing');
+  assert.ok(fallbackSpeech.every(part => part.lang === 'ar-LY'));
+  await page.evaluate(() => { (window as unknown as { spoken: unknown[] }).spoken = []; });
   await page.evaluate(() => window.dispatchEvent(new Event('test-voices-ready')));
   await expect(preview).toBeEnabled();
   await page.getByLabel('سرعة القراءة', { exact: true }).selectOption('0.9');

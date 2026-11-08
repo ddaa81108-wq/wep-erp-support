@@ -1405,4 +1405,6 @@ export const english: Readonly<Record<string, string>> = {
   'تغيّرت النقدية غير المستلمة. ألغِ التحديد وراجع القيم ثم أعد التأكيد.': 'Outstanding cash has changed. Uncheck, review the amounts and confirm again.',
   'نعم، أغلق استثنائيًا': 'Yes, close exceptionally',
   'الإغلاق العادي يتطلب استلام النقدية بالكامل. يمكن للإدارة الإغلاق الاستثنائي مع حفظ المبالغ غير المستلمة وسجلاتها.': 'Normal closure requires all cash to be received. Administration can close exceptionally while retaining outstanding amounts and their records.',
+  'التجربة ستستخدم صوت الجهاز المتاح دون تغيير اختيار الصوت المحفوظ لحسابك.': 'The test will use the available device voice without changing your saved account voice selection.',
+  'لم تبدأ تجربة الصوت بعد. اضغط زر التجربة وستظهر النتيجة هنا.': 'The voice test has not started. Press the test button and the result will appear here.',
 };

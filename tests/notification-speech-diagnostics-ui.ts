@@ -22,7 +22,7 @@ try {
       speechTest: { mode: string; spoken: { text: string; lang: string }[]; cancelled: number; resumed: number };
     };
     state.speechTest = { mode: 'not-allowed', spoken: [], cancelled: 0, resumed: 0 };
-    Object.defineProperty(window, 'SpeechSynthesisUtterance', { value: class {
+    Object.defineProperty(window, 'SpeechSynthesisUtterance', { configurable: true, value: class {
       text: string; lang = ''; rate = 1; voice: unknown;
       onerror?: (event: { error: string }) => void; onstart?: () => void; onend?: () => void;
       constructor(text: string) { this.text = text; }
@@ -48,6 +48,7 @@ try {
   await page.getByRole('button', { name: 'الإشعارات', exact: true }).click();
   await page.getByText('صوت الإشعارات لحسابي', { exact: true }).click();
   const panel = page.locator('.admin-notification-speech');
+  await expect(panel.locator('[data-speech-phase="idle"]')).toContainText('لم تبدأ تجربة الصوت بعد');
   const test = panel.getByRole('button', { name: 'تجربة وضوح النطق الحالي', exact: true });
   await expect(page.getByLabel('طريقة النطق', { exact: true })).toHaveValue('default');
   await expect(test).toBeEnabled();
@@ -76,6 +77,17 @@ try {
   await expect(panel.getByRole('button', { name: 'إعادة تهيئة الصوت وتجربته', exact: true })).toBeEnabled();
   assert.ok(await panel.evaluate(el => el.scrollWidth <= el.clientWidth + 1));
   await page.screenshot({ path: 'artifacts/speech-diagnostics/phone-error.png' });
+  await page.route('**/api/notification-speech', route => route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ ok: false, error: { message: 'Test settings unavailable' } }) }));
+  await page.reload();
+  await page.getByRole('button', { name: 'الإشعارات', exact: true }).click();
+  await page.getByText('صوت الإشعارات لحسابي', { exact: true }).click();
+  await expect(page.getByText('تعذر تحميل إعدادات الصوت. أعد فتح الصفحة للمحاولة.', { exact: true })).toBeVisible();
+  await expect(test).toBeEnabled();
+  await test.click();
+  await expect(panel.locator('[data-speech-error="not-allowed"]')).toBeVisible();
+  await page.evaluate(() => Object.defineProperty(window, 'SpeechSynthesisUtterance', { configurable: true, value: undefined }));
+  await test.click();
+  await expect(panel.locator('[data-speech-error="unsupported"]')).toBeVisible();
   assert.deepEqual(writes, [], 'Speech test/reset does not change settings, preferences or financial data');
   assert.deepEqual(errors, []);
   console.log('PASS: asynchronous blocked/missing-language errors visible, explicit reset/recovery, default profile test, available Arabic voice, phone fit, zero API writes. Audio events are simulated; audibility requires the target device.');

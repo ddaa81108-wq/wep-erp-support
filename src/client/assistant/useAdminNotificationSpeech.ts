@@ -92,9 +92,8 @@ export function useAdminNotificationSpeech(enabled: boolean) {
       settings.profile === 'egyptian'
         ? selectEgyptianVoice(window.speechSynthesis?.getVoices() ?? [], settings.voiceURI)
         : undefined;
-    if (settings.profile === 'egyptian' && !voice) return;
     const text =
-      settings.profile === 'egyptian'
+      voice
         ? uiText('أهلًا بيك. دي تجربة صوت الإشعارات المصري. تم تسجيل تسديد بقيمة 150 دينار ليبي.')
         : uiText(
             'هذه تجربة وضوح النطق بالصوت الحالي. الموظف أحمد سجّل تسديدًا جزئيًا للعميل محمد بقيمة 1,500 د.ل. وسجّل استهلاك فودافون بقيمة 250 ج.م. هذه بيانات تجريبية فقط.',

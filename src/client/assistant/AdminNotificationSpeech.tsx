@@ -81,15 +81,17 @@ export function AdminNotificationSpeech({
       </label>
       <button
         type="button"
-        disabled={!ready || busy || !speech.supported || (settings.profile === 'egyptian' && !selected)}
+        disabled={busy}
         onClick={speech.preview}
       >
         {settings.profile === 'egyptian' ? uiText('تجربة الصوت المصري') : uiText('تجربة وضوح النطق الحالي')}
       </button>
-      <button type="button" disabled={!ready || busy || !speech.supported || (settings.profile === 'egyptian' && !selected)} onClick={speech.retryPreview}>
+      <button type="button" disabled={busy} onClick={speech.retryPreview}>
         {uiText('إعادة تهيئة الصوت وتجربته')}
       </button>
       <small>{uiText('يوقف طابور النطق الحالي على هذا الجهاز ثم يشغّل تجربة جديدة؛ لا يعيد الإشعارات القديمة ولا يغيّر إعداد حسابك.')}</small>
+      {settings.profile === 'egyptian' && !selected && <p>{uiText('التجربة ستستخدم صوت الجهاز المتاح دون تغيير اختيار الصوت المحفوظ لحسابك.')}</p>}
+      {!speech.playback && <p className="notification-preference-status" role="status" data-speech-phase="idle">{uiText('لم تبدأ تجربة الصوت بعد. اضغط زر التجربة وستظهر النتيجة هنا.')}</p>}
       {speech.playback && <p className={speech.playback.phase === 'error' ? 'notification-error' : 'notification-preference-status'} role={speech.playback.phase === 'error' ? 'alert' : 'status'} data-speech-phase={speech.playback.phase} data-speech-error={speech.playback.code}>
         {speech.playbackMessage}
       </p>}
