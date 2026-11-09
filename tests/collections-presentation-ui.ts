@@ -144,20 +144,22 @@ try {
     if (page === adminPage) await page.locator('#board-tab-all').click();
     const cards=page===adminPage?page.locator('.board-assignment-grid > .board-assignment'):page.locator('.collection-grid > .collection-card');
     await expect(cards).toHaveCount(6);
-    for(const [i,tone] of ['collection-base','collection-yellow','zero-collection-card','collection-red','collection-green'].entries()) {
+    for(const [i,tone] of ['collection-base','collection-yellow','zero-collection-card','collection-red','collection-green','collection-rejected'].entries()) {
       await expect(cards.filter({hasText:names[i]})).toHaveClass(new RegExp(tone));
     }
     await expect(page.locator('.collection-rejected-badge')).toHaveCount(0);
     await expect(cards.filter({hasText:names[5]})).toHaveCount(1);
     await expect(cards.filter({hasText:names[2]}).locator('[data-amount="assigned"] bdi')).toHaveText('100');
     await expect(cards.filter({hasText:names[2]}).locator('[data-amount="current"] bdi')).toHaveText('0');
-    const order=await cards.evaluateAll(elements=>elements.map(e=>e.className));
-    assert.ok(order[0].includes('collection-base'));
-    assert.ok(order[1].includes('collection-yellow'));
-    assert.ok(order[2].includes('collection-green'));
-    assert.ok(order[3].includes('zero-collection-card'));
-    assert.ok(order[4].includes('collection-red'));
-    assert.ok(order[5].includes('collection-rejected'));
+    // A rejected receipt with remaining debt shares rank 0 with an untouched card.
+    // Identical assignment times then tie-break by id, so colour positions are not fixed.
+    const listed = await read(writer.request, '/api/collections');
+    const expectedNames = listed.assignments.map((item: { customerName: string }) => item.customerName);
+    const visibleText = await cards.evaluateAll((elements) => elements.map((element) => element.textContent ?? ''));
+    assert.equal(visibleText.length, expectedNames.length);
+    expectedNames.forEach((name: string, index: number) => {
+      assert.ok(visibleText[index]?.includes(name), `collection card ${index} should show ${name}`);
+    });
     mkdirSync(resolve('artifacts','collection-states'),{recursive:true});
     for (const appearance of ['original','03']) {
       if ((await page.evaluate(() => document.documentElement.dataset.royalShell) === '03') !== (appearance === '03'))
