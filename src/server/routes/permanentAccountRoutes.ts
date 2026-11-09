@@ -77,8 +77,12 @@ export async function routePermanentAccounts(
   const [id, action, transactionId, tail] = segments;
   if (!id) return false;
 
-  if (config.kind === 'customer' && method === 'POST' && action === 'zero-review' && segments.length === 2) {
-    return sendOperation(response, events, reviewCustomerZero(database, user, id, await readJson(request), correlationId));
+  if (method === 'POST' && action === 'zero-review' && segments.length === 2) {
+    return sendOperation(
+      response,
+      events,
+      reviewCustomerZero(database, user, id, await readJson(request), correlationId, config.kind),
+    );
   }
 
   if (method === 'GET' && !action) {
@@ -98,7 +102,12 @@ export async function routePermanentAccounts(
     );
   }
   if (method === 'DELETE' && segments.length === 1) {
-    return sendOperation(response, events, deleteCustomerAccount(database,user,id,await readJson(request),correlationId,config.kind),true);
+    return sendOperation(
+      response,
+      events,
+      deleteCustomerAccount(database, user, id, await readJson(request), correlationId, config.kind),
+      true,
+    );
   }
   if (method === 'GET' && action === 'ledger' && !transactionId) {
     requirePermission(user, config.readPermission);
@@ -174,7 +183,11 @@ function sendOperation(
   },
   includeReplay = false,
 ) {
-  for(const sequence of new Set([...(result.eventSequence?[result.eventSequence]:[]),...(result.eventSequences??[])])) events.publish(sequence);
+  for (const sequence of new Set([
+    ...(result.eventSequence ? [result.eventSequence] : []),
+    ...(result.eventSequences ?? []),
+  ]))
+    events.publish(sequence);
   sendJson(response, result.status, {
     ok: true,
     data: result.body,
