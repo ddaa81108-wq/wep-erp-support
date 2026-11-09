@@ -20,6 +20,7 @@ import { notificationSpeechMigrations } from './migrationsNotificationSpeech.ts'
 import { collectionAssignedAmountMigrations } from './migrationsCollectionAssignedAmount.ts';
 import { collectionSubmissionBalanceMigrations } from './migrationsCollectionSubmissionBalance.ts';
 import { collectionRejectedBalanceMigrations } from './migrationsCollectionRejectedBalance.ts';
+import { sectionZeroReviewMigrations } from './migrationsSectionZeroReview.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -44,4 +45,5 @@ export const migrations: Migration[] = [
   ...collectionAssignedAmountMigrations,
   ...collectionSubmissionBalanceMigrations,
   ...collectionRejectedBalanceMigrations,
+  ...sectionZeroReviewMigrations,
 ];

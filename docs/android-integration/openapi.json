@@ -16183,7 +16183,7 @@
                       "ok": false,
                       "error": {
                         "code": "ZERO_REVIEW_CHANGED",
-                        "message": "تغيرت الحالة المالية؛ حدّث بيانات الكارت.",
+                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
                         "correlationId": "example-correlation-id"
                       }
                     }
@@ -31129,6 +31129,1017 @@
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/{id}/zero-review": {
+      "post": {
+        "summary": "مراجعة الكارت الصفري",
+        "description": "Access: companies.write. Same financial contract as customer zero-review: expectedFinancialVersion is the card's current zeroReview.financialVersion. Review does not change balance, account version, ledger, or section totals. GET is read-only; omitting POST is cancel. Replay returns data.replayed true.\nSource: src/server/routes/permanentAccountRoutes.ts. Success example: illustrative from implementation.",
+        "operationId": "post_api_companies_id_zero_review",
+        "tags": [
+          "companies"
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Client-Api-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "zeroReview": {
+                          "type": "object",
+                          "properties": {
+                            "pending": {
+                              "type": "boolean"
+                            },
+                            "financialVersion": {
+                              "type": "integer"
+                            },
+                            "reviewedAt": {
+                              "type": "string"
+                            },
+                            "reviewedByName": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [],
+                          "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                        }
+                      },
+                      "required": [],
+                      "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                    }
+                  },
+                  "required": [],
+                  "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                },
+                "example": {
+                  "ok": true,
+                  "data": {
+                    "zeroReview": {
+                      "pending": false,
+                      "financialVersion": 3,
+                      "reviewedAt": "2026-10-22T22:00:00.000Z",
+                      "reviewedByName": "مدير الاختبار"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "HTTP 400; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "INVALID_FIELD": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "INVALID_FIELD",
+                        "message": "قيمة أحد الحقول غير صالحة.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "HTTP 401; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "AUTH_REQUIRED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "AUTH_REQUIRED",
+                        "message": "يجب تسجيل الدخول أولًا.",
+                        "correlationId": "beb20a75-9659-49e1-b54a-ca1c723b3ca3"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HTTP 403; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "CSRF_REJECTED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "CSRF_REJECTED",
+                        "message": "رمز حماية الطلب مفقود أو غير صالح.",
+                        "correlationId": "7f87f7dc-1183-48a1-834b-2e5accc31d12"
+                      }
+                    }
+                  },
+                  "PERMISSION_DENIED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "PERMISSION_DENIED",
+                        "message": "ليست لديك صلاحية لهذه العملية.",
+                        "details": {
+                          "permission": "collections.review"
+                        },
+                        "correlationId": "a24281c3-e401-4ece-bba9-fbe34c17d926"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTTP 404; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "السجل المطلوب غير موجود.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "HTTP 409; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "VERSION_CONFLICT": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "VERSION_CONFLICT",
+                        "message": "عُدّل الحساب على جهاز آخر. حدّث البيانات ثم حاول مجددًا.",
+                        "details": {
+                          "expectedVersion": 1,
+                          "currentVersion": 2
+                        },
+                        "correlationId": "2b436187-ecfc-45d9-a0fa-ca289cb3620d"
+                      }
+                    }
+                  },
+                  "REQUEST_ID_REUSED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "REQUEST_ID_REUSED",
+                        "message": "استُخدم معرّف الطلب من قبل لمحتوى مختلف.",
+                        "correlationId": "58c80faa-0b9b-4a60-9ada-32a6089aaf20"
+                      }
+                    }
+                  },
+                  "CLIENT_VERSION_MISMATCH": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "CLIENT_VERSION_MISMATCH",
+                        "message": "إصدار الواجهة غير متوافق مع الخادم. احتفظ بالمسودة ثم حدّث الواجهة.",
+                        "details": {
+                          "requiredApiVersion": "1",
+                          "receivedApiVersion": "0"
+                        },
+                        "correlationId": "afb486ed-39a1-40a8-a932-8e1fb6efe4ab"
+                      }
+                    }
+                  },
+                  "DUPLICATE_SAME_WORKDAY": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "DUPLICATE_SAME_WORKDAY",
+                        "message": "توجد معاملة مماثلة في نفس المكان خلال يوم العمل الحالي. هل تريد إضافتها مرة أخرى؟",
+                        "correlationId": "b7eb44bf-1357-4778-b46c-64fa6d94fa06"
+                      }
+                    }
+                  },
+                  "ZERO_REVIEW_CHANGED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "ZERO_REVIEW_CHANGED",
+                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "HTTP 413; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "REQUEST_BODY_TOO_LARGE": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "REQUEST_BODY_TOO_LARGE",
+                        "message": "حجم الطلب أكبر من الحد المسموح.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "HTTP 500; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "حدث خطأ داخلي ولم تُعتمد العملية.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-permission": "companies.write",
+        "x-example-origin": "illustrative",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedFinancialVersion": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "expectedFinancialVersion"
+                ]
+              },
+              "example": {
+                "expectedFinancialVersion": 3
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/libyan-deposits/{id}/zero-review": {
+      "post": {
+        "summary": "مراجعة الكارت الصفري",
+        "description": "Access: libyan_deposits.write. Same financial contract as customer zero-review: expectedFinancialVersion is the card's current zeroReview.financialVersion. Review does not change balance, account version, ledger, or section totals. GET is read-only; omitting POST is cancel. Replay returns data.replayed true.\nSource: src/server/routes/permanentAccountRoutes.ts. Success example: illustrative from implementation.",
+        "operationId": "post_api_libyan_deposits_id_zero_review",
+        "tags": [
+          "libyan-deposits"
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Client-Api-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "zeroReview": {
+                          "type": "object",
+                          "properties": {
+                            "pending": {
+                              "type": "boolean"
+                            },
+                            "financialVersion": {
+                              "type": "integer"
+                            },
+                            "reviewedAt": {
+                              "type": "string"
+                            },
+                            "reviewedByName": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [],
+                          "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                        }
+                      },
+                      "required": [],
+                      "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                    }
+                  },
+                  "required": [],
+                  "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                },
+                "example": {
+                  "ok": true,
+                  "data": {
+                    "zeroReview": {
+                      "pending": false,
+                      "financialVersion": 3,
+                      "reviewedAt": "2026-10-22T22:00:00.000Z",
+                      "reviewedByName": "مدير الاختبار"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "HTTP 400; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "INVALID_FIELD": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "INVALID_FIELD",
+                        "message": "قيمة أحد الحقول غير صالحة.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "HTTP 401; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "AUTH_REQUIRED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "AUTH_REQUIRED",
+                        "message": "يجب تسجيل الدخول أولًا.",
+                        "correlationId": "beb20a75-9659-49e1-b54a-ca1c723b3ca3"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HTTP 403; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "CSRF_REJECTED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "CSRF_REJECTED",
+                        "message": "رمز حماية الطلب مفقود أو غير صالح.",
+                        "correlationId": "7f87f7dc-1183-48a1-834b-2e5accc31d12"
+                      }
+                    }
+                  },
+                  "PERMISSION_DENIED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "PERMISSION_DENIED",
+                        "message": "ليست لديك صلاحية لهذه العملية.",
+                        "details": {
+                          "permission": "collections.review"
+                        },
+                        "correlationId": "a24281c3-e401-4ece-bba9-fbe34c17d926"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTTP 404; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "السجل المطلوب غير موجود.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "HTTP 409; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "VERSION_CONFLICT": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "VERSION_CONFLICT",
+                        "message": "عُدّل الحساب على جهاز آخر. حدّث البيانات ثم حاول مجددًا.",
+                        "details": {
+                          "expectedVersion": 1,
+                          "currentVersion": 2
+                        },
+                        "correlationId": "2b436187-ecfc-45d9-a0fa-ca289cb3620d"
+                      }
+                    }
+                  },
+                  "REQUEST_ID_REUSED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "REQUEST_ID_REUSED",
+                        "message": "استُخدم معرّف الطلب من قبل لمحتوى مختلف.",
+                        "correlationId": "58c80faa-0b9b-4a60-9ada-32a6089aaf20"
+                      }
+                    }
+                  },
+                  "CLIENT_VERSION_MISMATCH": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "CLIENT_VERSION_MISMATCH",
+                        "message": "إصدار الواجهة غير متوافق مع الخادم. احتفظ بالمسودة ثم حدّث الواجهة.",
+                        "details": {
+                          "requiredApiVersion": "1",
+                          "receivedApiVersion": "0"
+                        },
+                        "correlationId": "afb486ed-39a1-40a8-a932-8e1fb6efe4ab"
+                      }
+                    }
+                  },
+                  "DUPLICATE_SAME_WORKDAY": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "DUPLICATE_SAME_WORKDAY",
+                        "message": "توجد معاملة مماثلة في نفس المكان خلال يوم العمل الحالي. هل تريد إضافتها مرة أخرى؟",
+                        "correlationId": "b7eb44bf-1357-4778-b46c-64fa6d94fa06"
+                      }
+                    }
+                  },
+                  "ZERO_REVIEW_CHANGED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "ZERO_REVIEW_CHANGED",
+                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "HTTP 413; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "REQUEST_BODY_TOO_LARGE": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "REQUEST_BODY_TOO_LARGE",
+                        "message": "حجم الطلب أكبر من الحد المسموح.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "HTTP 500; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "حدث خطأ داخلي ولم تُعتمد العملية.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-permission": "libyan_deposits.write",
+        "x-example-origin": "illustrative",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedFinancialVersion": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "expectedFinancialVersion"
+                ]
+              },
+              "example": {
+                "expectedFinancialVersion": 3
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/egyptian-deposits/{id}/zero-review": {
+      "post": {
+        "summary": "مراجعة الكارت الصفري",
+        "description": "Access: egyptian_deposits.write. Same financial contract as customer zero-review: expectedFinancialVersion is the card's current zeroReview.financialVersion. Review does not change balance, account version, ledger, or section totals. GET is read-only; omitting POST is cancel. Replay returns data.replayed true.\nSource: src/server/routes/permanentAccountRoutes.ts. Success example: illustrative from implementation.",
+        "operationId": "post_api_egyptian_deposits_id_zero_review",
+        "tags": [
+          "egyptian-deposits"
+        ],
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Client-Api-Version",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "zeroReview": {
+                          "type": "object",
+                          "properties": {
+                            "pending": {
+                              "type": "boolean"
+                            },
+                            "financialVersion": {
+                              "type": "integer"
+                            },
+                            "reviewedAt": {
+                              "type": "string"
+                            },
+                            "reviewedByName": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [],
+                          "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                        }
+                      },
+                      "required": [],
+                      "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                    }
+                  },
+                  "required": [],
+                  "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
+                },
+                "example": {
+                  "ok": true,
+                  "data": {
+                    "zeroReview": {
+                      "pending": false,
+                      "financialVersion": 3,
+                      "reviewedAt": "2026-10-22T22:00:00.000Z",
+                      "reviewedByName": "مدير الاختبار"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "HTTP 400; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "INVALID_FIELD": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "INVALID_FIELD",
+                        "message": "قيمة أحد الحقول غير صالحة.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "HTTP 401; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "AUTH_REQUIRED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "AUTH_REQUIRED",
+                        "message": "يجب تسجيل الدخول أولًا.",
+                        "correlationId": "beb20a75-9659-49e1-b54a-ca1c723b3ca3"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "HTTP 403; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "CSRF_REJECTED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "CSRF_REJECTED",
+                        "message": "رمز حماية الطلب مفقود أو غير صالح.",
+                        "correlationId": "7f87f7dc-1183-48a1-834b-2e5accc31d12"
+                      }
+                    }
+                  },
+                  "PERMISSION_DENIED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "PERMISSION_DENIED",
+                        "message": "ليست لديك صلاحية لهذه العملية.",
+                        "details": {
+                          "permission": "collections.review"
+                        },
+                        "correlationId": "a24281c3-e401-4ece-bba9-fbe34c17d926"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "HTTP 404; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "NOT_FOUND": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "NOT_FOUND",
+                        "message": "السجل المطلوب غير موجود.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "HTTP 409; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "VERSION_CONFLICT": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "VERSION_CONFLICT",
+                        "message": "عُدّل الحساب على جهاز آخر. حدّث البيانات ثم حاول مجددًا.",
+                        "details": {
+                          "expectedVersion": 1,
+                          "currentVersion": 2
+                        },
+                        "correlationId": "2b436187-ecfc-45d9-a0fa-ca289cb3620d"
+                      }
+                    }
+                  },
+                  "REQUEST_ID_REUSED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "REQUEST_ID_REUSED",
+                        "message": "استُخدم معرّف الطلب من قبل لمحتوى مختلف.",
+                        "correlationId": "58c80faa-0b9b-4a60-9ada-32a6089aaf20"
+                      }
+                    }
+                  },
+                  "CLIENT_VERSION_MISMATCH": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "CLIENT_VERSION_MISMATCH",
+                        "message": "إصدار الواجهة غير متوافق مع الخادم. احتفظ بالمسودة ثم حدّث الواجهة.",
+                        "details": {
+                          "requiredApiVersion": "1",
+                          "receivedApiVersion": "0"
+                        },
+                        "correlationId": "afb486ed-39a1-40a8-a932-8e1fb6efe4ab"
+                      }
+                    }
+                  },
+                  "DUPLICATE_SAME_WORKDAY": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "DUPLICATE_SAME_WORKDAY",
+                        "message": "توجد معاملة مماثلة في نفس المكان خلال يوم العمل الحالي. هل تريد إضافتها مرة أخرى؟",
+                        "correlationId": "b7eb44bf-1357-4778-b46c-64fa6d94fa06"
+                      }
+                    }
+                  },
+                  "ZERO_REVIEW_CHANGED": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "ZERO_REVIEW_CHANGED",
+                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "HTTP 413; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "REQUEST_BODY_TOO_LARGE": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "REQUEST_BODY_TOO_LARGE",
+                        "message": "حجم الطلب أكبر من الحد المسموح.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "HTTP 500; domain-specific cases are in the error catalog and notes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "INTERNAL_ERROR": {
+                    "value": {
+                      "ok": false,
+                      "error": {
+                        "code": "INTERNAL_ERROR",
+                        "message": "حدث خطأ داخلي ولم تُعتمد العملية.",
+                        "correlationId": "example-correlation-id"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-permission": "egyptian_deposits.write",
+        "x-example-origin": "illustrative",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedFinancialVersion": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "expectedFinancialVersion"
+                ]
+              },
+              "example": {
+                "expectedFinancialVersion": 3
               }
             }
           }

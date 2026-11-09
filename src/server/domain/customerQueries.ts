@@ -1,4 +1,4 @@
-import { zeroReviewSnapshot } from './customerZeroReview.ts';
+import { settledZeroRankSql, zeroReviewSnapshot } from './customerZeroReview.ts';
 import { knownViewTags, tagViews } from './viewSnapshots.ts';
 import { businessDayRange, organizationBusinessDate, organizationTimezone } from './reports/businessDates.ts';
 import type { AppDatabase } from '../db/database.ts';
@@ -35,10 +35,10 @@ export function listCustomers(
   const cursor = decodeFeedCursor(url.searchParams.get('cursor'));
   const search = normalizeSearch(url.searchParams.get('q') ?? '');
   const filter = url.searchParams.get('filter') ?? 'all';
-  const zeroRank = "CASE WHEN c.current_balance_units=0 AND (c.section_key<>'customer_debts' OR c.zero_review_pending=0) THEN 1 ELSE 0 END";
+  const zeroRank = settledZeroRankSql('c');
   const conditions = ['c.organization_id = ?', 'c.section_key = ?', 'c.deleted_at IS NULL'];
   const parameters: Array<string | number> = [organizationId, profile.sectionKey];
-  if (filter === 'pending-review') conditions.push("c.section_key='customer_debts' AND c.current_balance_units=0 AND c.zero_review_pending=1");
+  if (filter === 'pending-review') conditions.push('c.current_balance_units=0 AND c.zero_review_pending=1 AND c.system_link_key IS NULL');
   if (search) {
     conditions.push('(c.normalized_name LIKE ? OR c.phone LIKE ?)');
     parameters.push(`%${search}%`, `%${search}%`);
@@ -48,7 +48,7 @@ export function listCustomers(
   else if (filter === 'pinned') conditions.push('c.is_pinned = 1');
   else if (filter === 'smart') {
     conditions.push(`NOT (
-      c.current_balance_units = 0 AND (c.section_key <> 'customer_debts' OR c.zero_review_pending=0) AND c.is_pinned = 0 AND c.inactive_since IS NOT NULL
+      c.current_balance_units = 0 AND c.zero_review_pending=0 AND c.is_pinned = 0 AND c.inactive_since IS NOT NULL
       AND c.inactive_since <= ?
     )`);
     parameters.push(new Date(Date.now() - 30 * 24 * 60 * 60_000).toISOString());
@@ -97,7 +97,7 @@ export function listCustomers(
       COALESCE(SUM(CASE WHEN current_balance_units > 0 THEN current_balance_units ELSE 0 END), 0) AS total_debt,
       COALESCE(SUM(current_balance_units), 0) AS net_balance,
       COALESCE(SUM(CASE WHEN current_balance_units <> 0 THEN 1 ELSE 0 END), 0) AS active_cards,
-      COALESCE(SUM(CASE WHEN current_balance_units=0 AND zero_review_pending=1 THEN 1 ELSE 0 END),0) AS pending_review_count
+      COALESCE(SUM(CASE WHEN current_balance_units=0 AND zero_review_pending=1 AND system_link_key IS NULL THEN 1 ELSE 0 END),0) AS pending_review_count
     FROM customers WHERE organization_id = ? AND section_key = ? AND deleted_at IS NULL
   `).get(
     organizationId,

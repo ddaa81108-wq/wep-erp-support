@@ -77,8 +77,8 @@ export async function routePermanentAccounts(
   const [id, action, transactionId, tail] = segments;
   if (!id) return false;
 
-  if (config.kind === 'customer' && method === 'POST' && action === 'zero-review' && segments.length === 2) {
-    return sendOperation(response, events, reviewCustomerZero(database, user, id, await readJson(request), correlationId));
+  if (method === 'POST' && action === 'zero-review' && segments.length === 2) {
+    return sendOperation(response, events, reviewCustomerZero(database, user, id, await readJson(request), correlationId, config.kind));
   }
 
   if (method === 'GET' && !action) {

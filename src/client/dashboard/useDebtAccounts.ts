@@ -1,13 +1,14 @@
 import { uiText } from '../i18n/language.ts';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Customer, CustomerFilter, Ledger, ConfirmedLedgerWrite } from '../api.ts';
-import { api, ApiError } from '../api.ts';
+import { ApiError } from '../api.ts';
 import { flushBeforeNavigation } from './navigationGuards.ts';
 import { oldestLedgerSequence, readLedgerWindow } from './ledgerReadWindow.ts';
 import {
   getSectionAccount,
   getSectionLedger,
   listSectionAccounts,
+  reviewSectionZero,
   setSectionPinned,
 } from '../sections/debts/debtSectionApi.ts';
 import type { DebtSection, MainSection } from '../sections/debts/sectionConfig.ts';
@@ -330,9 +331,9 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
   }
 
   async function reviewZero(customer: Customer) {
-    if (debtSection !== 'customers' || !customer.zeroReview?.pending) return;
+    if (!customer.zeroReview?.pending || customer.balanceUnits !== 0) return;
     try {
-      await api.reviewCustomerZero(customer.id, customer.zeroReview.financialVersion);
+      await reviewSectionZero(debtSection, customer.id, customer.zeroReview.financialVersion);
     } catch (error) {
       onNotice({ kind: 'error', text: dashboardErrorText(error) });
       await refreshAfterMutation().catch(() => undefined);

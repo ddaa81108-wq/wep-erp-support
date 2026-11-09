@@ -937,9 +937,6 @@ try {
         .filter((element) => {
           const style = getComputedStyle(element);
           if (element.closest('.debt-ticker')) return false;
-          // Purchase register intentionally keeps the desktop table on phones;
-          // its inner viewport scrolls horizontally instead of clipping columns.
-          if (element.closest('.purchase-register')) return false;
           if (style.display === 'none' || style.visibility === 'hidden' || style.position === 'fixed')
             return false;
           const box = element.getBoundingClientRect();
@@ -953,14 +950,16 @@ try {
       assert.equal(
         await page
           .locator('.purchase-register')
-          .evaluate((element) => element.scrollWidth > element.clientWidth),
+          .evaluate((element) => element.scrollWidth <= element.clientWidth + 1),
         true,
+        'phone purchase cards fit without horizontal scrolling',
       );
       assert.equal(
         await page
           .locator('.purchase-register .purchase-grid-head')
           .evaluate((element) => getComputedStyle(element).display),
-        'grid',
+        'none',
+        'phone purchase cards hide the desktop register heading',
       );
     }
     if (screenshotName === 'treasury') {

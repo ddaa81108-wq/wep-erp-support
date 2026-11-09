@@ -52,7 +52,7 @@ test('zero review is administrative, revision-bound, idempotent and financially 
   } finally { db.close(); }
 });
 
-test('pending zero feed stays visible, sorts by movement and pages without duplicates; other sections stay unchanged', () => {
+test('pending zero feed stays visible, sorts by movement and pages without duplicates; company ids stay off the customer route', () => {
   const db = openDatabase(':memory:');
   try {
     const admin = fixtureAdmin(db);
@@ -79,8 +79,10 @@ test('pending zero feed stays visible, sorts by movement and pages without dupli
     assert.equal(feed('filter=smart').items.length, 2);
     assert.equal(feed('filter=pending-review').totalItems, 0);
     const company = make('شركة صفر', 0, 'company');
-    assert.equal(customerSnapshot(db, company, admin.organizationId, 'company').zeroReview, undefined);
-    assert.throws(() => reviewCustomerZero(db, admin, company, { expectedFinancialVersion: 0 }, 'test'), { status: 404 });
+    const companyCard = customerSnapshot(db, company, admin.organizationId, 'company');
+    assert.equal(companyCard.zeroReview?.pending, true);
+    assert.equal(companyCard.balanceUnits, 0);
+    assert.throws(() => reviewCustomerZero(db, admin, company, { expectedFinancialVersion: companyCard.zeroReview!.financialVersion }, 'test'), { status: 404 });
     for (let i = 0; i < 25; i++) make(`صفحات المراجعة ${i}`, i % 2 === 0 ? 0 : 10);
     const first = feed('filter=all&limit=20');
     const second = feed('filter=all&limit=20&cursor=' + first.nextCursor);

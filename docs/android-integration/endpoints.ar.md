@@ -2056,6 +2056,24 @@ Updates the existing posted transaction in current implementation and records au
 }
 ```
 
+## POST /api/companies/{id}/zero-review
+
+مراجعة الكارت الصفري. الصلاحية: `companies.write`.
+
+نفس عقد `POST /api/customers/{id}/zero-review`: الجسم `{ "expectedFinancialVersion": 3 }` من `zeroReview.financialVersion` الحالي. لا يغيّر الرصيد ولا نسخة الحساب ولا الإجمالي. الإلغاء هو عدم إرسال الطلب. إعادة نفس النسخة المعتمدة ترجع `data.replayed: true`. التفاصيل والأمثلة في `docs/vib-srv-zero-001/CONTRACT.ar.md`.
+
+## POST /api/libyan-deposits/{id}/zero-review
+
+مراجعة الكارت الصفري. الصلاحية: `libyan_deposits.write`.
+
+نفس عقد مراجعة العملاء، على مسار الأمانات الليبية فقط. صلاحية قسم آخر لا تكفي.
+
+## POST /api/egyptian-deposits/{id}/zero-review
+
+مراجعة الكارت الصفري. الصلاحية: `egyptian_deposits.write`.
+
+نفس عقد مراجعة العملاء. حسابات الربط النظامية داخل القسم لا تُراجع و`zeroReview` لا يُعاد لها.
+
 ## GET /api/egyptian-deposits/exchange-rate
 
 سعر الأمانات المصرية. الصلاحية: `egyptian_deposits.read`.

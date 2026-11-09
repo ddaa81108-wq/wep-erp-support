@@ -1,4 +1,5 @@
-import { api, type CustomerListOptions } from '../../api.ts';
+import { api, type Customer, type CustomerListOptions } from '../../api.ts';
+import { request } from '../../apiTransport.ts';
 import type { DebtSection } from './sectionConfig.ts';
 import { isDepositSection } from './debtSectionUtils.ts';
 
@@ -6,6 +7,12 @@ type CreateAccountBody = { name: string; phone?: string; openingBalance: number;
 type UpdateAccountBody = { expectedVersion: number; name: string; phone?: string };
 type PinBody = { expectedVersion: number; isPinned: boolean };
 type CancelBody = { requestId: string; expectedVersion: number; reason?: string };
+
+export const reviewSectionZero = (section: DebtSection, id: string, expectedFinancialVersion: number) =>
+  request<{ zeroReview: NonNullable<Customer['zeroReview']>; replayed?: boolean }>(
+    `/api/${section}/${encodeURIComponent(id)}/zero-review`,
+    { method: 'POST', body: JSON.stringify({ expectedFinancialVersion }) },
+  );
 
 export const listSectionAccounts = (section: DebtSection, options?: CustomerListOptions) => {
   if (isDepositSection(section)) return api.depositAccounts(section, options);

@@ -1,0 +1,2356 @@
+diff --git a/API.md b/API.md
+index fbf9f16..5962031 100644
+--- a/API.md
++++ b/API.md
+@@ -70,12 +70,15 @@
+ | POST | `/api/customers/:id/transactions` | `debts.write` | دين أو سداد ذري |
+ | PATCH | `/api/customers/:id/pin` | `debts.write` | تثبيت/إلغاء تثبيت بطاقة العميل في العرض الذكي |
+ | POST | `/api/customers/:id/zero-review` | مدير فقط | مراجعة تصفير العميل دون تغيير مالي |
++| POST | `/api/companies/:id/zero-review` | `companies.write` | مراجعة تصفير الشركة دون تغيير مالي |
++| POST | `/api/libyan-deposits/:id/zero-review` | `libyan_deposits.write` | مراجعة تصفير الأمانة الليبية دون تغيير مالي |
++| POST | `/api/egyptian-deposits/:id/zero-review` | `egyptian_deposits.write` | مراجعة تصفير الأمانة المصرية دون تغيير مالي |
+ | POST | `/api/customers/:id/transactions/:transactionId/corrections` | `debts.write` | تصحيح حركة بسطر جديد مع إبقاء الأصل موثقًا |
+ | POST | `/api/customers/:id/transactions/:transactionId/cancel` | `debts.write` | إلغاء أثر حركة مع إبقاء صفها ظاهرًا في السجل |
+ 
+ العرض الذكي لا يحذف العميل. الكارت الصفري الذي ينتظر المراجعة يبقى ظاهرًا مهما طالت المدة، ويدخل مع بقية الكروت بترتيب آخر حركة مالية. بعد المراجعة ينتقل إلى مجموعة الأصفار أسفل القائمة، وتعود عليه قاعدة الإخفاء بعد 30 يومًا من الخمول إن لم يكن مثبتًا. البحث ومرشح «مسدد» يعيدان إظهاره. التسلسل لا يبدأ من جديد بعد الوصول إلى صفر، والكروت الصفرية لا تدخل في عدد الكروت النشطة حتى قبل المراجعة.
+ 
+-مسار `zero-review` يتطلب الجسم `{ "expectedFinancialVersion": 3 }` من `customer.zeroReview.financialVersion` ورؤوس الجلسة وCSRF. يرفض الموظف ولو امتلك `debts.write`، ويرجع `409 ZERO_REVIEW_CHANGED` إذا تغيّر الرصيد أو النسخة المالية. إعادة اعتماد نفس النسخة المعتمدة تعيد نجاحًا دون تكرار التدقيق أو الحدث. القائمة تقبل `filter=pending-review`، ويظل هذا الفلتر نافذًا مع البحث. الملخص الشامل يتضمن `pendingReviewCount`، والكارت يتضمن `zeroReview` بحالة الانتظار ونسخة الحركة ووقت المراجعة واسم المراجع. نجاح المراجعة ينشر `customer.changed` لتحديث باقي الشاشات.
++مسار `zero-review` يتطلب الجسم `{ "expectedFinancialVersion": 3 }` من `zeroReview.financialVersion` ورؤوس الجلسة وCSRF. عملاء الديون يرفضون الموظف ولو امتلك `debts.write`. الشركات والأمانات الليبية والمصرية تقبل المدير أو صاحب صلاحية الكتابة الخاصة بذلك القسم، وترفض العرض فقط وصلاحية قسم آخر. المسار يرجع `409 ZERO_REVIEW_CHANGED` إذا تغيّر الرصيد أو النسخة المالية، و`409 ZERO_REVIEW_NOT_PENDING` إذا كان الكارت صفرًا قديمًا لا ينتظر مراجعة. إعادة اعتماد نفس النسخة المعتمدة تعيد نجاحًا مع `data.replayed: true` دون تكرار التدقيق أو الحدث. قوائم الأقسام الأربعة تقبل `filter=pending-review`، ويظل هذا الفلتر نافذًا مع البحث. الملخص الشامل يتضمن `pendingReviewCount`، والكارت غير المرتبط بالنظام يتضمن `zeroReview`. نجاح المراجعة ينشر حدث القسم (`customer.changed` أو `company.changed` أو `libyan-deposit.changed` أو `egyptian-deposit.changed`) دون تغيير الرصيد أو الإجمالي. العقد المفصل في `docs/vib-srv-zero-001/CONTRACT.ar.md`.
+ 
+ المدير يتجاوز الصلاحيات الفرعية. كتابة حركات الحسابات التالية تتطلب:
+ 
+diff --git a/DATA_MODEL.md b/DATA_MODEL.md
+index 880dc40..cb9b9f1 100644
+--- a/DATA_MODEL.md
++++ b/DATA_MODEL.md
+@@ -26,9 +26,9 @@
+ | `organizations` | حدود المؤسسة الحالية والمستأجر المستقبلي | slug فريد وحالة واضحة |
+ | `branches` | الفروع والخزائن التشغيلية | code فريد داخل المؤسسة ومنطقة زمنية وعملة أساس |
+ 
+-## مراجعة تصفير العملاء
++## مراجعة تصفير الحسابات
+ 
+-مراجعة تصفير ديون العملاء محفوظة في `customers`: حالة `zero_review_pending`، ونسخة مالية مستقلة `zero_review_financial_version`، ووقت المراجعة `zero_reviewed_at` ومعرّف واسم المراجع `zero_reviewed_by` / `zero_reviewed_by_name`. كل كتابة للرصيد أو تاريخ آخر حركة مالية تلغي المراجعة وتزيد النسخة المالية؛ تعديل الاسم أو التثبيت لا يغيرها. اعتماد المراجعة نفسه لا يغيّر الرصيد أو نسخة السجل المالي. الترقية 45 لا تطلب مراجعة الكروت الصفرية السابقة بأثر رجعي. الكروت المرتبطة تلقائيًا بالنظام والأقسام الأخرى مستثناة.
++مراجعة التصفير محفوظة على صف الحساب في `customers` للأقسام الأربعة: حالة `zero_review_pending`، ونسخة مالية مستقلة `zero_review_financial_version`، ووقت المراجعة `zero_reviewed_at` ومعرّف واسم المراجع `zero_reviewed_by` / `zero_reviewed_by_name`. كل كتابة للرصيد أو تاريخ آخر حركة مالية تلغي المراجعة وتزيد النسخة المالية؛ تعديل الاسم أو التثبيت لا يغيرها. اعتماد المراجعة نفسه لا يغيّر الرصيد أو نسخة السجل أو الإجماليات. الترقية 45 لا تطلب مراجعة أصفار العملاء السابقة. الترقية 57 توسّع المحفز نفسه إلى ديون الشركات والأمانات الليبية والمصرية دون إضافة أعمدة ودون تعليم الأصفار التاريخية كمنتظرة. الكروت المرتبطة تلقائيًا بالنظام مستثناة.
+ 
+ ## الكسور في القيم المالية
+ 
+diff --git a/FEATURE_PARITY.md b/FEATURE_PARITY.md
+index 0ef278a..be0d7cf 100644
+--- a/FEATURE_PARITY.md
++++ b/FEATURE_PARITY.md
+@@ -29,7 +29,7 @@
+ |---|---|---|
+ | العملاء والشركات والأمانات LYD وEGP | `src/server/domain/customerAccountCommands.ts`، `customerTransactions.ts`، `customerQueries.ts`؛ `tests/foundation.test.ts`، `tests/account-lifecycle-isolation.test.ts`، `tests/sectionSnapshots.test.ts` | منفّذ وله اختبارات للأرصدة والصفحات والعزل؛ الحسابات المصرية المرتبطة تقرأ مصادرها المخصصة |
+ | الدين والسداد والتعارض وإعادة الطلب | `src/server/domain/customerTransactionSupport.ts`، `customerTransactions.ts`؛ `tests/reliability.test.ts`، `tests/financial-invariants.test.ts`، `tests/decimal-factors.test.ts` | منفّذ وله اختبارات؛ سياسة التقريب الحالية لم تتغير |
+-| مراجعة الحسابات الصفرية | `tests/customer-zero-review.test.ts`؛ متصفح مستقل `tests/customer-zero-review-ui.ts` | منفّذ وله اختبارات؛ إخفاء العرض لا يحذف الدفتر |
++| مراجعة الحسابات الصفرية | `tests/customer-zero-review.test.ts` و`tests/section-zero-review.test.ts`؛ متصفح العملاء `tests/customer-zero-review-ui.ts` | منفّذ للأقسام الأربعة على صف الحساب؛ إخفاء العرض لا يحذف الدفتر ولا يغيّر الرصيد |
+ | المشتريات والترحيل والتصحيح والباقي المتحرك | `src/server/domain/purchaseEntryCommands.ts`، `purchaseDayCommands.ts`، `purchaseSupport.ts`؛ `tests/purchase-running-balance.test.ts`، `tests/foundation.test.ts`؛ متصفح مستقل `tests/purchase-running-ui.ts` | منفّذ وله اختبارات؛ الباقي يبدأ بالمرحل ويتأثر بالمعاملات؛ اليوم المرحّل لا يعدّل دون فتح التصحيح |
+ | المصراوية والربط بالمصدر المصري | `src/server/domain/masraweya.ts`، `linkedAccounts.ts`؛ `tests/masraweyaAccess.test.ts`، `tests/masraweyaEditor.test.ts`، `tests/masraweyaCorrection.test.ts` | منفّذ وله اختبارات؛ قيود تواريخ خاصة بالقسم |
+ | الخزينة والتحويل | `src/server/domain/treasury.ts`، `treasuryQueries.ts`؛ `tests/foundation.test.ts`، `tests/financial-invariants.test.ts` | منفّذ وله اختبارات؛ دفتر الأموال النشطة مستقل ولا تساوي حركته بالضرورة مجموع التحصيلات المعتمدة |
+diff --git a/README.md b/README.md
+index 15be4b0..1328284 100644
+--- a/README.md
++++ b/README.md
+@@ -60,7 +60,7 @@ npm run test:restore
+ 
+ `check` يشغّل فحص TypeScript وESLint والاختبارات. شغّل البناء أولًا لأن اختبارات HTTP والواجهة تستخدم ملفات `dist/web`. اختبار الواجهة يشغّل خادمه وقاعدته المؤقتة بنفسه ويحتاج Chromium الخاص بـPlaywright؛ لا يحتاج تشغيل خادم التطوير. اختبار الاستعادة يستخدم مخطط التطبيق الكامل وبيانات مالية تجريبية ويقارن الجداول والأرصدة بعد الاستعادة، ويفحص رفض التلف وحماية النسخة الجديدة عند فشل تنظيف النسخ القديمة. أوامر البناء تخرج إلى `dist/`، وهو غير مرفوع إلى Git. تنفذ GitHub Actions هذه الفحوص على Windows وNode.js 24 عند الدفع إلى `main` وعند طلبات الدمج.
+ 
+-المخطط الحالي 52. الترقية 47 تضيف مراجعة إدارية لتصفير ديون العملاء، مرتبطة بنسخة الحركة المالية، دون تغيير الأرصدة أو السجلات القديمة. الترقية 52 تثبت الاستلامات غير المرتبطة بالدينار الليبي وتمنع الربط بعملة مختلفة. الكروت الصفرية القديمة تبقى في وضعها السابق؛ الكروت الجديدة أو التي تصل إلى الصفر بعد التحديث تنتظر المراجعة قبل نقلها إلى مجموعة المسدد. اختبار `test:zero-review-ui` ينشئ 2000 كارت و6000 حركة في قاعدة مؤقتة ويختبر المراجعة والصلاحيات والمزامنة والعرض على الهاتف والكمبيوتر بالمظهرين، ويسجل القياسات في `artifacts/zero-review/metrics.json`.
++المخطط الحالي يُشتق من آخر ترحيل. الترقية 45 تضيف مراجعة إدارية لتصفير ديون العملاء، مرتبطة بنسخة الحركة المالية، دون تغيير الأرصدة أو السجلات القديمة. الترقية 57 تستخدم الأعمدة نفسها لديون الشركات والأمانات الليبية والمصرية، وتستبدل المحفزات والفهارس فقط. الترقية 52 تثبت الاستلامات غير المرتبطة بالدينار الليبي وتمنع الربط بعملة مختلفة. الكروت الصفرية القديمة تبقى في وضعها السابق؛ الكروت الجديدة أو التي تصل إلى الصفر بعد التحديث تنتظر المراجعة قبل نقلها إلى مجموعة المسدد. اختبار `test:zero-review-ui` ينشئ 2000 كارت و6000 حركة في قاعدة مؤقتة ويختبر المراجعة والصلاحيات والمزامنة والعرض على الهاتف والكمبيوتر بالمظهرين، ويسجل القياسات في `artifacts/zero-review/metrics.json`.
+ 
+ تحتفظ المنظومة ببصمات طلبات المعاملات ومفاتيح مقارنة أرقام الهاتف وبصمات SQL للترحيلات. تكرار طلب مالي قديم بلا بصمة يُرفض مع طلب مراجعة العملية الموجودة قبل المحاولة، لمنع تنفيذها مرتين. التقارير اليومية تتحدث داخل معاملة الحفظ وتستخدم توقيت المؤسسة، بما فيه التوقيت الصيفي للقاهرة؛ التقارير المقفلة السابقة لا يُعاد حسابها تلقائيًا.
+ 
+diff --git a/docs/android-integration/endpoints.ar.md b/docs/android-integration/endpoints.ar.md
+index 2c97f24..b590b1f 100644
+--- a/docs/android-integration/endpoints.ar.md
++++ b/docs/android-integration/endpoints.ar.md
+@@ -2056,6 +2056,24 @@ Updates the existing posted transaction in current implementation and records au
+ }
+ ```
+ 
++## POST /api/companies/{id}/zero-review
++
++مراجعة الكارت الصفري. الصلاحية: `companies.write`.
++
++نفس عقد `POST /api/customers/{id}/zero-review`: الجسم `{ "expectedFinancialVersion": 3 }` من `zeroReview.financialVersion` الحالي. لا يغيّر الرصيد ولا نسخة الحساب ولا الإجمالي. الإلغاء هو عدم إرسال الطلب. إعادة نفس النسخة المعتمدة ترجع `data.replayed: true`. التفاصيل والأمثلة في `docs/vib-srv-zero-001/CONTRACT.ar.md`.
++
++## POST /api/libyan-deposits/{id}/zero-review
++
++مراجعة الكارت الصفري. الصلاحية: `libyan_deposits.write`.
++
++نفس عقد مراجعة العملاء، على مسار الأمانات الليبية فقط. صلاحية قسم آخر لا تكفي.
++
++## POST /api/egyptian-deposits/{id}/zero-review
++
++مراجعة الكارت الصفري. الصلاحية: `egyptian_deposits.write`.
++
++نفس عقد مراجعة العملاء. حسابات الربط النظامية داخل القسم لا تُراجع و`zeroReview` لا يُعاد لها.
++
+ ## GET /api/egyptian-deposits/exchange-rate
+ 
+ سعر الأمانات المصرية. الصلاحية: `egyptian_deposits.read`.
+diff --git a/docs/android-integration/openapi.json b/docs/android-integration/openapi.json
+index 185589f..494faec 100644
+--- a/docs/android-integration/openapi.json
++++ b/docs/android-integration/openapi.json
+@@ -16183,7 +16183,7 @@
+                       "ok": false,
+                       "error": {
+                         "code": "ZERO_REVIEW_CHANGED",
+-                        "message": "تغيرت الحالة المالية؛ حدّث بيانات الكارت.",
++                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
+                         "correlationId": "example-correlation-id"
+                       }
+                     }
+@@ -31134,6 +31134,1017 @@
+           }
+         }
+       }
++    },
++    "/api/companies/{id}/zero-review": {
++      "post": {
++        "summary": "مراجعة الكارت الصفري",
++        "description": "Access: companies.write. Same financial contract as customer zero-review: expectedFinancialVersion is the card's current zeroReview.financialVersion. Review does not change balance, account version, ledger, or section totals. GET is read-only; omitting POST is cancel. Replay returns data.replayed true.\nSource: src/server/routes/permanentAccountRoutes.ts. Success example: illustrative from implementation.",
++        "operationId": "post_api_companies_id_zero_review",
++        "tags": [
++          "companies"
++        ],
++        "security": [
++          {
++            "sessionCookie": []
++          }
++        ],
++        "parameters": [
++          {
++            "name": "id",
++            "in": "path",
++            "required": true,
++            "schema": {
++              "type": "string"
++            }
++          },
++          {
++            "name": "X-CSRF-Token",
++            "in": "header",
++            "required": true,
++            "schema": {
++              "type": "string"
++            }
++          },
++          {
++            "name": "X-Client-Api-Version",
++            "in": "header",
++            "required": true,
++            "schema": {
++              "type": "string",
++              "const": "1"
++            }
++          }
++        ],
++        "responses": {
++          "200": {
++            "description": "Success",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "type": "object",
++                  "properties": {
++                    "ok": {
++                      "type": "boolean"
++                    },
++                    "data": {
++                      "type": "object",
++                      "properties": {
++                        "zeroReview": {
++                          "type": "object",
++                          "properties": {
++                            "pending": {
++                              "type": "boolean"
++                            },
++                            "financialVersion": {
++                              "type": "integer"
++                            },
++                            "reviewedAt": {
++                              "type": "string"
++                            },
++                            "reviewedByName": {
++                              "type": "string"
++                            }
++                          },
++                          "required": [],
++                          "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                        }
++                      },
++                      "required": [],
++                      "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                    }
++                  },
++                  "required": [],
++                  "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                },
++                "example": {
++                  "ok": true,
++                  "data": {
++                    "zeroReview": {
++                      "pending": false,
++                      "financialVersion": 3,
++                      "reviewedAt": "2026-10-22T22:00:00.000Z",
++                      "reviewedByName": "مدير الاختبار"
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "400": {
++            "description": "HTTP 400; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "INVALID_FIELD": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "INVALID_FIELD",
++                        "message": "قيمة أحد الحقول غير صالحة.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "401": {
++            "description": "HTTP 401; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "AUTH_REQUIRED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "AUTH_REQUIRED",
++                        "message": "يجب تسجيل الدخول أولًا.",
++                        "correlationId": "beb20a75-9659-49e1-b54a-ca1c723b3ca3"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "403": {
++            "description": "HTTP 403; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "CSRF_REJECTED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "CSRF_REJECTED",
++                        "message": "رمز حماية الطلب مفقود أو غير صالح.",
++                        "correlationId": "7f87f7dc-1183-48a1-834b-2e5accc31d12"
++                      }
++                    }
++                  },
++                  "PERMISSION_DENIED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "PERMISSION_DENIED",
++                        "message": "ليست لديك صلاحية لهذه العملية.",
++                        "details": {
++                          "permission": "collections.review"
++                        },
++                        "correlationId": "a24281c3-e401-4ece-bba9-fbe34c17d926"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "404": {
++            "description": "HTTP 404; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "NOT_FOUND": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "NOT_FOUND",
++                        "message": "السجل المطلوب غير موجود.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "409": {
++            "description": "HTTP 409; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "VERSION_CONFLICT": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "VERSION_CONFLICT",
++                        "message": "عُدّل الحساب على جهاز آخر. حدّث البيانات ثم حاول مجددًا.",
++                        "details": {
++                          "expectedVersion": 1,
++                          "currentVersion": 2
++                        },
++                        "correlationId": "2b436187-ecfc-45d9-a0fa-ca289cb3620d"
++                      }
++                    }
++                  },
++                  "REQUEST_ID_REUSED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "REQUEST_ID_REUSED",
++                        "message": "استُخدم معرّف الطلب من قبل لمحتوى مختلف.",
++                        "correlationId": "58c80faa-0b9b-4a60-9ada-32a6089aaf20"
++                      }
++                    }
++                  },
++                  "CLIENT_VERSION_MISMATCH": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "CLIENT_VERSION_MISMATCH",
++                        "message": "إصدار الواجهة غير متوافق مع الخادم. احتفظ بالمسودة ثم حدّث الواجهة.",
++                        "details": {
++                          "requiredApiVersion": "1",
++                          "receivedApiVersion": "0"
++                        },
++                        "correlationId": "afb486ed-39a1-40a8-a932-8e1fb6efe4ab"
++                      }
++                    }
++                  },
++                  "DUPLICATE_SAME_WORKDAY": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "DUPLICATE_SAME_WORKDAY",
++                        "message": "توجد معاملة مماثلة في نفس المكان خلال يوم العمل الحالي. هل تريد إضافتها مرة أخرى؟",
++                        "correlationId": "b7eb44bf-1357-4778-b46c-64fa6d94fa06"
++                      }
++                    }
++                  },
++                  "ZERO_REVIEW_CHANGED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "ZERO_REVIEW_CHANGED",
++                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "413": {
++            "description": "HTTP 413; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "REQUEST_BODY_TOO_LARGE": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "REQUEST_BODY_TOO_LARGE",
++                        "message": "حجم الطلب أكبر من الحد المسموح.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "500": {
++            "description": "HTTP 500; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "INTERNAL_ERROR": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "INTERNAL_ERROR",
++                        "message": "حدث خطأ داخلي ولم تُعتمد العملية.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          }
++        },
++        "x-permission": "companies.write",
++        "x-example-origin": "illustrative",
++        "requestBody": {
++          "required": true,
++          "content": {
++            "application/json": {
++              "schema": {
++                "type": "object",
++                "properties": {
++                  "expectedFinancialVersion": {
++                    "type": "integer",
++                    "format": "int64"
++                  }
++                },
++                "required": [
++                  "expectedFinancialVersion"
++                ]
++              },
++              "example": {
++                "expectedFinancialVersion": 3
++              }
++            }
++          }
++        }
++      }
++    },
++    "/api/libyan-deposits/{id}/zero-review": {
++      "post": {
++        "summary": "مراجعة الكارت الصفري",
++        "description": "Access: libyan_deposits.write. Same financial contract as customer zero-review: expectedFinancialVersion is the card's current zeroReview.financialVersion. Review does not change balance, account version, ledger, or section totals. GET is read-only; omitting POST is cancel. Replay returns data.replayed true.\nSource: src/server/routes/permanentAccountRoutes.ts. Success example: illustrative from implementation.",
++        "operationId": "post_api_libyan_deposits_id_zero_review",
++        "tags": [
++          "libyan-deposits"
++        ],
++        "security": [
++          {
++            "sessionCookie": []
++          }
++        ],
++        "parameters": [
++          {
++            "name": "id",
++            "in": "path",
++            "required": true,
++            "schema": {
++              "type": "string"
++            }
++          },
++          {
++            "name": "X-CSRF-Token",
++            "in": "header",
++            "required": true,
++            "schema": {
++              "type": "string"
++            }
++          },
++          {
++            "name": "X-Client-Api-Version",
++            "in": "header",
++            "required": true,
++            "schema": {
++              "type": "string",
++              "const": "1"
++            }
++          }
++        ],
++        "responses": {
++          "200": {
++            "description": "Success",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "type": "object",
++                  "properties": {
++                    "ok": {
++                      "type": "boolean"
++                    },
++                    "data": {
++                      "type": "object",
++                      "properties": {
++                        "zeroReview": {
++                          "type": "object",
++                          "properties": {
++                            "pending": {
++                              "type": "boolean"
++                            },
++                            "financialVersion": {
++                              "type": "integer"
++                            },
++                            "reviewedAt": {
++                              "type": "string"
++                            },
++                            "reviewedByName": {
++                              "type": "string"
++                            }
++                          },
++                          "required": [],
++                          "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                        }
++                      },
++                      "required": [],
++                      "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                    }
++                  },
++                  "required": [],
++                  "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                },
++                "example": {
++                  "ok": true,
++                  "data": {
++                    "zeroReview": {
++                      "pending": false,
++                      "financialVersion": 3,
++                      "reviewedAt": "2026-10-22T22:00:00.000Z",
++                      "reviewedByName": "مدير الاختبار"
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "400": {
++            "description": "HTTP 400; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "INVALID_FIELD": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "INVALID_FIELD",
++                        "message": "قيمة أحد الحقول غير صالحة.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "401": {
++            "description": "HTTP 401; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "AUTH_REQUIRED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "AUTH_REQUIRED",
++                        "message": "يجب تسجيل الدخول أولًا.",
++                        "correlationId": "beb20a75-9659-49e1-b54a-ca1c723b3ca3"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "403": {
++            "description": "HTTP 403; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "CSRF_REJECTED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "CSRF_REJECTED",
++                        "message": "رمز حماية الطلب مفقود أو غير صالح.",
++                        "correlationId": "7f87f7dc-1183-48a1-834b-2e5accc31d12"
++                      }
++                    }
++                  },
++                  "PERMISSION_DENIED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "PERMISSION_DENIED",
++                        "message": "ليست لديك صلاحية لهذه العملية.",
++                        "details": {
++                          "permission": "collections.review"
++                        },
++                        "correlationId": "a24281c3-e401-4ece-bba9-fbe34c17d926"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "404": {
++            "description": "HTTP 404; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "NOT_FOUND": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "NOT_FOUND",
++                        "message": "السجل المطلوب غير موجود.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "409": {
++            "description": "HTTP 409; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "VERSION_CONFLICT": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "VERSION_CONFLICT",
++                        "message": "عُدّل الحساب على جهاز آخر. حدّث البيانات ثم حاول مجددًا.",
++                        "details": {
++                          "expectedVersion": 1,
++                          "currentVersion": 2
++                        },
++                        "correlationId": "2b436187-ecfc-45d9-a0fa-ca289cb3620d"
++                      }
++                    }
++                  },
++                  "REQUEST_ID_REUSED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "REQUEST_ID_REUSED",
++                        "message": "استُخدم معرّف الطلب من قبل لمحتوى مختلف.",
++                        "correlationId": "58c80faa-0b9b-4a60-9ada-32a6089aaf20"
++                      }
++                    }
++                  },
++                  "CLIENT_VERSION_MISMATCH": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "CLIENT_VERSION_MISMATCH",
++                        "message": "إصدار الواجهة غير متوافق مع الخادم. احتفظ بالمسودة ثم حدّث الواجهة.",
++                        "details": {
++                          "requiredApiVersion": "1",
++                          "receivedApiVersion": "0"
++                        },
++                        "correlationId": "afb486ed-39a1-40a8-a932-8e1fb6efe4ab"
++                      }
++                    }
++                  },
++                  "DUPLICATE_SAME_WORKDAY": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "DUPLICATE_SAME_WORKDAY",
++                        "message": "توجد معاملة مماثلة في نفس المكان خلال يوم العمل الحالي. هل تريد إضافتها مرة أخرى؟",
++                        "correlationId": "b7eb44bf-1357-4778-b46c-64fa6d94fa06"
++                      }
++                    }
++                  },
++                  "ZERO_REVIEW_CHANGED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "ZERO_REVIEW_CHANGED",
++                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "413": {
++            "description": "HTTP 413; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "REQUEST_BODY_TOO_LARGE": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "REQUEST_BODY_TOO_LARGE",
++                        "message": "حجم الطلب أكبر من الحد المسموح.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "500": {
++            "description": "HTTP 500; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "INTERNAL_ERROR": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "INTERNAL_ERROR",
++                        "message": "حدث خطأ داخلي ولم تُعتمد العملية.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          }
++        },
++        "x-permission": "libyan_deposits.write",
++        "x-example-origin": "illustrative",
++        "requestBody": {
++          "required": true,
++          "content": {
++            "application/json": {
++              "schema": {
++                "type": "object",
++                "properties": {
++                  "expectedFinancialVersion": {
++                    "type": "integer",
++                    "format": "int64"
++                  }
++                },
++                "required": [
++                  "expectedFinancialVersion"
++                ]
++              },
++              "example": {
++                "expectedFinancialVersion": 3
++              }
++            }
++          }
++        }
++      }
++    },
++    "/api/egyptian-deposits/{id}/zero-review": {
++      "post": {
++        "summary": "مراجعة الكارت الصفري",
++        "description": "Access: egyptian_deposits.write. Same financial contract as customer zero-review: expectedFinancialVersion is the card's current zeroReview.financialVersion. Review does not change balance, account version, ledger, or section totals. GET is read-only; omitting POST is cancel. Replay returns data.replayed true.\nSource: src/server/routes/permanentAccountRoutes.ts. Success example: illustrative from implementation.",
++        "operationId": "post_api_egyptian_deposits_id_zero_review",
++        "tags": [
++          "egyptian-deposits"
++        ],
++        "security": [
++          {
++            "sessionCookie": []
++          }
++        ],
++        "parameters": [
++          {
++            "name": "id",
++            "in": "path",
++            "required": true,
++            "schema": {
++              "type": "string"
++            }
++          },
++          {
++            "name": "X-CSRF-Token",
++            "in": "header",
++            "required": true,
++            "schema": {
++              "type": "string"
++            }
++          },
++          {
++            "name": "X-Client-Api-Version",
++            "in": "header",
++            "required": true,
++            "schema": {
++              "type": "string",
++              "const": "1"
++            }
++          }
++        ],
++        "responses": {
++          "200": {
++            "description": "Success",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "type": "object",
++                  "properties": {
++                    "ok": {
++                      "type": "boolean"
++                    },
++                    "data": {
++                      "type": "object",
++                      "properties": {
++                        "zeroReview": {
++                          "type": "object",
++                          "properties": {
++                            "pending": {
++                              "type": "boolean"
++                            },
++                            "financialVersion": {
++                              "type": "integer"
++                            },
++                            "reviewedAt": {
++                              "type": "string"
++                            },
++                            "reviewedByName": {
++                              "type": "string"
++                            }
++                          },
++                          "required": [],
++                          "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                        }
++                      },
++                      "required": [],
++                      "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                    }
++                  },
++                  "required": [],
++                  "description": "Example-derived shape, not a closed exhaustive schema. Fields may differ for replay/decision variants. See notes and response types."
++                },
++                "example": {
++                  "ok": true,
++                  "data": {
++                    "zeroReview": {
++                      "pending": false,
++                      "financialVersion": 3,
++                      "reviewedAt": "2026-10-22T22:00:00.000Z",
++                      "reviewedByName": "مدير الاختبار"
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "400": {
++            "description": "HTTP 400; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "INVALID_FIELD": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "INVALID_FIELD",
++                        "message": "قيمة أحد الحقول غير صالحة.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "401": {
++            "description": "HTTP 401; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "AUTH_REQUIRED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "AUTH_REQUIRED",
++                        "message": "يجب تسجيل الدخول أولًا.",
++                        "correlationId": "beb20a75-9659-49e1-b54a-ca1c723b3ca3"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "403": {
++            "description": "HTTP 403; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "CSRF_REJECTED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "CSRF_REJECTED",
++                        "message": "رمز حماية الطلب مفقود أو غير صالح.",
++                        "correlationId": "7f87f7dc-1183-48a1-834b-2e5accc31d12"
++                      }
++                    }
++                  },
++                  "PERMISSION_DENIED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "PERMISSION_DENIED",
++                        "message": "ليست لديك صلاحية لهذه العملية.",
++                        "details": {
++                          "permission": "collections.review"
++                        },
++                        "correlationId": "a24281c3-e401-4ece-bba9-fbe34c17d926"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "404": {
++            "description": "HTTP 404; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "NOT_FOUND": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "NOT_FOUND",
++                        "message": "السجل المطلوب غير موجود.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "409": {
++            "description": "HTTP 409; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "VERSION_CONFLICT": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "VERSION_CONFLICT",
++                        "message": "عُدّل الحساب على جهاز آخر. حدّث البيانات ثم حاول مجددًا.",
++                        "details": {
++                          "expectedVersion": 1,
++                          "currentVersion": 2
++                        },
++                        "correlationId": "2b436187-ecfc-45d9-a0fa-ca289cb3620d"
++                      }
++                    }
++                  },
++                  "REQUEST_ID_REUSED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "REQUEST_ID_REUSED",
++                        "message": "استُخدم معرّف الطلب من قبل لمحتوى مختلف.",
++                        "correlationId": "58c80faa-0b9b-4a60-9ada-32a6089aaf20"
++                      }
++                    }
++                  },
++                  "CLIENT_VERSION_MISMATCH": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "CLIENT_VERSION_MISMATCH",
++                        "message": "إصدار الواجهة غير متوافق مع الخادم. احتفظ بالمسودة ثم حدّث الواجهة.",
++                        "details": {
++                          "requiredApiVersion": "1",
++                          "receivedApiVersion": "0"
++                        },
++                        "correlationId": "afb486ed-39a1-40a8-a932-8e1fb6efe4ab"
++                      }
++                    }
++                  },
++                  "DUPLICATE_SAME_WORKDAY": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "DUPLICATE_SAME_WORKDAY",
++                        "message": "توجد معاملة مماثلة في نفس المكان خلال يوم العمل الحالي. هل تريد إضافتها مرة أخرى؟",
++                        "correlationId": "b7eb44bf-1357-4778-b46c-64fa6d94fa06"
++                      }
++                    }
++                  },
++                  "ZERO_REVIEW_CHANGED": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "ZERO_REVIEW_CHANGED",
++                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "413": {
++            "description": "HTTP 413; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "REQUEST_BODY_TOO_LARGE": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "REQUEST_BODY_TOO_LARGE",
++                        "message": "حجم الطلب أكبر من الحد المسموح.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          },
++          "500": {
++            "description": "HTTP 500; domain-specific cases are in the error catalog and notes.",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/Error"
++                },
++                "examples": {
++                  "INTERNAL_ERROR": {
++                    "value": {
++                      "ok": false,
++                      "error": {
++                        "code": "INTERNAL_ERROR",
++                        "message": "حدث خطأ داخلي ولم تُعتمد العملية.",
++                        "correlationId": "example-correlation-id"
++                      }
++                    }
++                  }
++                }
++              }
++            }
++          }
++        },
++        "x-permission": "egyptian_deposits.write",
++        "x-example-origin": "illustrative",
++        "requestBody": {
++          "required": true,
++          "content": {
++            "application/json": {
++              "schema": {
++                "type": "object",
++                "properties": {
++                  "expectedFinancialVersion": {
++                    "type": "integer",
++                    "format": "int64"
++                  }
++                },
++                "required": [
++                  "expectedFinancialVersion"
++                ]
++              },
++              "example": {
++                "expectedFinancialVersion": 3
++              }
++            }
++          }
++        }
++      }
+     }
+   },
+   "components": {
+@@ -31405,4 +32416,4 @@
+       }
+     }
+   }
+-}
+\ No newline at end of file
++}
+diff --git a/docs/vib-srv-zero-001/CONTRACT.ar.md b/docs/vib-srv-zero-001/CONTRACT.ar.md
+new file mode 100644
+index 0000000..656dfda
+--- /dev/null
++++ b/docs/vib-srv-zero-001/CONTRACT.ar.md
+@@ -0,0 +1,154 @@
++# عقد مراجعة الكارت الصفري — VIB-SRV-ZERO-001
++
++هذا العقد مأخوذ من مصدر هذا المستودع بعد التنفيذ، لا من وثائق التطبيق المحمول. لم يُنشر الخادم، ولم تُشغَّل الترقية على قاعدة إنتاج أو تجريب حية، ولا يُعد أي رصيد معتمدًا ماليًا.
++
++## ما يحتويه هذا المستودع
++
++`wep-erp-support` هو مصدر الموقع والخادم معًا: واجهة React وخادم Node.js على HTTP، وSQLite هو مصدر الحقيقة. الحسابات الدائمة للأقسام الأربعة صفوف في `customers` بمفتاح القسم:
++
++| القسم | `section_key` | مسار القائمة والكارت | مسار المراجعة |
++|---|---|---|---|
++| ديون العملاء | `customer_debts` | `/api/customers` | `POST /api/customers/{id}/zero-review` |
++| ديون الشركات | `company_debts` | `/api/companies` | `POST /api/companies/{id}/zero-review` |
++| الأمانات الليبية | `libyan_deposits` | `/api/libyan-deposits` | `POST /api/libyan-deposits/{id}/zero-review` |
++| الأمانات المصرية | `egyptian_deposits` | `/api/egyptian-deposits` | `POST /api/egyptian-deposits/{id}/zero-review` |
++
++قبل هذا التغيير كانت المراجعة الدائمة موجودة للعملاء فقط. القوائم الثلاث الأخرى كانت تقدر ترجع `summary.pendingReviewCount` وتقبل `filter=pending-review` في المعامل، لكن الشرط كان يحصر الانتظار في `customer_debts`، و`zeroReview` لا يُعاد لغير العملاء، ولا يوجد مسار كتابة لها. هذا ما أصلحه الخادم.
++
++## حالة الكارت
++
++`zeroReview` يُعاد لكل حساب غير مرتبط بنظام داخل الأقسام الأربعة. الحساب ذو `systemLinkKey` لا يحمل `zeroReview` ولا يُراجع.
++
++```json
++"zeroReview": {
++  "pending": true,
++  "financialVersion": 2,
++  "reviewedAt": null,
++  "reviewedByName": null
++}
++```
++
++- `pending: true` مع `balanceUnits: 0`: الكارت في المجموعة العليا، والتأكيد مسموح لمن يملك صلاحية القسم.
++- `pending: false` مع `reviewedAt` غير فارغ: تمت المراجعة، وينزل إلى مجموعة الأصفار.
++- `pending: false` مع `reviewedAt: null`: صفر تاريخي أو رصيد غير صفري. لا تعرض علامة التأكيد.
++- `financialVersion` نسخة حركة مالية مستقلة عن `version` الخاصة بتعديل الحساب والحركات. التأكيد يرسل `financialVersion` فقط.
++
++الحالة محفوظة على صف الحساب داخل المؤسسة، لا على الجهاز ولا على الجلسة. `zero_reviewed_by` يسجل المستخدم الذي أكد. أي قراءة لاحقة للحساب نفسه، بعد التحديث أو تسجيل الدخول أو من جهاز آخر، ترى `zeroReview` نفسه.
++
++## المعاينة والإلغاء والتأكيد
++
++المعاينة هي `GET` للحساب أو للقائمة. لا تكتب ولا تعيد ترتيبًا. الإلغاء هو عدم إرسال `POST`؛ لا يوجد مسار إلغاء. التأكيد يرسل النسخة المالية الظاهرة في تلك المعاينة كما هي.
++
++طلب التأكيد:
++
++```json
++{ "expectedFinancialVersion": 2 }
++```
++
++الرؤوس المطلوبة لكل `POST`، مثل بقية الكتابات: ملف تعريف الارتباط `abdo_session`، و`X-CSRF-Token`، و`X-Client-Api-Version: 1`، و`Content-Type: application/json`. لا يُستخدم `requestId` في هذا المسار.
++
++نجاح أول:
++
++```json
++{
++  "ok": true,
++  "data": {
++    "zeroReview": {
++      "pending": false,
++      "financialVersion": 2,
++      "reviewedAt": "2026-11-09T00:40:00.000Z",
++      "reviewedByName": "اسم المراجع"
++    }
++  }
++}
++```
++
++الحالة `200`. الخادم ينشر حدث القسم: `customer.changed` أو `company.changed` أو `libyan-deposit.changed` أو `egyptian-deposit.changed`، مع `action: "zero_reviewed"`. بعد النجاح تنقل القائمة الكارت إلى المجموعة السفلى لأن رتبته تصبح صفرًا مراجعًا. الرصيد و`version` و`updatedAt` و`summary.totalDebt` و`summary.netBalance` و`summary.activeCards` والسجل لا تتغير. `pendingReviewCount` ينقص واحدًا.
++
++تكرار نفس النسخة بعد النجاح:
++
++```json
++{
++  "ok": true,
++  "data": {
++    "zeroReview": {
++      "pending": false,
++      "financialVersion": 2,
++      "reviewedAt": "2026-11-09T00:40:00.000Z",
++      "reviewedByName": "اسم المراجع"
++    },
++    "replayed": true
++  }
++}
++```
++
++`replayed` داخل `data` وليس `meta`. لا يُضاف تدقيق ولا حدث ثان.
++
++## الأخطاء
++
++الغلاف العام:
++
++```json
++{
++  "ok": false,
++  "error": {
++    "code": "ZERO_REVIEW_CHANGED",
++    "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
++    "correlationId": "..."
++  }
++}
++```
++
++| الحالة | الرمز | متى | هل تُكتب المراجعة؟ |
++|---|---|---|---|
++| 400 | `INVALID_REVIEW_VERSION` | القيمة ليست عددًا صحيحًا موجبًا أو صفرًا | لا |
++| 401 | `AUTH_REQUIRED` | لا جلسة | لا |
++| 403 | `CSRF_REJECTED` | رمز CSRF ناقص أو قديم | لا |
++| 403 | `PERMISSION_DENIED` | الصلاحية لا تطابق القسم | لا |
++| 404 | `NOT_FOUND` | الحساب في قسم آخر أو مؤسسة أخرى أو محذوف أو مرتبط بالنظام | لا |
++| 409 | `CLIENT_VERSION_MISMATCH` | رأس الواجهة ليس `1` | لا |
++| 409 | `ZERO_REVIEW_CHANGED` | الرصيد لم يعد صفرًا أو النسخة المالية تغيرت | لا |
++| 409 | `ZERO_REVIEW_NOT_PENDING` | الرصيد صفر والنسخة مطابقة لكن الكارت لا ينتظر مراجعة | لا |
++
++رسالة النسخة غير الصالحة: `نسخة المراجعة غير صالحة. حدّث الكارت ثم أعد المحاولة.`
++
++رسالة عدم الانتظار: `هذا الكارت لا ينتظر مراجعة تصفير.`
++
++`details.permission` في الرفض يكون `customers.zero_review` للعملاء، أو `companies.write` أو `libyan_deposits.write` أو `egyptian_deposits.write` لبقية الأقسام. `details.entity` في عدم الوجود: `customer` أو `company` أو `libyan_deposit` أو `egyptian_deposit`.
++
++نسخة قديمة، أو رصيد أصبح غير صفري، أو حركة وصلت أثناء انتظار الطلب: الاستجابة `409 ZERO_REVIEW_CHANGED` ويبقى الكارت غير معتمد. الفحص والتحديث داخل `BEGIN IMMEDIATE`، وشرط التحديث نفسه هو الرصيد صفر مع النسخة المالية المرسلة ومع `zero_review_pending=1`. حركة منافسة تُعتمد أولًا تغيّر النسخة، فيفشل التأكيد القديم. إذا اعتُمدت المراجعة أولًا ثم جاءت حركة مالية، فالمحفز يلغي المراجعة ويزيد النسخة.
++
++## الصلاحيات
++
++- العملاء: المدير فقط. `debts.write` لا تكفي. هذا سلوك الخادم القائم ولم يُغيّر.
++- الشركات: `companies.write`، والمدير يتجاوز فحص الصلاحية كما في بقية الكتابات.
++- الأمانات الليبية: `libyan_deposits.write` أو المدير.
++- الأمانات المصرية: `egyptian_deposits.write` أو المدير.
++- العرض فقط مرفوض. صلاحية قسم لا تراجع قسمًا آخر.
++- إرسال معرف شركة إلى مسار العملاء، أو معرف ليبي إلى مسار الشركات، يرجع `404` ولا يراجع الحساب.
++
++واجهة الموقع تعرض علامة المراجعة للعملاء عند المدير فقط، ولشركات والأمانات عند من يملك كتابة ذلك القسم. العلامة في الموقع ترسل النسخة الحالية مباشرة كما كان زر العملاء. المعاينة ثم الإلغاء سلوك عميل التطبيق: المعاينة `GET`، والإلغاء عدم الإرسال.
++
++## القائمة
++
++`filter=pending-review` يعمل على مسارات القوائم الأربعة ويبقى فعالًا مع `q`. `summary.pendingReviewCount` يحسب القسم كله ويستثني المحذوف والمرتبط بالنظام، ولا يتأثر بالصفحة أو البحث.
++
++ترتيب القائمة: الصفر الذي ينتظر المراجعة يبقى مع الكروت المتحركة في الأعلى، ثم الأصفار المراجعة أو التاريخية في الأسفل. الاسم والتثبيت لا يغيران المراجعة. أي تحديث لـ`current_balance_units` أو `financial_updated_at` يزيد `financialVersion` ويمسح المراجعة، ويعيد الانتظار فقط إذا أصبحت النتيجة صفرًا.
++
++الأصفار الموجودة قبل الترقية 57 تبقى غير منتظرة، مثل أصفار العملاء قبل الترقية 45. الصفر الجديد، أو الذي يبلغ الصفر بحركة لاحقة، هو الذي ينتظر المراجعة.
++
++## الترقية 57 والرجوع
++
++لا أعمدة جديدة ولا إعادة حساب أرصدة. الترقية تستبدل محفزي `customer_zero_review_insert` و`customer_zero_review_financial_change` وفهري `idx_customers_review_feed` و`idx_customers_pending_review`. لم تُنفذ على قاعدة حية.
++
++الرجوع عن الكود يعيد سلوك القراءة القديم ولا يمس الأرصدة. لاستعادة محفزات العملاء فقط بعد الرجوع، تُعاد عبارات الترقية 45 يدويًا؛ لا يشغّل هذا التسليم ذلك الرجوع. الأعلام التي كُتبت بعد 57 تبقى بلا أثر مالي إذا عاد الكود القديم، لأن القراءة القديمة تتجاهل `zeroReview` خارج العملاء.
++
++## دمج عميل Flutter
++
++1. اقرأ `zeroReview` من قائمة القسم أو من `GET /api/{section}/{id}`، واحتفظ بـ`financialVersion` المعروض.
++2. أظهر العلامة فقط إذا `balanceUnits === 0` و`zeroReview.pending === true` والمستخدم يملك صلاحية القسم. العملاء للمدير فقط.
++3. فتح العلامة يعرض معاينة محلية. الإلغاء لا يرسل طلبًا ولا يعيد الترتيب.
++4. التأكيد يرسل `POST` إلى مسار القسم نفسه بالجسم `{ "expectedFinancialVersion": <النسخة المعروضة> }`.
++5. عند `200` اعتبر الكارت مراجعًا من رد الخادم، ثم أعد قراءة القائمة. لا تحفظ «تمت المراجعة» محليًا كمصدر حقيقة.
++6. عند `409 ZERO_REVIEW_CHANGED` أعد قراءة الكارت واستخدم النسخة الجديدة. لا تضع العلامة كمراجع.
++7. عند `403` أخفِ الإجراء لهذا القسم. لا تستخدم مسار العملاء لبقية الأقسام.
+diff --git a/scripts/generate-android-contract.mjs b/scripts/generate-android-contract.mjs
+index 487ba75..c351e4b 100644
+--- a/scripts/generate-android-contract.mjs
++++ b/scripts/generate-android-contract.mjs
+@@ -85,7 +85,13 @@ for(const [root,permission] of [['customers','debts'],['companies','companies'],
+   add('POST',base+'/{id}/transactions/{transactionId}/corrections','تصحيح حركة',{permission:permission+'.write',body:ref('Transaction'),request:{requestId:'example-correction-0001',expectedVersion:2,type:'debt',inputValue:300,calculationMode:'direct'},example:transaction,status:200,notes:'Updates the existing posted transaction in current implementation and records audit; do not assume a new ledger row or new sequence.'});
+   add('POST',base+'/{id}/transactions/{transactionId}/cancel','إلغاء أثر حركة',{permission:permission+'.write',body:obj({requestId:str,expectedVersion:num,reason:str},['requestId','expectedVersion']),request:{requestId:'example-cancel-0001',expectedVersion:2,reason:'تصحيح تجريبي'},data:{transactionId:'<id>',status:'reversed',customerVersion:3,balanceUnits:1000},status:200});
+ }
+-add('POST','/api/customers/{id}/zero-review','مراجعة الكارت الصفري',{permission:'admin',body:obj({expectedFinancialVersion:num}),request:{expectedFinancialVersion:3},data:{zeroReview:{pending:false,financialVersion:3,reviewedAt:'2026-10-22T22:00:00.000Z',reviewedByName:'مدير الاختبار'}},errors:{'409':{ZERO_REVIEW_CHANGED:errorExample('ZERO_REVIEW_CHANGED','تغيرت الحالة المالية؛ حدّث بيانات الكارت.')}}});
++const zeroReviewErrors={'400':{INVALID_REVIEW_VERSION:errorExample('INVALID_REVIEW_VERSION','نسخة المراجعة غير صالحة. حدّث الكارت ثم أعد المحاولة.')},'409':{ZERO_REVIEW_CHANGED:errorExample('ZERO_REVIEW_CHANGED','تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.'),ZERO_REVIEW_NOT_PENDING:errorExample('ZERO_REVIEW_NOT_PENDING','هذا الكارت لا ينتظر مراجعة تصفير.')}};
++const zeroReviewBody=obj({expectedFinancialVersion:num});
++const zeroReviewData={zeroReview:{pending:false,financialVersion:3,reviewedAt:'2026-10-22T22:00:00.000Z',reviewedByName:'مدير الاختبار'}};
++add('POST','/api/customers/{id}/zero-review','مراجعة الكارت الصفري',{permission:'admin',body:zeroReviewBody,request:{expectedFinancialVersion:3},data:zeroReviewData,notes:'Customer debts only. debts.write is not enough. Does not change balance, account version, ledger, or section totals. GET is the read-only preview; omitting this POST is cancel. Replay of the same financial version returns data.replayed:true without a second audit. Schema 57 does not change this customer rule.',errors:zeroReviewErrors});
++for(const [root,permission] of [['companies','companies.write'],['libyan-deposits','libyan_deposits.write'],['egyptian-deposits','egyptian_deposits.write']]){
++  add('POST',`/api/${root}/{id}/zero-review`,'مراجعة الكارت الصفري',{permission,body:zeroReviewBody,request:{expectedFinancialVersion:3},data:zeroReviewData,notes:'Same zero-review contract as customers. Permission is this section write permission; the admin role bypasses it the same way as other writes. Another section write permission is rejected. Historical zero cards from before schema 57 stay unpending until a later financial change lands on zero. System-linked accounts are not reviewable.',errors:zeroReviewErrors});
++}
+ add('GET','/api/egyptian-deposits/exchange-rate','سعر الأمانات المصرية',{permission:'egyptian_deposits.read'});
+ add('PATCH','/api/egyptian-deposits/exchange-rate','اعتماد سعر التحويل',{permission:'egyptian_deposits.write',body:obj({egpPerLyd:{type:'number',exclusiveMinimum:0,maximum:1000000}}),request:{egpPerLyd:10},example:samples['GET /api/egyptian-deposits/exchange-rate'].body});
+ add('GET','/api/collections','الاستلامات والمعلقة والمقاييس',{permission:'collections.read',notes:'Admin sees organization; employee only assigned/owned records. No pagination; metrics include approved sums and separate pending counts. No financial effect for pending.'});
+diff --git a/src/client/dashboard/useDebtAccounts.ts b/src/client/dashboard/useDebtAccounts.ts
+index 8638604..5b24047 100644
+--- a/src/client/dashboard/useDebtAccounts.ts
++++ b/src/client/dashboard/useDebtAccounts.ts
+@@ -1,13 +1,14 @@
+ import { uiText } from '../i18n/language.ts';
+ import { useCallback, useEffect, useRef, useState } from 'react';
+ import type { Customer, CustomerFilter, Ledger, ConfirmedLedgerWrite } from '../api.ts';
+-import { api, ApiError } from '../api.ts';
++import { ApiError } from '../api.ts';
+ import { flushBeforeNavigation } from './navigationGuards.ts';
+ import { oldestLedgerSequence, readLedgerWindow } from './ledgerReadWindow.ts';
+ import {
+   getSectionAccount,
+   getSectionLedger,
+   listSectionAccounts,
++  reviewSectionZero,
+   setSectionPinned,
+ } from '../sections/debts/debtSectionApi.ts';
+ import type { DebtSection, MainSection } from '../sections/debts/sectionConfig.ts';
+@@ -330,9 +331,9 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice
+   }
+ 
+   async function reviewZero(customer: Customer) {
+-    if (debtSection !== 'customers' || !customer.zeroReview?.pending) return;
++    if (!customer.zeroReview?.pending || customer.balanceUnits !== 0) return;
+     try {
+-      await api.reviewCustomerZero(customer.id, customer.zeroReview.financialVersion);
++      await reviewSectionZero(debtSection, customer.id, customer.zeroReview.financialVersion);
+     } catch (error) {
+       onNotice({ kind: 'error', text: dashboardErrorText(error) });
+       await refreshAfterMutation().catch(() => undefined);
+diff --git a/src/client/sections/debts/DebtAccountsView.tsx b/src/client/sections/debts/DebtAccountsView.tsx
+index 445ec74..66600dd 100644
+--- a/src/client/sections/debts/DebtAccountsView.tsx
++++ b/src/client/sections/debts/DebtAccountsView.tsx
+@@ -135,9 +135,11 @@ export function DebtAccountsView(props: DebtAccountsViewProps) {
+             : <><div className="customer-card-grid" ref={grid}>{visibleCustomers.map((customer) => {
+               const selected = selectedCustomers.includes(customer.id);
+               const canRoute = canRouteDebtCard(customer);
++              const showReview = (section === 'customers' ? isAdmin : canWrite) && !routing && !customer.systemManaged;
++              const badge = section === 'customers' || section === 'companies' ? assignmentBadge(customer) : null;
+               return <article key={customer.id} data-customer-id={customer.id} data-search-highlight={highlightedId === customer.id || undefined} data-balance-owner={customer.balanceUnits === 0 ? 'zero' : (section === 'libyan-deposits' ? customer.balanceUnits > 0 : customer.balanceUnits < 0) ? 'customer' : 'system'} className={`customer-card ${sectionCardState(section, customer)} ${customer.systemManaged ? 'system-linked-card' : ''} ${selected ? 'selected-routing' : ''} ${customer.activeAssigneeName ? 'has-assignee' : ''} ${routing && !canRoute ? 'routing-unavailable' : ''}`}>
+                 {routing && canRoute && <label className="routing-select"><input type="checkbox" checked={selected} onChange={(event) => props.onCustomerSelection(customer.id, event.target.checked)} /><span><Check size={16} /></span></label>}
+-                {section === 'customers' ? <div className="customer-card-status-row">{assignmentBadge(customer)}{isAdmin && !routing && <ZeroReviewButton customer={customer} onReview={props.onReviewZero} />}</div> : section === 'companies' && assignmentBadge(customer)}
++                {(showReview || badge) && <div className="customer-card-status-row">{badge}{showReview && <ZeroReviewButton customer={customer} onReview={props.onReviewZero} />}</div>}
+                 <button className="customer-card-main" onClick={() => routing ? canRoute && props.onCustomerSelection(customer.id, !selected) : props.onOpenLedger(customer.id)}><span className="customer-card-label">{customer.systemManaged ? uiText("مرتبط تلقائيًا") : cardLabel(section, customer)}</span><strong className="customer-name-line"><span>{customer.name}</span></strong><b><span className="customer-balance-amount">{money.format(Math.abs(customer.balanceUnits))}</span> <small>{currencyLabel(section)}</small></b><small className="customer-last-movement">{uiText("آخر حركة: ")}{movementTime.format(new Date(customer.updatedAt ?? customer.createdAt))}</small></button>
+                 {canWrite && !routing && !customer.systemManaged && <button className="pin-customer" aria-label={customer.isPinned ? uiText("إلغاء تثبيت {0}", [customer.name]) : uiText("تثبيت {0}", [customer.name])} title={customer.isPinned ? uiText("إلغاء التثبيت") : uiText("إبقاء الكارت ظاهرًا دائمًا")} onClick={() => props.onTogglePinned(customer)}>{customer.isPinned ? <PinOff size={17} /> : <Pin size={17} />}</button>}
+ 
+diff --git a/src/client/sections/debts/debtSectionApi.ts b/src/client/sections/debts/debtSectionApi.ts
+index 08d144e..c256e9d 100644
+--- a/src/client/sections/debts/debtSectionApi.ts
++++ b/src/client/sections/debts/debtSectionApi.ts
+@@ -1,4 +1,5 @@
+-import { api, type CustomerListOptions } from '../../api.ts';
++import { api, type Customer, type CustomerListOptions } from '../../api.ts';
++import { request } from '../../apiTransport.ts';
+ import type { DebtSection } from './sectionConfig.ts';
+ import { isDepositSection } from './debtSectionUtils.ts';
+ 
+@@ -7,6 +8,12 @@ type UpdateAccountBody = { expectedVersion: number; name: string; phone?: string
+ type PinBody = { expectedVersion: number; isPinned: boolean };
+ type CancelBody = { requestId: string; expectedVersion: number; reason?: string };
+ 
++export const reviewSectionZero = (section: DebtSection, id: string, expectedFinancialVersion: number) =>
++  request<{ zeroReview: NonNullable<Customer['zeroReview']>; replayed?: boolean }>(
++    `/api/${section}/${encodeURIComponent(id)}/zero-review`,
++    { method: 'POST', body: JSON.stringify({ expectedFinancialVersion }) },
++  );
++
+ export const listSectionAccounts = (section: DebtSection, options?: CustomerListOptions) => {
+   if (isDepositSection(section)) return api.depositAccounts(section, options);
+   if (section === 'companies') return api.companies(options);
+diff --git a/src/server/db/migrations.ts b/src/server/db/migrations.ts
+index 34273a7..e11f9e0 100644
+--- a/src/server/db/migrations.ts
++++ b/src/server/db/migrations.ts
+@@ -20,6 +20,7 @@ import { notificationSpeechMigrations } from './migrationsNotificationSpeech.ts'
+ import { collectionAssignedAmountMigrations } from './migrationsCollectionAssignedAmount.ts';
+ import { collectionSubmissionBalanceMigrations } from './migrationsCollectionSubmissionBalance.ts';
+ import { collectionRejectedBalanceMigrations } from './migrationsCollectionRejectedBalance.ts';
++import { sectionZeroReviewMigrations } from './migrationsSectionZeroReview.ts';
+ 
+ export type { Migration } from './migrationTypes.ts';
+ 
+@@ -44,4 +45,5 @@ export const migrations: Migration[] = [
+   ...collectionAssignedAmountMigrations,
+   ...collectionSubmissionBalanceMigrations,
+   ...collectionRejectedBalanceMigrations,
++  ...sectionZeroReviewMigrations,
+ ];
+diff --git a/src/server/db/migrationsSectionZeroReview.ts b/src/server/db/migrationsSectionZeroReview.ts
+new file mode 100644
+index 0000000..754e9c9
+--- /dev/null
++++ b/src/server/db/migrationsSectionZeroReview.ts
+@@ -0,0 +1,46 @@
++import type { Migration } from './migrationTypes.ts';
++
++// Replaces the customer-only triggers from schema 45. No balance, ledger, or
++// historical pending-flag rewrite: zeros that already exist stay as they were.
++export const sectionZeroReviewMigrations: Migration[] = [
++  {
++    version: 57,
++    name: 'section_zero_balance_review',
++    sql: `
++    DROP TRIGGER IF EXISTS customer_zero_review_insert;
++    DROP TRIGGER IF EXISTS customer_zero_review_financial_change;
++    DROP INDEX IF EXISTS idx_customers_review_feed;
++    DROP INDEX IF EXISTS idx_customers_pending_review;
++
++    CREATE TRIGGER customer_zero_review_insert AFTER INSERT ON customers
++    WHEN NEW.section_key IN ('customer_debts','company_debts','libyan_deposits','egyptian_deposits')
++      AND NEW.system_link_key IS NULL AND NEW.current_balance_units=0
++    BEGIN
++      UPDATE customers SET zero_review_pending=1 WHERE id=NEW.id;
++    END;
++
++    CREATE TRIGGER customer_zero_review_financial_change
++    AFTER UPDATE OF current_balance_units, financial_updated_at ON customers
++    WHEN NEW.section_key IN ('customer_debts','company_debts','libyan_deposits','egyptian_deposits')
++      AND NEW.system_link_key IS NULL
++    BEGIN
++      UPDATE customers SET
++        zero_review_pending=CASE WHEN NEW.current_balance_units=0 THEN 1 ELSE 0 END,
++        zero_review_financial_version=OLD.zero_review_financial_version+1,
++        zero_reviewed_at=NULL,zero_reviewed_by=NULL,zero_reviewed_by_name=NULL
++      WHERE id=NEW.id;
++    END;
++
++    CREATE INDEX idx_customers_review_feed ON customers(
++      organization_id,section_key,
++      (CASE WHEN current_balance_units=0 AND (zero_review_pending=0 OR system_link_key IS NOT NULL) THEN 1 ELSE 0 END),
++      financial_updated_at DESC,id DESC
++    ) WHERE deleted_at IS NULL;
++
++    CREATE INDEX idx_customers_pending_review ON customers(organization_id,section_key,financial_updated_at DESC,id DESC)
++      WHERE section_key IN ('customer_debts','company_debts','libyan_deposits','egyptian_deposits')
++        AND current_balance_units=0 AND zero_review_pending=1 AND deleted_at IS NULL
++        AND system_link_key IS NULL;
++  `,
++  },
++];
+diff --git a/src/server/domain/customerAccountCommands.ts b/src/server/domain/customerAccountCommands.ts
+index a636567..20257ff 100644
+--- a/src/server/domain/customerAccountCommands.ts
++++ b/src/server/domain/customerAccountCommands.ts
+@@ -156,7 +156,7 @@ export function createCustomer(
+           activeCycleId: cycleId,
+           openingBalanceUnits,
+           balanceUnits: openingBalanceUnits,
+-          zeroReview: kind === 'customer' ? { pending: openingBalanceUnits === 0, financialVersion: 0, reviewedAt: null, reviewedByName: null } : undefined,
++          zeroReview: { pending: openingBalanceUnits === 0, financialVersion: 0, reviewedAt: null, reviewedByName: null },
+           currency: profile.currency,
+           isPinned: false,
+           inactiveSince: openingBalanceUnits === 0 ? createdAt : null,
+diff --git a/src/server/domain/customerQueries.ts b/src/server/domain/customerQueries.ts
+index 097e51b..29e392f 100644
+--- a/src/server/domain/customerQueries.ts
++++ b/src/server/domain/customerQueries.ts
+@@ -1,4 +1,4 @@
+-import { zeroReviewSnapshot } from './customerZeroReview.ts';
++import { settledZeroRankSql, zeroReviewSnapshot } from './customerZeroReview.ts';
+ import { knownViewTags, tagViews } from './viewSnapshots.ts';
+ import { businessDayRange, organizationBusinessDate, organizationTimezone } from './reports/businessDates.ts';
+ import type { AppDatabase } from '../db/database.ts';
+@@ -35,10 +35,10 @@ export function listCustomers(
+   const cursor = decodeFeedCursor(url.searchParams.get('cursor'));
+   const search = normalizeSearch(url.searchParams.get('q') ?? '');
+   const filter = url.searchParams.get('filter') ?? 'all';
+-  const zeroRank = "CASE WHEN c.current_balance_units=0 AND (c.section_key<>'customer_debts' OR c.zero_review_pending=0) THEN 1 ELSE 0 END";
++  const zeroRank = settledZeroRankSql('c');
+   const conditions = ['c.organization_id = ?', 'c.section_key = ?', 'c.deleted_at IS NULL'];
+   const parameters: Array<string | number> = [organizationId, profile.sectionKey];
+-  if (filter === 'pending-review') conditions.push("c.section_key='customer_debts' AND c.current_balance_units=0 AND c.zero_review_pending=1");
++  if (filter === 'pending-review') conditions.push('c.current_balance_units=0 AND c.zero_review_pending=1 AND c.system_link_key IS NULL');
+   if (search) {
+     conditions.push('(c.normalized_name LIKE ? OR c.phone LIKE ?)');
+     parameters.push(`%${search}%`, `%${search}%`);
+@@ -48,7 +48,7 @@ export function listCustomers(
+   else if (filter === 'pinned') conditions.push('c.is_pinned = 1');
+   else if (filter === 'smart') {
+     conditions.push(`NOT (
+-      c.current_balance_units = 0 AND (c.section_key <> 'customer_debts' OR c.zero_review_pending=0) AND c.is_pinned = 0 AND c.inactive_since IS NOT NULL
++      c.current_balance_units = 0 AND c.zero_review_pending=0 AND c.is_pinned = 0 AND c.inactive_since IS NOT NULL
+       AND c.inactive_since <= ?
+     )`);
+     parameters.push(new Date(Date.now() - 30 * 24 * 60 * 60_000).toISOString());
+@@ -97,7 +97,7 @@ export function listCustomers(
+       COALESCE(SUM(CASE WHEN current_balance_units > 0 THEN current_balance_units ELSE 0 END), 0) AS total_debt,
+       COALESCE(SUM(current_balance_units), 0) AS net_balance,
+       COALESCE(SUM(CASE WHEN current_balance_units <> 0 THEN 1 ELSE 0 END), 0) AS active_cards,
+-      COALESCE(SUM(CASE WHEN current_balance_units=0 AND zero_review_pending=1 THEN 1 ELSE 0 END),0) AS pending_review_count
++      COALESCE(SUM(CASE WHEN current_balance_units=0 AND zero_review_pending=1 AND system_link_key IS NULL THEN 1 ELSE 0 END),0) AS pending_review_count
+     FROM customers WHERE organization_id = ? AND section_key = ? AND deleted_at IS NULL
+   `).get(
+     organizationId,
+diff --git a/src/server/domain/customerZeroReview.ts b/src/server/domain/customerZeroReview.ts
+index f567517..751f774 100644
+--- a/src/server/domain/customerZeroReview.ts
++++ b/src/server/domain/customerZeroReview.ts
+@@ -3,9 +3,27 @@ import { inImmediateTransaction, nowIso } from '../db/database.ts';
+ import { badRequest, conflict, forbidden, notFound } from '../http/errors.ts';
+ import type { AuthenticatedUser } from '../security/sessions.ts';
+ import { audit, emitEvent } from './customerTransactionSupport.ts';
++import { partyProfile, type DebtPartyKind } from './customerProfiles.ts';
++
++const REVIEWED_SECTIONS = new Set(['customer_debts', 'company_debts', 'libyan_deposits', 'egyptian_deposits']);
++export const SETTLED_ZERO_RANK_EXPRESSION =
++  'CASE WHEN current_balance_units=0 AND (zero_review_pending=0 OR system_link_key IS NOT NULL) THEN 1 ELSE 0 END';
++
++export function settledZeroRankSql(alias: string) {
++  return SETTLED_ZERO_RANK_EXPRESSION
++    .replaceAll('current_balance_units', `${alias}.current_balance_units`)
++    .replaceAll('zero_review_pending', `${alias}.zero_review_pending`)
++    .replaceAll('system_link_key', `${alias}.system_link_key`);
++}
++
++const sectionWritePermission = {
++  company: 'companies.write',
++  depositLyd: 'libyan_deposits.write',
++  depositEgp: 'egyptian_deposits.write',
++} as const;
+ 
+ export function zeroReviewSnapshot(row: Record<string, unknown>) {
+-  if (row.section_key !== 'customer_debts' || row.system_link_key) return undefined;
++  if (!REVIEWED_SECTIONS.has(String(row.section_key)) || row.system_link_key) return undefined;
+   return {
+     pending: Number(row.zero_review_pending) === 1,
+     financialVersion: Number(row.zero_review_financial_version),
+@@ -14,18 +32,28 @@ export function zeroReviewSnapshot(row: Record<string, unknown>) {
+   };
+ }
+ 
++function assertCanReview(actor: AuthenticatedUser, kind: DebtPartyKind) {
++  if (kind === 'customer') {
++    if (actor.role !== 'admin') throw forbidden('customers.zero_review');
++    return;
++  }
++  const permission = sectionWritePermission[kind];
++  if (actor.role !== 'admin' && !actor.permissions.has(permission)) throw forbidden(permission);
++}
++
+ export function reviewCustomerZero(database: AppDatabase, actor: AuthenticatedUser, customerId: string,
+-  input: Record<string, unknown>, correlationId: string) {
+-  if (actor.role !== 'admin') throw forbidden('customers.zero_review');
++  input: Record<string, unknown>, correlationId: string, kind: DebtPartyKind = 'customer') {
++  assertCanReview(actor, kind);
++  const profile = partyProfile(kind);
+   const expected = input.expectedFinancialVersion;
+   if (!Number.isSafeInteger(expected) || Number(expected) < 0) {
+     throw badRequest('INVALID_REVIEW_VERSION', 'نسخة المراجعة غير صالحة. حدّث الكارت ثم أعد المحاولة.');
+   }
+   return inImmediateTransaction(database, () => {
+     const row = database.prepare(`SELECT * FROM customers WHERE id=? AND organization_id=?
+-      AND section_key='customer_debts' AND deleted_at IS NULL AND system_link_key IS NULL`)
+-      .get(customerId, actor.organizationId) as Record<string, unknown> | undefined;
+-    if (!row) throw notFound('customer');
++      AND section_key=? AND deleted_at IS NULL AND system_link_key IS NULL`)
++      .get(customerId, actor.organizationId, profile.sectionKey) as Record<string, unknown> | undefined;
++    if (!row) throw notFound(profile.missing);
+     if (Number(row.current_balance_units) !== 0 || Number(row.zero_review_financial_version) !== expected) {
+       throw conflict('ZERO_REVIEW_CHANGED', 'تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.');
+     }
+@@ -36,11 +64,16 @@ export function reviewCustomerZero(database: AppDatabase, actor: AuthenticatedUs
+       throw conflict('ZERO_REVIEW_NOT_PENDING', 'هذا الكارت لا ينتظر مراجعة تصفير.');
+     }
+     const reviewedAt = nowIso();
+-    database.prepare(`UPDATE customers SET zero_review_pending=0,zero_reviewed_at=?,zero_reviewed_by=?,zero_reviewed_by_name=? WHERE id=?`)
+-      .run(reviewedAt, actor.id, actor.displayName, customerId);
+-    audit(database, actor.id, actor.organizationId, 'customer.zero_review', 'customer', customerId, correlationId,
++    const updated = database.prepare(`UPDATE customers SET zero_review_pending=0,zero_reviewed_at=?,zero_reviewed_by=?,zero_reviewed_by_name=?
++      WHERE id=? AND organization_id=? AND section_key=? AND deleted_at IS NULL AND system_link_key IS NULL
++        AND current_balance_units=0 AND zero_review_financial_version=? AND zero_review_pending=1`)
++      .run(reviewedAt, actor.id, actor.displayName, customerId, actor.organizationId, profile.sectionKey, expected);
++    if (Number(updated.changes) !== 1) {
++      throw conflict('ZERO_REVIEW_CHANGED', 'تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.');
++    }
++    audit(database, actor.id, actor.organizationId, `${profile.entity}.zero_review`, profile.entity, customerId, correlationId,
+       { financialVersion: expected, reviewedAt });
+-    const eventSequence = emitEvent(database, 'customer.changed', customerId, actor.id, actor.organizationId,
++    const eventSequence = emitEvent(database, `${profile.event}.changed`, customerId, actor.id, actor.organizationId,
+       { action: 'zero_reviewed', financialVersion: expected });
+     return { status: 200, body: { zeroReview: {
+       pending: false, financialVersion: Number(expected), reviewedAt, reviewedByName: actor.displayName,
+diff --git a/src/server/routes/permanentAccountRoutes.ts b/src/server/routes/permanentAccountRoutes.ts
+index a178fea..8fb535d 100644
+--- a/src/server/routes/permanentAccountRoutes.ts
++++ b/src/server/routes/permanentAccountRoutes.ts
+@@ -77,8 +77,8 @@ export async function routePermanentAccounts(
+   const [id, action, transactionId, tail] = segments;
+   if (!id) return false;
+ 
+-  if (config.kind === 'customer' && method === 'POST' && action === 'zero-review' && segments.length === 2) {
+-    return sendOperation(response, events, reviewCustomerZero(database, user, id, await readJson(request), correlationId));
++  if (method === 'POST' && action === 'zero-review' && segments.length === 2) {
++    return sendOperation(response, events, reviewCustomerZero(database, user, id, await readJson(request), correlationId, config.kind));
+   }
+ 
+   if (method === 'GET' && !action) {
+diff --git a/tests/customer-zero-review.test.ts b/tests/customer-zero-review.test.ts
+index a5eaa76..18c5deb 100644
+--- a/tests/customer-zero-review.test.ts
++++ b/tests/customer-zero-review.test.ts
+@@ -52,7 +52,7 @@ test('zero review is administrative, revision-bound, idempotent and financially
+   } finally { db.close(); }
+ });
+ 
+-test('pending zero feed stays visible, sorts by movement and pages without duplicates; other sections stay unchanged', () => {
++test('pending zero feed stays visible, sorts by movement and pages without duplicates; company ids stay off the customer route', () => {
+   const db = openDatabase(':memory:');
+   try {
+     const admin = fixtureAdmin(db);
+@@ -79,8 +79,10 @@ test('pending zero feed stays visible, sorts by movement and pages without dupli
+     assert.equal(feed('filter=smart').items.length, 2);
+     assert.equal(feed('filter=pending-review').totalItems, 0);
+     const company = make('شركة صفر', 0, 'company');
+-    assert.equal(customerSnapshot(db, company, admin.organizationId, 'company').zeroReview, undefined);
+-    assert.throws(() => reviewCustomerZero(db, admin, company, { expectedFinancialVersion: 0 }, 'test'), { status: 404 });
++    const companyCard = customerSnapshot(db, company, admin.organizationId, 'company');
++    assert.equal(companyCard.zeroReview?.pending, true);
++    assert.equal(companyCard.balanceUnits, 0);
++    assert.throws(() => reviewCustomerZero(db, admin, company, { expectedFinancialVersion: companyCard.zeroReview!.financialVersion }, 'test'), { status: 404 });
+     for (let i = 0; i < 25; i++) make(`صفحات المراجعة ${i}`, i % 2 === 0 ? 0 : 10);
+     const first = feed('filter=all&limit=20');
+     const second = feed('filter=all&limit=20&cursor=' + first.nextCursor);
+diff --git a/tests/section-zero-review.test.ts b/tests/section-zero-review.test.ts
+new file mode 100644
+index 0000000..62045c2
+--- /dev/null
++++ b/tests/section-zero-review.test.ts
+@@ -0,0 +1,715 @@
++import assert from 'node:assert/strict';
++import { randomUUID } from 'node:crypto';
++import { mkdtempSync, rmSync } from 'node:fs';
++import type { AddressInfo } from 'node:net';
++import { tmpdir } from 'node:os';
++import { join } from 'node:path';
++import { test } from 'node:test';
++import { DatabaseSync } from 'node:sqlite';
++import { createApp, listen } from '../src/server/app.ts';
++import { loadConfig } from '../src/server/config.ts';
++import { openDatabase, type AppDatabase } from '../src/server/db/database.ts';
++import { migrations } from '../src/server/db/migrations.ts';
++import {
++  addCustomerTransaction,
++  createCustomer,
++  customerSnapshot,
++  listCustomers,
++  setCustomerPinned,
++  updateCustomerDetails,
++} from '../src/server/domain/customers.ts';
++import { partyProfile, type DebtPartyKind } from '../src/server/domain/customerProfiles.ts';
++import { reviewCustomerZero } from '../src/server/domain/customerZeroReview.ts';
++import { createSession, type AuthenticatedUser } from '../src/server/security/sessions.ts';
++import { fixtureAdmin } from './helpers/financialFixture.ts';
++
++const kinds = ['customer', 'company', 'depositLyd', 'depositEgp'] as const;
++
++function employee(database: AppDatabase, id: string, permissions: string[]): AuthenticatedUser {
++  const now = new Date().toISOString();
++  database
++    .prepare(
++      `INSERT INTO users(id,username,display_name,password_hash,role,organization_id,home_branch_id,created_at,updated_at)
++     VALUES(?,?,?,?, 'employee','org-default','branch-main',?,?)`,
++    )
++    .run(id, id, id, 'test-only', now, now);
++  return {
++    id,
++    username: id,
++    displayName: id,
++    role: 'employee',
++    organizationId: 'org-default',
++    homeBranchId: 'branch-main',
++    mustChangePassword: false,
++    permissions: new Set(permissions),
++    sessionTokenHash: 'test',
++    csrfHash: 'test',
++  };
++}
++
++function moneyState(database: AppDatabase) {
++  return {
++    accounts: database
++      .prepare(
++        `SELECT id,section_key,version,current_balance_units,financial_updated_at,zero_review_pending,
++        zero_review_financial_version,zero_reviewed_at,zero_reviewed_by,zero_reviewed_by_name
++       FROM customers ORDER BY id`,
++      )
++      .all(),
++    ledger: database.prepare('SELECT * FROM debt_transactions ORDER BY id').all(),
++    financialLedger: database.prepare('SELECT * FROM financial_ledger_entries ORDER BY id').all(),
++    treasury: database.prepare('SELECT * FROM treasury_cash_entries ORDER BY id').all(),
++  };
++}
++
++function summaryOf(database: AppDatabase, organizationId: string, kind: DebtPartyKind) {
++  return listCustomers(database, new URL('http://test/api/accounts'), organizationId, kind).summary;
++}
++
++test('zero review for every account section is financially inert and account-scoped', () => {
++  const db = openDatabase(':memory:');
++  try {
++    const admin = fixtureAdmin(db);
++    const writer = employee(db, 'section-writer', [
++      'companies.write',
++      'libyan_deposits.write',
++      'egyptian_deposits.write',
++    ]);
++    for (const kind of kinds) {
++      const created = createCustomer(
++        db,
++        admin,
++        { requestId: randomUUID(), name: `صفر ${kind}`, openingBalance: 0 },
++        'test',
++        kind,
++      );
++      const id = (
++        created.body.customer as { id: string; balanceUnits: number; zeroReview?: { pending: boolean } }
++      ).id;
++      const createdCard = created.body.customer as {
++        balanceUnits: number;
++        zeroReview?: { pending: boolean; financialVersion: number };
++      };
++      assert.equal(createdCard.balanceUnits, 0);
++      assert.equal(createdCard.zeroReview?.pending, true);
++      assert.equal(createdCard.zeroReview?.financialVersion, 0);
++      const before = customerSnapshot(db, id, admin.organizationId, kind);
++      const beforeMoney = moneyState(db);
++      const beforeSummary = summaryOf(db, admin.organizationId, kind);
++      listCustomers(
++        db,
++        new URL('http://test/api/accounts?filter=pending-review'),
++        admin.organizationId,
++        kind,
++      );
++      customerSnapshot(db, id, admin.organizationId, kind);
++      assert.deepEqual(moneyState(db), beforeMoney);
++
++      const actor = kind === 'customer' ? admin : writer;
++      const reviewed = reviewCustomerZero(
++        db,
++        actor,
++        id,
++        { expectedFinancialVersion: before.zeroReview!.financialVersion },
++        'test',
++        kind,
++      );
++      assert.equal(reviewed.status, 200);
++      const after = customerSnapshot(db, id, admin.organizationId, kind);
++      assert.equal(after.balanceUnits, 0);
++      assert.equal(after.version, before.version);
++      assert.equal(after.updatedAt, before.updatedAt);
++      assert.equal(after.zeroReview?.pending, false);
++      assert.equal(after.zeroReview?.financialVersion, before.zeroReview?.financialVersion);
++      assert.equal(after.zeroReview?.reviewedByName, actor.displayName);
++      assert.equal(
++        db.prepare('SELECT * FROM debt_transactions WHERE customer_id=?').all(id).length,
++        beforeMoney.ledger.filter((row) => (row as { customer_id: string }).customer_id === id).length,
++      );
++      const afterSummary = summaryOf(db, admin.organizationId, kind);
++      assert.equal(afterSummary.totalDebt, beforeSummary.totalDebt);
++      assert.equal(afterSummary.netBalance, beforeSummary.netBalance);
++      assert.equal(afterSummary.activeCards, beforeSummary.activeCards);
++      assert.equal(afterSummary.pendingReviewCount, beforeSummary.pendingReviewCount - 1);
++      const replay = reviewCustomerZero(
++        db,
++        actor,
++        id,
++        { expectedFinancialVersion: before.zeroReview!.financialVersion },
++        'test',
++        kind,
++      );
++      assert.equal(replay.body.replayed, true);
++      assert.equal(
++        db
++          .prepare('SELECT COUNT(*) AS n FROM audit_log WHERE action=? AND entity_id=?')
++          .get(`${partyProfile(kind).entity}.zero_review`, id)?.n,
++        1,
++      );
++      assert.equal(
++        db.prepare('SELECT topic FROM event_log WHERE aggregate_id=? ORDER BY sequence DESC LIMIT 1').get(id)
++          ?.topic,
++        `${partyProfile(kind).event}.changed`,
++      );
++      setCustomerPinned(db, admin, id, { expectedVersion: after.version, isPinned: true }, 'test', kind);
++      updateCustomerDetails(
++        db,
++        admin,
++        id,
++        {
++          expectedVersion: customerSnapshot(db, id, admin.organizationId, kind).version,
++          name: `اسم ${kind}`,
++          phone: '',
++        },
++        'test',
++        kind,
++      );
++      assert.deepEqual(customerSnapshot(db, id, admin.organizationId, kind).zeroReview, after.zeroReview);
++
++      const staleVersion = after.zeroReview!.financialVersion;
++      addCustomerTransaction(
++        db,
++        admin,
++        id,
++        {
++          requestId: randomUUID(),
++          expectedVersion: customerSnapshot(db, id, admin.organizationId, kind).version,
++          type: 'debt',
++          inputValue: 4,
++          calculationMode: 'direct',
++        },
++        'test',
++        kind,
++      );
++      const nonzero = customerSnapshot(db, id, admin.organizationId, kind);
++      assert.equal(nonzero.balanceUnits, 4);
++      assert.equal(nonzero.zeroReview?.reviewedAt, null);
++      assert.equal(nonzero.zeroReview?.pending, false);
++      assert.throws(
++        () =>
++          reviewCustomerZero(
++            db,
++            actor,
++            id,
++            { expectedFinancialVersion: nonzero.zeroReview!.financialVersion },
++            'test',
++            kind,
++          ),
++        { status: 409, code: 'ZERO_REVIEW_CHANGED' },
++      );
++      addCustomerTransaction(
++        db,
++        admin,
++        id,
++        {
++          requestId: randomUUID(),
++          expectedVersion: nonzero.version,
++          type: 'payment',
++          inputValue: 4,
++          calculationMode: 'direct',
++        },
++        'test',
++        kind,
++      );
++      const again = customerSnapshot(db, id, admin.organizationId, kind);
++      assert.equal(again.balanceUnits, 0);
++      assert.equal(again.zeroReview?.pending, true);
++      assert.notEqual(again.zeroReview?.financialVersion, staleVersion);
++      const unchanged = moneyState(db);
++      assert.throws(
++        () => reviewCustomerZero(db, actor, id, { expectedFinancialVersion: staleVersion }, 'test', kind),
++        { status: 409, code: 'ZERO_REVIEW_CHANGED' },
++      );
++      assert.throws(
++        () => reviewCustomerZero(db, actor, id, { expectedFinancialVersion: '1' }, 'test', kind),
++        { status: 400, code: 'INVALID_REVIEW_VERSION' },
++      );
++      assert.deepEqual(moneyState(db), unchanged);
++      const confirmed = reviewCustomerZero(
++        db,
++        actor,
++        id,
++        { expectedFinancialVersion: again.zeroReview!.financialVersion },
++        'test',
++        kind,
++      );
++      assert.equal(confirmed.status, 200);
++      assert.equal(customerSnapshot(db, id, admin.organizationId, kind).balanceUnits, 0);
++    }
++  } finally {
++    db.close();
++  }
++});
++
++test('section zero review rejects read-only, cross-section, stale and offline-equivalent failures without writing', () => {
++  const db = openDatabase(':memory:');
++  try {
++    const admin = fixtureAdmin(db);
++    const readers = {
++      company: employee(db, 'read-company', ['companies.read']),
++      depositLyd: employee(db, 'read-libyan', ['libyan_deposits.read']),
++      depositEgp: employee(db, 'read-egyptian', ['egyptian_deposits.read']),
++      customer: employee(db, 'read-customer', ['debts.read', 'debts.write']),
++    };
++    const writers = {
++      company: employee(db, 'write-company', ['companies.write']),
++      depositLyd: employee(db, 'write-libyan', ['libyan_deposits.write']),
++      depositEgp: employee(db, 'write-egyptian', ['egyptian_deposits.write']),
++    };
++    const ids = new Map<DebtPartyKind, string>();
++    for (const kind of kinds) {
++      const created = createCustomer(
++        db,
++        admin,
++        { requestId: randomUUID(), name: `عزل ${kind}`, openingBalance: 0 },
++        'test',
++        kind,
++      );
++      ids.set(kind, (created.body.customer as { id: string }).id);
++    }
++    const inputFor = (kind: DebtPartyKind) => ({
++      expectedFinancialVersion: customerSnapshot(db, ids.get(kind)!, admin.organizationId, kind).zeroReview!
++        .financialVersion,
++    });
++    const unchanged = () => moneyState(db);
++    const before = unchanged();
++    assert.throws(
++      () => reviewCustomerZero(db, readers.customer, ids.get('customer')!, inputFor('customer'), 'test'),
++      { status: 403, code: 'PERMISSION_DENIED' },
++    );
++    for (const kind of ['company', 'depositLyd', 'depositEgp'] as const) {
++      assert.throws(
++        () => reviewCustomerZero(db, readers[kind], ids.get(kind)!, inputFor(kind), 'test', kind),
++        { status: 403, code: 'PERMISSION_DENIED' },
++      );
++      assert.throws(
++        () => reviewCustomerZero(db, readers.customer, ids.get(kind)!, inputFor(kind), 'test', kind),
++        { status: 403, code: 'PERMISSION_DENIED' },
++      );
++    }
++    assert.throws(
++      () => reviewCustomerZero(db, writers.company, ids.get('customer')!, inputFor('customer'), 'test'),
++      { status: 403 },
++    );
++    assert.throws(
++      () =>
++        reviewCustomerZero(
++          db,
++          writers.company,
++          ids.get('depositLyd')!,
++          inputFor('depositLyd'),
++          'test',
++          'depositLyd',
++        ),
++      { status: 403 },
++    );
++    assert.throws(
++      () =>
++        reviewCustomerZero(
++          db,
++          writers.company,
++          ids.get('depositEgp')!,
++          inputFor('depositEgp'),
++          'test',
++          'depositEgp',
++        ),
++      { status: 403 },
++    );
++    assert.throws(
++      () =>
++        reviewCustomerZero(
++          db,
++          writers.depositLyd,
++          ids.get('company')!,
++          inputFor('company'),
++          'test',
++          'company',
++        ),
++      { status: 403 },
++    );
++    assert.throws(
++      () =>
++        reviewCustomerZero(
++          db,
++          writers.depositEgp,
++          ids.get('depositLyd')!,
++          inputFor('depositLyd'),
++          'test',
++          'depositLyd',
++        ),
++      { status: 403 },
++    );
++    assert.throws(
++      () =>
++        reviewCustomerZero(
++          db,
++          { ...admin, organizationId: 'other-org' },
++          ids.get('company')!,
++          inputFor('company'),
++          'test',
++          'company',
++        ),
++      { status: 404 },
++    );
++    assert.throws(
++      () => reviewCustomerZero(db, admin, ids.get('company')!, inputFor('company'), 'test', 'depositLyd'),
++      { status: 404 },
++    );
++    db.prepare('UPDATE customers SET deleted_at=? WHERE id=?').run(
++      new Date().toISOString(),
++      ids.get('depositEgp')!,
++    );
++    assert.throws(
++      () =>
++        reviewCustomerZero(
++          db,
++          admin,
++          ids.get('depositEgp')!,
++          { expectedFinancialVersion: 0 },
++          'test',
++          'depositEgp',
++        ),
++      { status: 404 },
++    );
++    db.prepare('UPDATE customers SET zero_review_pending=0 WHERE id=?').run(ids.get('depositLyd')!);
++    assert.throws(
++      () =>
++        reviewCustomerZero(
++          db,
++          writers.depositLyd,
++          ids.get('depositLyd')!,
++          { expectedFinancialVersion: 0 },
++          'test',
++          'depositLyd',
++        ),
++      { status: 409, code: 'ZERO_REVIEW_NOT_PENDING' },
++    );
++    const linkedId = String(
++      db.prepare("SELECT id FROM customers WHERE system_link_key='masraweya_remainder'").get()!.id,
++    );
++    assert.equal(customerSnapshot(db, linkedId, admin.organizationId, 'depositEgp').zeroReview, undefined);
++    assert.throws(
++      () => reviewCustomerZero(db, admin, linkedId, { expectedFinancialVersion: 0 }, 'test', 'depositEgp'),
++      { status: 404 },
++    );
++    assert.equal(summaryOf(db, admin.organizationId, 'depositEgp').pendingReviewCount, 0);
++    assert.deepEqual(unchanged().ledger, before.ledger);
++    assert.deepEqual(unchanged().treasury, before.treasury);
++    assert.deepEqual(unchanged().financialLedger, before.financialLedger);
++    const company = customerSnapshot(db, ids.get('company')!, admin.organizationId, 'company');
++    assert.equal(company.zeroReview?.pending, true);
++    assert.equal(company.balanceUnits, 0);
++    assert.equal(
++      db.prepare("SELECT COUNT(*) AS n FROM audit_log WHERE action LIKE '%.zero_review'").get()?.n,
++      0,
++    );
++  } finally {
++    db.close();
++  }
++});
++
++test('pending section zeros stay in the upper feed until confirmed, then persist after reopen', () => {
++  const directory = mkdtempSync(join(tmpdir(), 'section-zero-review-'));
++  const path = join(directory, 'review.sqlite');
++  const db = openDatabase(path);
++  try {
++    const admin = fixtureAdmin(db);
++    const writer = employee(db, 'company-writer', ['companies.write']);
++    const debt = (
++      createCustomer(
++        db,
++        admin,
++        { requestId: randomUUID(), name: 'شركة دين', openingBalance: 80 },
++        'test',
++        'company',
++      ).body.customer as { id: string }
++    ).id;
++    const zero = (
++      createCustomer(
++        db,
++        admin,
++        { requestId: randomUUID(), name: 'شركة صفر', openingBalance: 0 },
++        'test',
++        'company',
++      ).body.customer as { id: string }
++    ).id;
++    db.prepare('UPDATE customers SET financial_updated_at=? WHERE id=?').run(
++      '2026-03-01T00:00:00.000Z',
++      debt,
++    );
++    db.prepare('UPDATE customers SET financial_updated_at=? WHERE id=?').run(
++      '2026-04-01T00:00:00.000Z',
++      zero,
++    );
++    const feed = (query = '') =>
++      listCustomers(db, new URL('http://test/api/companies?' + query), admin.organizationId, 'company');
++    const before = feed();
++    assert.deepEqual(
++      before.items.map((item) => item.id),
++      [zero, debt],
++    );
++    assert.equal(before.summary.pendingReviewCount, 1);
++    assert.equal(before.summary.totalDebt, 80);
++    assert.equal(before.summary.netBalance, 80);
++    assert.deepEqual(
++      feed('filter=pending-review').items.map((item) => item.id),
++      [zero],
++    );
++    const version = before.items[0].zeroReview!.financialVersion;
++    reviewCustomerZero(db, writer, zero, { expectedFinancialVersion: version }, 'test', 'company');
++    const after = feed('filter=all');
++    assert.deepEqual(
++      after.items.map((item) => item.id),
++      [debt, zero],
++    );
++    assert.equal(after.summary.pendingReviewCount, 0);
++    assert.equal(after.summary.totalDebt, 80);
++    assert.equal(after.summary.netBalance, 80);
++    assert.equal(after.summary.activeCards, 1);
++    assert.equal(feed('filter=pending-review').totalItems, 0);
++    assert.equal(customerSnapshot(db, zero, admin.organizationId, 'company').zeroReview?.pending, false);
++  } finally {
++    db.close();
++  }
++  const reopened = openDatabase(path);
++  try {
++    const card = customerSnapshot(
++      reopened,
++      reopened.prepare("SELECT id FROM customers WHERE name='شركة صفر'").get()!.id as string,
++      'org-default',
++      'company',
++    );
++    assert.equal(card.zeroReview?.pending, false);
++    assert.equal(card.zeroReview?.reviewedByName, 'company-writer');
++    assert.equal(card.balanceUnits, 0);
++    assert.equal(
++      reopened.prepare('SELECT current_balance_units FROM customers WHERE name=?').get('شركة دين')
++        ?.current_balance_units,
++      80,
++    );
++  } finally {
++    reopened.close();
++    rmSync(directory, { recursive: true, force: true });
++  }
++});
++
++test('schema 57 preserves historical zeros, balances and ledger, then new zeros request review', () => {
++  const directory = mkdtempSync(join(tmpdir(), 'section-zero-upgrade-'));
++  const path = join(directory, 'legacy.sqlite');
++  const legacy = new DatabaseSync(path);
++  try {
++    legacy.exec(
++      'PRAGMA foreign_keys=ON; CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY,name TEXT NOT NULL,applied_at TEXT NOT NULL) STRICT',
++    );
++    for (const migration of migrations.filter((item) => item.version <= 56)) {
++      legacy.exec('BEGIN IMMEDIATE');
++      migration.before?.(legacy);
++      legacy.exec(migration.sql);
++      migration.after?.(legacy);
++      legacy
++        .prepare('INSERT INTO schema_migrations(version,name,applied_at) VALUES(?,?,?)')
++        .run(migration.version, migration.name, new Date().toISOString());
++      legacy.exec('COMMIT');
++    }
++    const admin = fixtureAdmin(legacy);
++    for (const [kind, name] of [
++      ['customer', 'عميل قديم'],
++      ['company', 'شركة قديمة'],
++      ['depositLyd', 'ليبي قديم'],
++      ['depositEgp', 'مصري قديم'],
++    ] as const) {
++      createCustomer(legacy, admin, { requestId: randomUUID(), name, openingBalance: 0 }, 'test', kind);
++    }
++    createCustomer(
++      legacy,
++      admin,
++      { requestId: randomUUID(), name: 'شركة دين قديم', openingBalance: 40 },
++      'test',
++      'company',
++    );
++    const before = legacy
++      .prepare(
++        'SELECT id,name,version,current_balance_units,financial_updated_at,zero_review_pending,zero_review_financial_version,zero_reviewed_at FROM customers ORDER BY name',
++      )
++      .all();
++    const ledger = legacy.prepare('SELECT * FROM debt_transactions ORDER BY id').all();
++    assert.equal(
++      legacy.prepare("SELECT zero_review_pending FROM customers WHERE name='شركة قديمة'").get()
++        ?.zero_review_pending,
++      0,
++    );
++    assert.equal(
++      legacy.prepare("SELECT zero_review_pending FROM customers WHERE name='عميل قديم'").get()
++        ?.zero_review_pending,
++      1,
++    );
++    legacy.close();
++    const upgraded = openDatabase(path);
++    try {
++      assert.deepEqual(
++        upgraded
++          .prepare(
++            'SELECT id,name,version,current_balance_units,financial_updated_at,zero_review_pending,zero_review_financial_version,zero_reviewed_at FROM customers ORDER BY name',
++          )
++          .all(),
++        before,
++      );
++      assert.deepEqual(upgraded.prepare('SELECT * FROM debt_transactions ORDER BY id').all(), ledger);
++      assert.equal(upgraded.prepare('PRAGMA foreign_key_check').all().length, 0);
++      const trigger = String(
++        upgraded
++          .prepare("SELECT sql FROM sqlite_master WHERE name='customer_zero_review_financial_change'")
++          .get()?.sql,
++      );
++      for (const section of ['customer_debts', 'company_debts', 'libyan_deposits', 'egyptian_deposits'])
++        assert.match(trigger, new RegExp(section));
++      for (const [kind, name] of [
++        ['company', 'شركة جديدة'],
++        ['depositLyd', 'ليبي جديد'],
++        ['depositEgp', 'مصري جديد'],
++      ] as const) {
++        createCustomer(upgraded, admin, { requestId: randomUUID(), name, openingBalance: 0 }, 'test', kind);
++        assert.equal(
++          customerSnapshot(
++            upgraded,
++            upgraded.prepare('SELECT id FROM customers WHERE name=?').get(name)!.id as string,
++            admin.organizationId,
++            kind,
++          ).zeroReview?.pending,
++          true,
++        );
++      }
++      assert.equal(
++        upgraded.prepare("SELECT current_balance_units FROM customers WHERE name='شركة دين قديم'").get()
++          ?.current_balance_units,
++        40,
++      );
++    } finally {
++      upgraded.close();
++    }
++  } finally {
++    if (legacy.isOpen) legacy.close();
++    rmSync(directory, { recursive: true, force: true });
++  }
++});
++
++test('HTTP zero-review routes follow the account section and do not approve a stale card', async () => {
++  const directory = mkdtempSync(join(tmpdir(), 'section-zero-http-'));
++  const db = openDatabase(join(directory, 'http.sqlite'));
++  const server = createApp(
++    db,
++    loadConfig({ databasePath: ':memory:', internetRequired: false, secureCookie: false, publicOrigin: '' }),
++  );
++  await listen(server, '127.0.0.1', 0);
++  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
++  try {
++    const admin = fixtureAdmin(db);
++    const reader = employee(db, 'http-reader', ['companies.read']);
++    const writer = employee(db, 'http-writer', ['companies.write']);
++    db.prepare('INSERT INTO user_permissions(user_id,permission,allowed,updated_at) VALUES(?,?,1,?)').run(
++      reader.id,
++      'companies.read',
++      new Date().toISOString(),
++    );
++    db.prepare('INSERT INTO user_permissions(user_id,permission,allowed,updated_at) VALUES(?,?,1,?)').run(
++      writer.id,
++      'companies.write',
++      new Date().toISOString(),
++    );
++    const company = (
++      createCustomer(
++        db,
++        admin,
++        { requestId: randomUUID(), name: 'شركة مسار', openingBalance: 0 },
++        'test',
++        'company',
++      ).body.customer as { id: string }
++    ).id;
++    const libyan = (
++      createCustomer(
++        db,
++        admin,
++        { requestId: randomUUID(), name: 'ليبي مسار', openingBalance: 0 },
++        'test',
++        'depositLyd',
++      ).body.customer as { id: string }
++    ).id;
++    const version = customerSnapshot(db, company, admin.organizationId, 'company').zeroReview!
++      .financialVersion;
++    const libyanVersion = customerSnapshot(db, libyan, admin.organizationId, 'depositLyd').zeroReview!
++      .financialVersion;
++    const sessionFor = (userId: string) => createSession(db, userId, '1', 1);
++    const post = async (userId: string, path: string, body: unknown) => {
++      const session = sessionFor(userId);
++      return fetch(base + path, {
++        method: 'POST',
++        headers: {
++          Cookie: `abdo_session=${session.token}`,
++          'Content-Type': 'application/json',
++          'X-CSRF-Token': session.csrfToken,
++          'X-Client-Api-Version': '1',
++        },
++        body: JSON.stringify(body),
++      });
++    };
++    assert.equal(
++      (await fetch(base + `/api/companies/${company}/zero-review`, { method: 'POST' })).status,
++      401,
++    );
++    const denied = await post(reader.id, `/api/companies/${company}/zero-review`, {
++      expectedFinancialVersion: version,
++    });
++    assert.equal(denied.status, 403);
++    assert.equal((await denied.json()).error.code, 'PERMISSION_DENIED');
++    assert.equal(customerSnapshot(db, company, admin.organizationId, 'company').zeroReview?.pending, true);
++    const cross = await post(writer.id, `/api/libyan-deposits/${libyan}/zero-review`, {
++      expectedFinancialVersion: libyanVersion,
++    });
++    assert.equal(cross.status, 403);
++    assert.equal((await cross.json()).error.details.permission, 'libyan_deposits.write');
++    const wrongSection = await post(admin.id, `/api/customers/${company}/zero-review`, {
++      expectedFinancialVersion: version,
++    });
++    assert.equal(wrongSection.status, 404);
++    const listed = await fetch(base + '/api/companies?filter=pending-review', {
++      headers: { Cookie: `abdo_session=${sessionFor(admin.id).token}` },
++    });
++    const listedBody = await listed.json();
++    assert.equal(listed.status, 200);
++    assert.deepEqual(
++      listedBody.data.items.map((item: { id: string }) => item.id),
++      [company],
++    );
++    assert.equal(listedBody.data.items[0].zeroReview.financialVersion, version);
++    assert.equal(customerSnapshot(db, company, admin.organizationId, 'company').zeroReview?.pending, true);
++    const stale = await post(writer.id, `/api/companies/${company}/zero-review`, {
++      expectedFinancialVersion: version + 9,
++    });
++    assert.equal(stale.status, 409);
++    assert.equal((await stale.json()).error.code, 'ZERO_REVIEW_CHANGED');
++    assert.equal(customerSnapshot(db, company, admin.organizationId, 'company').zeroReview?.pending, true);
++    const confirmed = await post(writer.id, `/api/companies/${company}/zero-review`, {
++      expectedFinancialVersion: version,
++    });
++    assert.equal(confirmed.status, 200);
++    const confirmedBody = await confirmed.json();
++    assert.equal(confirmedBody.ok, true);
++    assert.equal(confirmedBody.data.zeroReview.pending, false);
++    assert.equal(confirmedBody.data.zeroReview.financialVersion, version);
++    assert.equal(confirmedBody.data.zeroReview.reviewedByName, writer.displayName);
++    const replay = await post(admin.id, `/api/companies/${company}/zero-review`, {
++      expectedFinancialVersion: version,
++    });
++    assert.equal(replay.status, 200);
++    assert.equal((await replay.json()).data.replayed, true);
++    assert.equal(customerSnapshot(db, company, admin.organizationId, 'company').balanceUnits, 0);
++    assert.equal(customerSnapshot(db, libyan, admin.organizationId, 'depositLyd').zeroReview?.pending, true);
++    assert.equal(summaryOf(db, admin.organizationId, 'customer').pendingReviewCount, 0);
++  } finally {
++    server.closeRealtimeConnections();
++    server.closeAllConnections();
++    await new Promise<void>((resolve) => server.close(() => resolve()));
++    db.close();
++    rmSync(directory, { recursive: true, force: true });
++  }
++});
