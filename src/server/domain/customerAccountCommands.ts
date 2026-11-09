@@ -44,14 +44,8 @@ export function createCustomer(
            AND (normalized_name = ? OR (? IS NOT NULL AND phone_normalized = ?))
          ORDER BY normalized_name = ? DESC LIMIT 1`,
       )
-      .get(
-        actor.organizationId,
-        profile.sectionKey,
-        normalized,
-        normalizedPhone,
-        normalizedPhone,
-        normalized,
-      ) as Record<string, unknown> | undefined;
+      .get(actor.organizationId, profile.sectionKey, normalized, normalizedPhone, normalizedPhone, normalized) as
+      Record<string, unknown> | undefined;
     if (duplicate) {
       throw conflict(profile.duplicateCode, profile.duplicateMessage, {
         customerId: String(duplicate.id),
@@ -162,12 +156,7 @@ export function createCustomer(
           activeCycleId: cycleId,
           openingBalanceUnits,
           balanceUnits: openingBalanceUnits,
-          zeroReview: {
-            pending: openingBalanceUnits === 0,
-            financialVersion: 0,
-            reviewedAt: null,
-            reviewedByName: null,
-          },
+          zeroReview: { pending: openingBalanceUnits === 0, financialVersion: 0, reviewedAt: null, reviewedByName: null },
           currency: profile.currency,
           isPinned: false,
           inactiveSince: openingBalanceUnits === 0 ? createdAt : null,
@@ -206,14 +195,8 @@ export function updateCustomerDetails(
            AND (normalized_name = ? OR (? IS NOT NULL AND phone_normalized = ?))
          LIMIT 1`,
       )
-      .get(
-        customerId,
-        actor.organizationId,
-        profile.sectionKey,
-        normalized,
-        normalizedPhone,
-        normalizedPhone,
-      ) as { id: string } | undefined;
+      .get(customerId, actor.organizationId, profile.sectionKey, normalized, normalizedPhone, normalizedPhone) as
+      { id: string } | undefined;
     if (duplicate) throw conflict('CUSTOMER_ALREADY_EXISTS', 'يوجد عميل آخر مسجل بالاسم أو رقم الهاتف نفسه.');
 
     const changedAt = nowIso();

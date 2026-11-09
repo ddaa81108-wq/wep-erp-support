@@ -62,28 +62,14 @@ export const addSectionTransaction = (section: DebtSection, id: string, body: Re
   return api.transaction(id, body);
 };
 
-export const editSectionTransaction = (
-  section: DebtSection,
-  id: string,
-  transactionId: string,
-  body: Record<string, unknown>,
-) => {
+export const editSectionTransaction = (section: DebtSection, id: string, transactionId: string, body: Record<string, unknown>) => {
   if (isDepositSection(section)) return api.editDepositMovement(section, id, transactionId, body);
   if (section === 'companies') return api.editCompanyTransaction(id, transactionId, body);
   return api.editTransaction(id, transactionId, body);
 };
 
-export const cancelSectionTransaction = (
-  section: DebtSection,
-  id: string,
-  transactionId: string,
-  body: CancelBody,
-) => {
-  if (isDepositSection(section))
-    return api.cancelDepositMovement(section, id, transactionId, {
-      requestId: body.requestId,
-      expectedVersion: body.expectedVersion,
-    });
+export const cancelSectionTransaction = (section: DebtSection, id: string, transactionId: string, body: CancelBody) => {
+  if (isDepositSection(section)) return api.cancelDepositMovement(section, id, transactionId, { requestId: body.requestId, expectedVersion: body.expectedVersion });
   if (section === 'companies') return api.cancelCompanyTransaction(id, transactionId, body);
   return api.cancelTransaction(id, transactionId, body);
 };

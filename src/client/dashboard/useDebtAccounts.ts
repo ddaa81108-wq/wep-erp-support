@@ -111,12 +111,10 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
         let searched: Customer | null = null;
         if (cardSearchTarget) {
           try {
-            searched =
-              items.find((item) => item.id === cardSearchTarget.id) ??
-              (await getSectionAccount(debtSection, cardSearchTarget.id));
+            searched = items.find(item => item.id === cardSearchTarget.id)
+              ?? await getSectionAccount(debtSection, cardSearchTarget.id);
           } catch (error) {
-            if (!(error instanceof ApiError && error.status === 404 && error.code === 'NOT_FOUND'))
-              throw error;
+            if (!(error instanceof ApiError && error.status === 404 && error.code === 'NOT_FOUND')) throw error;
           }
         }
         if (request !== listRequest.current) {
@@ -231,8 +229,8 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
           }),
         ),
       ]).catch((error: unknown) => {
-        if (error instanceof ApiError && error.status === 404 && error.code === 'NOT_FOUND') {
-          setLedger((current) => (current?.customer.id === id ? null : current));
+        if(error instanceof ApiError && error.status===404 && error.code==='NOT_FOUND') {
+          setLedger(current=>current?.customer.id===id?null:current);
           return;
         }
         throw error;
@@ -378,13 +376,11 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
     setCardSearchTarget({ id, request: ++cardSearchRequest.current });
   }, []);
   const visible = visibleCustomerCards(customers, debouncedQuery, filter);
-  const searched =
-    searchedCustomer && cardSearchTarget?.id === searchedCustomer.id
-      ? (customers.find((item) => item.id === searchedCustomer.id) ?? searchedCustomer)
-      : null;
+  const searched = searchedCustomer && cardSearchTarget?.id === searchedCustomer.id
+    ? customers.find(item => item.id === searchedCustomer.id) ?? searchedCustomer : null;
   return {
     customers,
-    visibleCustomers: searched ? [searched, ...visible.filter((item) => item.id !== searched.id)] : visible,
+    visibleCustomers: searched ? [searched, ...visible.filter(item => item.id !== searched.id)] : visible,
     cardSearchTarget,
     revealCard,
     ledger,

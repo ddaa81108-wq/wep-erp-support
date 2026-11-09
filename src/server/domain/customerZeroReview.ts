@@ -5,18 +5,13 @@ import type { AuthenticatedUser } from '../security/sessions.ts';
 import { audit, emitEvent } from './customerTransactionSupport.ts';
 import { partyProfile, type DebtPartyKind } from './customerProfiles.ts';
 
-const REVIEWED_SECTIONS = new Set([
-  'customer_debts',
-  'company_debts',
-  'libyan_deposits',
-  'egyptian_deposits',
-]);
-
+const REVIEWED_SECTIONS = new Set(['customer_debts', 'company_debts', 'libyan_deposits', 'egyptian_deposits']);
 export const SETTLED_ZERO_RANK_EXPRESSION =
   'CASE WHEN current_balance_units=0 AND (zero_review_pending=0 OR system_link_key IS NOT NULL) THEN 1 ELSE 0 END';
 
 export function settledZeroRankSql(alias: string) {
-  return SETTLED_ZERO_RANK_EXPRESSION.replaceAll('current_balance_units', `${alias}.current_balance_units`)
+  return SETTLED_ZERO_RANK_EXPRESSION
+    .replaceAll('current_balance_units', `${alias}.current_balance_units`)
     .replaceAll('zero_review_pending', `${alias}.zero_review_pending`)
     .replaceAll('system_link_key', `${alias}.system_link_key`);
 }
@@ -46,14 +41,8 @@ function assertCanReview(actor: AuthenticatedUser, kind: DebtPartyKind) {
   if (actor.role !== 'admin' && !actor.permissions.has(permission)) throw forbidden(permission);
 }
 
-export function reviewCustomerZero(
-  database: AppDatabase,
-  actor: AuthenticatedUser,
-  customerId: string,
-  input: Record<string, unknown>,
-  correlationId: string,
-  kind: DebtPartyKind = 'customer',
-) {
+export function reviewCustomerZero(database: AppDatabase, actor: AuthenticatedUser, customerId: string,
+  input: Record<string, unknown>, correlationId: string, kind: DebtPartyKind = 'customer') {
   assertCanReview(actor, kind);
   const profile = partyProfile(kind);
   const expected = input.expectedFinancialVersion;
@@ -61,11 +50,8 @@ export function reviewCustomerZero(
     throw badRequest('INVALID_REVIEW_VERSION', 'نسخة المراجعة غير صالحة. حدّث الكارت ثم أعد المحاولة.');
   }
   return inImmediateTransaction(database, () => {
-    const row = database
-      .prepare(
-        `SELECT * FROM customers WHERE id=? AND organization_id=?
-      AND section_key=? AND deleted_at IS NULL AND system_link_key IS NULL`,
-      )
+    const row = database.prepare(`SELECT * FROM customers WHERE id=? AND organization_id=?
+      AND section_key=? AND deleted_at IS NULL AND system_link_key IS NULL`)
       .get(customerId, actor.organizationId, profile.sectionKey) as Record<string, unknown> | undefined;
     if (!row) throw notFound(profile.missing);
     if (Number(row.current_balance_units) !== 0 || Number(row.zero_review_financial_version) !== expected) {
@@ -78,53 +64,19 @@ export function reviewCustomerZero(
       throw conflict('ZERO_REVIEW_NOT_PENDING', 'هذا الكارت لا ينتظر مراجعة تصفير.');
     }
     const reviewedAt = nowIso();
-    const updated = database
-      .prepare(
-        `UPDATE customers SET zero_review_pending=0,zero_reviewed_at=?,zero_reviewed_by=?,zero_reviewed_by_name=?
+    const updated = database.prepare(`UPDATE customers SET zero_review_pending=0,zero_reviewed_at=?,zero_reviewed_by=?,zero_reviewed_by_name=?
       WHERE id=? AND organization_id=? AND section_key=? AND deleted_at IS NULL AND system_link_key IS NULL
-        AND current_balance_units=0 AND zero_review_financial_version=? AND zero_review_pending=1`,
-      )
-      .run(
-        reviewedAt,
-        actor.id,
-        actor.displayName,
-        customerId,
-        actor.organizationId,
-        profile.sectionKey,
-        expected,
-      );
+        AND current_balance_units=0 AND zero_review_financial_version=? AND zero_review_pending=1`)
+      .run(reviewedAt, actor.id, actor.displayName, customerId, actor.organizationId, profile.sectionKey, expected);
     if (Number(updated.changes) !== 1) {
       throw conflict('ZERO_REVIEW_CHANGED', 'تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.');
     }
-    audit(
-      database,
-      actor.id,
-      actor.organizationId,
-      `${profile.entity}.zero_review`,
-      profile.entity,
-      customerId,
-      correlationId,
-      { financialVersion: expected, reviewedAt },
-    );
-    const eventSequence = emitEvent(
-      database,
-      `${profile.event}.changed`,
-      customerId,
-      actor.id,
-      actor.organizationId,
-      { action: 'zero_reviewed', financialVersion: expected },
-    );
-    return {
-      status: 200,
-      body: {
-        zeroReview: {
-          pending: false,
-          financialVersion: Number(expected),
-          reviewedAt,
-          reviewedByName: actor.displayName,
-        },
-      },
-      eventSequence,
-    };
+    audit(database, actor.id, actor.organizationId, `${profile.entity}.zero_review`, profile.entity, customerId, correlationId,
+      { financialVersion: expected, reviewedAt });
+    const eventSequence = emitEvent(database, `${profile.event}.changed`, customerId, actor.id, actor.organizationId,
+      { action: 'zero_reviewed', financialVersion: expected });
+    return { status: 200, body: { zeroReview: {
+      pending: false, financialVersion: Number(expected), reviewedAt, reviewedByName: actor.displayName,
+    } }, eventSequence };
   });
 }
