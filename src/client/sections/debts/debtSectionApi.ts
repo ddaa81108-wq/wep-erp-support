@@ -1,4 +1,5 @@
-import { api, type CustomerListOptions } from '../../api.ts';
+import { api, type Customer, type CustomerListOptions } from '../../api.ts';
+import { request } from '../../apiTransport.ts';
 import type { DebtSection } from './sectionConfig.ts';
 import { isDepositSection } from './debtSectionUtils.ts';
 
@@ -6,6 +7,12 @@ type CreateAccountBody = { name: string; phone?: string; openingBalance: number;
 type UpdateAccountBody = { expectedVersion: number; name: string; phone?: string };
 type PinBody = { expectedVersion: number; isPinned: boolean };
 type CancelBody = { requestId: string; expectedVersion: number; reason?: string };
+
+export const reviewSectionZero = (section: DebtSection, id: string, expectedFinancialVersion: number) =>
+  request<{ zeroReview: NonNullable<Customer['zeroReview']>; replayed?: boolean }>(
+    `/api/${section}/${encodeURIComponent(id)}/zero-review`,
+    { method: 'POST', body: JSON.stringify({ expectedFinancialVersion }) },
+  );
 
 export const listSectionAccounts = (section: DebtSection, options?: CustomerListOptions) => {
   if (isDepositSection(section)) return api.depositAccounts(section, options);
@@ -55,14 +62,28 @@ export const addSectionTransaction = (section: DebtSection, id: string, body: Re
   return api.transaction(id, body);
 };
 
-export const editSectionTransaction = (section: DebtSection, id: string, transactionId: string, body: Record<string, unknown>) => {
+export const editSectionTransaction = (
+  section: DebtSection,
+  id: string,
+  transactionId: string,
+  body: Record<string, unknown>,
+) => {
   if (isDepositSection(section)) return api.editDepositMovement(section, id, transactionId, body);
   if (section === 'companies') return api.editCompanyTransaction(id, transactionId, body);
   return api.editTransaction(id, transactionId, body);
 };
 
-export const cancelSectionTransaction = (section: DebtSection, id: string, transactionId: string, body: CancelBody) => {
-  if (isDepositSection(section)) return api.cancelDepositMovement(section, id, transactionId, { requestId: body.requestId, expectedVersion: body.expectedVersion });
+export const cancelSectionTransaction = (
+  section: DebtSection,
+  id: string,
+  transactionId: string,
+  body: CancelBody,
+) => {
+  if (isDepositSection(section))
+    return api.cancelDepositMovement(section, id, transactionId, {
+      requestId: body.requestId,
+      expectedVersion: body.expectedVersion,
+    });
   if (section === 'companies') return api.cancelCompanyTransaction(id, transactionId, body);
   return api.cancelTransaction(id, transactionId, body);
 };
