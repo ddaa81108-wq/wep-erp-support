@@ -70,12 +70,15 @@
 | POST | `/api/customers/:id/transactions` | `debts.write` | دين أو سداد ذري |
 | PATCH | `/api/customers/:id/pin` | `debts.write` | تثبيت/إلغاء تثبيت بطاقة العميل في العرض الذكي |
 | POST | `/api/customers/:id/zero-review` | مدير فقط | مراجعة تصفير العميل دون تغيير مالي |
+| POST | `/api/companies/:id/zero-review` | `companies.write` | مراجعة تصفير الشركة دون تغيير مالي |
+| POST | `/api/libyan-deposits/:id/zero-review` | `libyan_deposits.write` | مراجعة تصفير الأمانة الليبية دون تغيير مالي |
+| POST | `/api/egyptian-deposits/:id/zero-review` | `egyptian_deposits.write` | مراجعة تصفير الأمانة المصرية دون تغيير مالي |
 | POST | `/api/customers/:id/transactions/:transactionId/corrections` | `debts.write` | تصحيح حركة بسطر جديد مع إبقاء الأصل موثقًا |
 | POST | `/api/customers/:id/transactions/:transactionId/cancel` | `debts.write` | إلغاء أثر حركة مع إبقاء صفها ظاهرًا في السجل |
 
 العرض الذكي لا يحذف العميل. الكارت الصفري الذي ينتظر المراجعة يبقى ظاهرًا مهما طالت المدة، ويدخل مع بقية الكروت بترتيب آخر حركة مالية. بعد المراجعة ينتقل إلى مجموعة الأصفار أسفل القائمة، وتعود عليه قاعدة الإخفاء بعد 30 يومًا من الخمول إن لم يكن مثبتًا. البحث ومرشح «مسدد» يعيدان إظهاره. التسلسل لا يبدأ من جديد بعد الوصول إلى صفر، والكروت الصفرية لا تدخل في عدد الكروت النشطة حتى قبل المراجعة.
 
-مسار `zero-review` يتطلب الجسم `{ "expectedFinancialVersion": 3 }` من `customer.zeroReview.financialVersion` ورؤوس الجلسة وCSRF. يرفض الموظف ولو امتلك `debts.write`، ويرجع `409 ZERO_REVIEW_CHANGED` إذا تغيّر الرصيد أو النسخة المالية. إعادة اعتماد نفس النسخة المعتمدة تعيد نجاحًا دون تكرار التدقيق أو الحدث. القائمة تقبل `filter=pending-review`، ويظل هذا الفلتر نافذًا مع البحث. الملخص الشامل يتضمن `pendingReviewCount`، والكارت يتضمن `zeroReview` بحالة الانتظار ونسخة الحركة ووقت المراجعة واسم المراجع. نجاح المراجعة ينشر `customer.changed` لتحديث باقي الشاشات.
+مسار `zero-review` يتطلب الجسم `{ "expectedFinancialVersion": 3 }` من `zeroReview.financialVersion` ورؤوس الجلسة وCSRF. عملاء الديون يرفضون الموظف ولو امتلك `debts.write`. الشركات والأمانات الليبية والمصرية تقبل المدير أو صاحب صلاحية الكتابة الخاصة بذلك القسم، وترفض العرض فقط وصلاحية قسم آخر. المسار يرجع `409 ZERO_REVIEW_CHANGED` إذا تغيّر الرصيد أو النسخة المالية، و`409 ZERO_REVIEW_NOT_PENDING` إذا كان الكارت صفرًا قديمًا لا ينتظر مراجعة. إعادة اعتماد نفس النسخة المعتمدة تعيد نجاحًا مع `data.replayed: true` دون تكرار التدقيق أو الحدث. قوائم الأقسام الأربعة تقبل `filter=pending-review`، ويظل هذا الفلتر نافذًا مع البحث. الملخص الشامل يتضمن `pendingReviewCount`، والكارت غير المرتبط بالنظام يتضمن `zeroReview`. نجاح المراجعة ينشر حدث القسم (`customer.changed` أو `company.changed` أو `libyan-deposit.changed` أو `egyptian-deposit.changed`) دون تغيير الرصيد أو الإجمالي. العقد المفصل في `docs/vib-srv-zero-001/CONTRACT.ar.md`.
 
 المدير يتجاوز الصلاحيات الفرعية. كتابة حركات الحسابات التالية تتطلب:
 
