@@ -5,6 +5,7 @@ import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { Worker } from 'node:worker_threads';
 import { DatabaseSync } from 'node:sqlite';
 import { createApp, listen } from '../src/server/app.ts';
 import { loadConfig } from '../src/server/config.ts';
@@ -709,6 +710,170 @@ test('HTTP zero-review routes follow the account section and do not approve a st
     server.closeRealtimeConnections();
     server.closeAllConnections();
     await new Promise<void>((resolve) => server.close(() => resolve()));
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+const customerOnlyReviewSql = `
+  DROP TRIGGER IF EXISTS customer_zero_review_insert;
+  DROP TRIGGER IF EXISTS customer_zero_review_financial_change;
+  DROP INDEX IF EXISTS idx_customers_review_feed;
+  DROP INDEX IF EXISTS idx_customers_pending_review;
+  CREATE TRIGGER customer_zero_review_insert AFTER INSERT ON customers
+  WHEN NEW.section_key='customer_debts' AND NEW.system_link_key IS NULL AND NEW.current_balance_units=0
+  BEGIN
+    UPDATE customers SET zero_review_pending=1 WHERE id=NEW.id;
+  END;
+  CREATE TRIGGER customer_zero_review_financial_change
+  AFTER UPDATE OF current_balance_units, financial_updated_at ON customers
+  WHEN NEW.section_key='customer_debts' AND NEW.system_link_key IS NULL
+  BEGIN
+    UPDATE customers SET
+      zero_review_pending=CASE WHEN NEW.current_balance_units=0 THEN 1 ELSE 0 END,
+      zero_review_financial_version=OLD.zero_review_financial_version+1,
+      zero_reviewed_at=NULL,zero_reviewed_by=NULL,zero_reviewed_by_name=NULL
+    WHERE id=NEW.id;
+  END;
+  CREATE INDEX idx_customers_review_feed ON customers(
+    organization_id,section_key,
+    (CASE WHEN current_balance_units=0 AND (section_key<>'customer_debts' OR zero_review_pending=0) THEN 1 ELSE 0 END),
+    financial_updated_at DESC,id DESC
+  ) WHERE deleted_at IS NULL;
+  CREATE INDEX idx_customers_pending_review ON customers(organization_id,financial_updated_at DESC,id DESC)
+    WHERE section_key='customer_debts' AND current_balance_units=0 AND zero_review_pending=1 AND deleted_at IS NULL;
+`;
+
+test('schema 57 runs once from schema 56 and a trigger-only rollback keeps balances', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'section-zero-rollback-'));
+  const path = join(directory, 'rollback.sqlite');
+  const legacy = new DatabaseSync(path);
+  try {
+    legacy.exec('PRAGMA foreign_keys=ON; CREATE TABLE schema_migrations(version INTEGER PRIMARY KEY,name TEXT NOT NULL,applied_at TEXT NOT NULL) STRICT');
+    for (const migration of migrations.filter((item) => item.version <= 56)) {
+      legacy.exec('BEGIN IMMEDIATE');
+      migration.before?.(legacy);
+      legacy.exec(migration.sql);
+      migration.after?.(legacy);
+      legacy.prepare('INSERT INTO schema_migrations(version,name,applied_at) VALUES(?,?,?)').run(migration.version, migration.name, new Date().toISOString());
+      legacy.exec('COMMIT');
+    }
+    const admin = fixtureAdmin(legacy);
+    createCustomer(legacy, admin, { requestId: randomUUID(), name: 'شركة محفوظة', openingBalance: 0 }, 'test', 'company');
+    createCustomer(legacy, admin, { requestId: randomUUID(), name: 'دين محفوظ', openingBalance: 55 }, 'test', 'company');
+    const before = legacy.prepare('SELECT id,name,version,current_balance_units,financial_updated_at,zero_review_pending,zero_review_financial_version,zero_reviewed_at FROM customers ORDER BY name').all();
+    const ledger = legacy.prepare('SELECT * FROM debt_transactions ORDER BY id').all();
+    legacy.close();
+    const upgraded = openDatabase(path);
+    const accounts = () => upgraded.prepare('SELECT id,name,version,current_balance_units,financial_updated_at,zero_review_pending,zero_review_financial_version,zero_reviewed_at FROM customers ORDER BY name').all();
+    const ledgerNow = () => upgraded.prepare('SELECT * FROM debt_transactions ORDER BY id').all();
+    try {
+      assert.equal(upgraded.prepare('SELECT COUNT(*) AS n FROM schema_migrations WHERE version=57').get()?.n, 1);
+      assert.deepEqual(accounts(), before);
+      assert.deepEqual(ledgerNow(), ledger);
+      upgraded.close();
+      const reopened = openDatabase(path);
+      try {
+        assert.equal(reopened.prepare('SELECT COUNT(*) AS n FROM schema_migrations WHERE version=57').get()?.n, 1);
+        assert.match(String(reopened.prepare("SELECT sql FROM sqlite_master WHERE name='customer_zero_review_insert'").get()?.sql), /company_debts/);
+        assert.deepEqual(reopened.prepare('SELECT id,name,version,current_balance_units,financial_updated_at,zero_review_pending,zero_review_financial_version,zero_reviewed_at FROM customers ORDER BY name').all(), before);
+        assert.deepEqual(reopened.prepare('SELECT * FROM debt_transactions ORDER BY id').all(), ledger);
+        reopened.exec(customerOnlyReviewSql);
+        assert.equal(reopened.prepare("SELECT current_balance_units FROM customers WHERE name='دين محفوظ'").get()?.current_balance_units, 55);
+        reopened.close();
+        const afterRollback = openDatabase(path);
+        try {
+          assert.equal(afterRollback.prepare('SELECT MAX(version) AS v FROM schema_migrations').get()?.v, 57);
+          assert.equal(afterRollback.prepare('SELECT COUNT(*) AS n FROM schema_migrations WHERE version=57').get()?.n, 1);
+          assert.doesNotMatch(String(afterRollback.prepare("SELECT sql FROM sqlite_master WHERE name='customer_zero_review_insert'").get()?.sql), /company_debts/);
+          assert.deepEqual(afterRollback.prepare('SELECT id,name,version,current_balance_units,financial_updated_at,zero_review_pending,zero_review_financial_version,zero_reviewed_at FROM customers ORDER BY name').all(), before);
+          assert.deepEqual(afterRollback.prepare('SELECT * FROM debt_transactions ORDER BY id').all(), ledger);
+          const companyId = String(afterRollback.prepare("SELECT id FROM customers WHERE name='شركة محفوظة'").get()?.id);
+          const versionBefore = afterRollback.prepare('SELECT zero_review_financial_version AS v FROM customers WHERE id=?').get(companyId)?.v;
+          afterRollback.prepare('UPDATE customers SET financial_updated_at=? WHERE id=?').run('2026-05-01T00:00:00.000Z', companyId);
+          assert.equal(afterRollback.prepare('SELECT zero_review_pending AS p, zero_review_financial_version AS v, current_balance_units AS b FROM customers WHERE id=?').get(companyId)?.p, 0);
+          assert.equal(afterRollback.prepare('SELECT zero_review_financial_version AS v FROM customers WHERE id=?').get(companyId)?.v, versionBefore);
+          assert.equal(afterRollback.prepare('SELECT current_balance_units AS b FROM customers WHERE id=?').get(companyId)?.b, 0);
+          createCustomer(afterRollback, admin, { requestId: randomUUID(), name: 'شركة بعد الرجوع', openingBalance: 0 }, 'test', 'company');
+          createCustomer(afterRollback, admin, { requestId: randomUUID(), name: 'عميل بعد الرجوع', openingBalance: 0 }, 'test');
+          assert.equal(afterRollback.prepare("SELECT zero_review_pending FROM customers WHERE name='شركة بعد الرجوع'").get()?.zero_review_pending, 0);
+          assert.equal(afterRollback.prepare("SELECT zero_review_pending FROM customers WHERE name='عميل بعد الرجوع'").get()?.zero_review_pending, 1);
+          assert.equal(afterRollback.prepare("SELECT current_balance_units FROM customers WHERE name='دين محفوظ'").get()?.current_balance_units, 55);
+        } finally { afterRollback.close(); }
+      } finally { if (reopened.isOpen) reopened.close(); }
+    } finally { if (upgraded.isOpen) upgraded.close(); }
+  } finally {
+    if (legacy.isOpen) legacy.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('a waiting review cannot approve a card whose financial update commits on another connection', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'section-zero-race-'));
+  const path = join(directory, 'race.sqlite');
+  const db = openDatabase(path);
+  let holder: Worker | undefined;
+  try {
+    const admin = fixtureAdmin(db);
+    const writer = employee(db, 'race-writer', ['companies.write']);
+    const id = (createCustomer(db, admin, { requestId: randomUUID(), name: 'سباق شركة', openingBalance: 0 }, 'test', 'company').body.customer as { id: string }).id;
+    const before = customerSnapshot(db, id, admin.organizationId, 'company');
+    const moneyBefore = moneyState(db);
+    holder = new Worker(new URL('./section-zero-review-lock.ts', import.meta.url), { workerData: { path, id } });
+    const inbox: Array<{ ready?: boolean; committed?: boolean }> = [];
+    let notify = () => {};
+    holder.on('message', (message: { ready?: boolean; committed?: boolean }) => {
+      inbox.push(message);
+      notify();
+    });
+    const nextMessage = () => inbox.length
+      ? Promise.resolve(inbox.shift()!)
+      : new Promise<{ ready?: boolean; committed?: boolean }>((resolve) => { notify = () => resolve(inbox.shift()!); });
+    const crashed = new Promise<never>((_, reject) => holder?.once('error', reject));
+    const ready = await Promise.race([nextMessage(), crashed]);
+    assert.equal(ready.ready, true);
+    const started = performance.now();
+    let caught: { status?: number; code?: string } | undefined;
+    try {
+      reviewCustomerZero(db, writer, id, { expectedFinancialVersion: before.zeroReview!.financialVersion }, 'race', 'company');
+    } catch (error) {
+      caught = error as { status?: number; code?: string };
+    }
+    const waitedMs = performance.now() - started;
+    assert.ok(waitedMs >= 400, `review waited ${waitedMs}ms for the other connection`);
+    assert.equal(caught?.status, 409);
+    assert.equal(caught?.code, 'ZERO_REVIEW_CHANGED');
+    const committed = await Promise.race([nextMessage(), crashed]);
+    assert.equal(committed.committed, true);
+    const after = customerSnapshot(db, id, admin.organizationId, 'company');
+    assert.equal(after.balanceUnits, 0);
+    assert.equal(after.version, before.version);
+    assert.equal(after.zeroReview?.pending, true);
+    assert.equal(after.zeroReview?.reviewedAt, null);
+    assert.equal(after.zeroReview?.financialVersion, before.zeroReview!.financialVersion + 1);
+    assert.deepEqual(db.prepare('SELECT * FROM debt_transactions ORDER BY id').all(), moneyBefore.ledger);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM audit_log WHERE action='company.zero_review'").get()?.n, 0);
+    assert.equal(summaryOf(db, admin.organizationId, 'company').totalDebt, 0);
+    assert.equal(summaryOf(db, admin.organizationId, 'company').netBalance, 0);
+    assert.equal(summaryOf(db, admin.organizationId, 'company').activeCards, 0);
+    const other = openDatabase(path);
+    try {
+      const reviewed = reviewCustomerZero(other, admin, id, { expectedFinancialVersion: after.zeroReview!.financialVersion }, 'race-current', 'company');
+      assert.equal(reviewed.status, 200);
+      const replay = reviewCustomerZero(other, admin, id, { expectedFinancialVersion: after.zeroReview!.financialVersion }, 'race-replay', 'company');
+      assert.equal(replay.body.replayed, true);
+      addCustomerTransaction(db, admin, id, {
+        requestId: randomUUID(), expectedVersion: customerSnapshot(db, id, admin.organizationId, 'company').version,
+        type: 'debt', inputValue: 6, calculationMode: 'direct',
+      }, 'race-after', 'company');
+      const invalidated = customerSnapshot(other, id, admin.organizationId, 'company');
+      assert.equal(invalidated.balanceUnits, 6);
+      assert.equal(invalidated.zeroReview?.pending, false);
+      assert.equal(invalidated.zeroReview?.reviewedAt, null);
+      assert.equal(db.prepare("SELECT COUNT(*) AS n FROM audit_log WHERE action='company.zero_review'").get()?.n, 1);
+    } finally { other.close(); }
+  } finally {
+    await holder?.terminate();
     db.close();
     rmSync(directory, { recursive: true, force: true });
   }
