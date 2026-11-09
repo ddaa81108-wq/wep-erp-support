@@ -16183,7 +16183,7 @@
                       "ok": false,
                       "error": {
                         "code": "ZERO_REVIEW_CHANGED",
-                        "message": "تغيرت الحالة المالية؛ حدّث بيانات الكارت.",
+                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
                         "correlationId": "example-correlation-id"
                       }
                     }
@@ -31392,7 +31392,7 @@
                       "ok": false,
                       "error": {
                         "code": "ZERO_REVIEW_CHANGED",
-                        "message": "تغيرت الحالة المالية؛ حدّث بيانات الكارت.",
+                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
                         "correlationId": "example-correlation-id"
                       }
                     }
@@ -31729,7 +31729,7 @@
                       "ok": false,
                       "error": {
                         "code": "ZERO_REVIEW_CHANGED",
-                        "message": "تغيرت الحالة المالية؛ حدّث بيانات الكارت.",
+                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
                         "correlationId": "example-correlation-id"
                       }
                     }
@@ -32066,7 +32066,7 @@
                       "ok": false,
                       "error": {
                         "code": "ZERO_REVIEW_CHANGED",
-                        "message": "تغيرت الحالة المالية؛ حدّث بيانات الكارت.",
+                        "message": "تغيّر الكارت بعد عرضه. راجع آخر حركة قبل تأكيد المراجعة.",
                         "correlationId": "example-correlation-id"
                       }
                     }
