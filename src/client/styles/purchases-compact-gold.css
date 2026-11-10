@@ -11,7 +11,8 @@
 :root[data-theme] .purchases-page .purchase-register .purchase-grid { gap:0; }
 :root[data-theme] .purchases-page .purchase-register .purchase-row { margin:0; }
 :root[data-theme] .purchases-page .purchase-register .purchase-row > span { border-radius:0; background:linear-gradient(#171b1c,#101314); color:#fff; box-shadow:none; border:0; border-inline-end:1px solid #41413a; border-bottom:1px solid #41413a; min-height:32px; }
-:root[data-theme] .purchases-page .purchase-day-entry:nth-child(even) .purchase-row > span { background:linear-gradient(#222627,#151819); }
+/* Alternating row shading must not replace the balance cell's light surface. */
+:root[data-theme] .purchases-page .purchase-day-entry:nth-child(even) .purchase-row > span:where(:not(.purchase-running-balance)) { background:linear-gradient(#222627,#151819); }
 :root[data-theme] .purchases-page .purchase-day-separator { background:linear-gradient(#393327,#171813); color:#ffe9a0; border:1px solid #a78a48; border-radius:6px; margin:6px 0 0; }
 :root[data-theme] .purchases-page .purchase-day-separator > * { background:#141713; color:#ffeaa2; border-color:#8f793e; }
 :root[data-theme] .purchases-page .purchase-day-separator button { background:linear-gradient(#ffe894,#c6a03b); color:#241b09; }

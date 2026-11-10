@@ -94,6 +94,8 @@ try {
   await page.screenshot({path:'artifacts/purchase-six/initial-bottom.png',fullPage:true});
   for(const theme of ['light','dark']) {
     await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
+    for(const shell of ['original','03']) {
+    await page.evaluate(value=>document.documentElement.dataset.royalShell=value,shell);
     for(const width of [1440,1920,390]) {
       await page.setViewportSize({width,height:1000});
       if(width<760 && await page.locator('.sidebar.open').count()>0) await page.getByRole('button',{name:'إغلاق القائمة الرئيسية',exact:true}).click();
@@ -106,7 +108,25 @@ try {
         await expect(cell).toHaveCSS('border-radius',width<=700?'8px':'0px');
         await expect(cell).toHaveCSS('color',theme === 'light' ? 'rgb(48, 40, 24)' : 'rgb(255, 255, 255)');
       }
-      await page.screenshot({path:`artifacts/purchase-six/${theme}-${width}.png`,fullPage:true});
+      const balances = await page.locator('.purchase-row > .purchase-running-balance').evaluateAll(cells => {
+        const luminance = (color: string) => {
+          const rgb = (color.match(/[\d.]+/g) ?? []).slice(0,3).map(Number).map(v => {
+            const s=v/255; return s<=0.04045 ? s/12.92 : ((s+0.055)/1.055)**2.4;
+          });
+          return rgb[0]*0.2126+rgb[1]*0.7152+rgb[2]*0.0722;
+        };
+        return cells.map(cell => {
+          const style=getComputedStyle(cell);
+          const backgrounds=style.backgroundImage.match(/rgba?\([^)]+\)/g) ?? [style.backgroundColor];
+          const ink=luminance(style.color);
+          return {text:cell.textContent,contrast:Math.min(...backgrounds.map(bg=>{
+            const surface=luminance(bg); return (Math.max(ink,surface)+0.05)/(Math.min(ink,surface)+0.05);
+          }))};
+        });
+      });
+      assert.equal(balances.length,15);
+      assert.ok(balances.every(cell=>cell.contrast>=4.5),`${theme}/${shell}/${width}: unreadable purchase balance ${JSON.stringify(balances.filter(cell=>cell.contrast<4.5))}`);
+      await page.screenshot({path:`artifacts/purchase-six/${theme}-${shell}-${width}.png`,fullPage:true});
       await register.evaluate(e=>e.scrollTop=e.scrollHeight);
       if(width<=700) {
         await expect(page.locator('.purchase-grid-head')).toBeHidden();
@@ -117,7 +137,8 @@ try {
         await expect(page.locator('.dashboard-utility-bar')).toBeInViewport();
         await expect(page.locator('.purchase-grid-head')).toBeInViewport();
       }
-      await page.screenshot({path:`artifacts/purchase-six/${theme}-${width}-entry.png`,fullPage:true});
+      await page.screenshot({path:`artifacts/purchase-six/${theme}-${shell}-${width}-entry.png`,fullPage:true});
+    }
     }
   }
   await page.setViewportSize({width:1440,height:1000});
