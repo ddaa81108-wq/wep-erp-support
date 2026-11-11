@@ -7,6 +7,8 @@ import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { TreasuryCards } from './TreasuryCards.tsx';
 import { TreasuryCashEntryForm, type TreasuryEntryMode } from './TreasuryCashEntryForm.tsx';
 import { TreasuryCashLedger } from './TreasuryCashLedger.tsx';
+import { TreasuryCorrectionForm, type CashCorrectionValues } from './TreasuryCorrectionForm.tsx';
+import type { TreasuryCorrectionInput } from '../../apiTypes/treasury.ts';
 
 const errorText = (error: unknown) => (error instanceof ApiError ? error.message : uiText("تعذر تنفيذ العملية."));
 
@@ -23,9 +25,12 @@ export function TreasurySection({ user }: { user: User }) {
   const oldestCursor = useRef<number | null>(null);
   const submitting = useRef(false);
   const pendingRequestId = useRef<string | null>(null);
+  const [correctionTarget,setCorrectionTarget]=useState<{entry:TreasuryCashEntry;balance:number;version:number}|null>(null);
+  const correctionRequest=useRef<{id:string;body:TreasuryCorrectionInput}|null>(null);
+  const [correctionLocked,setCorrectionLocked]=useState(false);
 
   const latestLoad = useRef(0);
-  const load = useCallback(async (quiet = false) => {
+  const load = useCallback(async (quiet = false, correctedIds:readonly string[]=[], refreshHistory=false) => {
     const request = ++latestLoad.current;
     if (!quiet) setBusy(true);
     try {
@@ -43,6 +48,19 @@ export function TreasurySection({ user }: { user: User }) {
         }
         const combined = new Map(loadedEntries.current.map((entry) => [entry.id, entry]));
         for (const entry of ledger.items) combined.set(entry.id, entry);
+        // Refresh corrected originals outside the newest page without losing
+        // the reader's history/scroll anchor or rereading history on every event.
+        const newestIds=new Set(ledger.items.map(entry=>entry.id));
+        const targets=loadedEntries.current.filter(entry=>!newestIds.has(entry.id) && (refreshHistory||correctedIds.includes(entry.id)))
+          .sort((a,b)=>b.sequence-a.sequence);
+        let refreshedFrom=Infinity;
+        for (const target of targets) {
+          if (target.sequence>=refreshedFrom) continue;
+          const page=await api.treasuryCashLedger(target.sequence+1);
+          if (request!==latestLoad.current) return;
+          for (const entry of page.items) if (combined.has(entry.id)) combined.set(entry.id,entry);
+          refreshedFrom=page.items[0]?.sequence ?? target.sequence;
+        }
         ledger.items = [...combined.values()].sort((a, b) => a.sequence - b.sequence);
         ledger.nextBefore = oldestCursor.current;
       }
@@ -76,9 +94,11 @@ export function TreasurySection({ user }: { user: User }) {
       'masraweya.changed',
     ],
     cursorKey: 'abdo:treasury-last-event',
-    onChange: () => {
+    onChange: (changes,fullResync) => {
       if (submitting.current) throw new Error('Refresh deferred until cash submission finishes');
-      return load(true);
+      const ids=changes.filter(change=>change.topic==='treasury.changed' && typeof change.payload.entryId==='string')
+        .map(change=>String(change.payload.entryId));
+      return load(true,ids,fullResync);
     },
   });
 
@@ -115,7 +135,8 @@ export function TreasurySection({ user }: { user: User }) {
   }
 
   async function openEntry(direction: TreasuryEntryMode) {
-    if (mode && !(await flushBeforeNavigation())) return;
+    if ((mode||correctionTarget) && !(await flushBeforeNavigation())) return;
+    setCorrectionTarget(null);correctionRequest.current=null;setCorrectionLocked(false);
     pendingRequestId.current = crypto.randomUUID();
     setMode(direction);
     setMessage('');
@@ -124,6 +145,35 @@ export function TreasurySection({ user }: { user: User }) {
   function cancelEntry() {
     pendingRequestId.current = null;
     setMode(null);
+  }
+
+  async function openCorrection(entry:TreasuryCashEntry) {
+    if (user.role!=='admin'||!dashboard||submitting.current||entry.correctionOf) return;
+    if ((mode||correctionTarget) && !(await flushBeforeNavigation())) return;
+    setMode(null);pendingRequestId.current=null;correctionRequest.current=null;setCorrectionLocked(false);
+    setCorrectionTarget({entry,balance:dashboard.activeCashUnits,version:dashboard.cashVersion});setMessage('');
+  }
+
+  async function saveCorrection(values:CashCorrectionValues) {
+    if (!correctionTarget||submitting.current||user.role!=='admin') return;
+    const target=correctionTarget;
+    correctionRequest.current ??= {id:target.entry.id,body:{...values,requestId:crypto.randomUUID(),
+      expectedVersion:target.version,expectedEntryRevision:target.entry.correction?.revision ?? 0}};
+    const pending=correctionRequest.current;
+    submitting.current=true;setBusy(true);
+    try {
+      await api.correctTreasuryCashEntry(pending.id,pending.body);
+      correctionRequest.current=null;setCorrectionTarget(null);setCorrectionLocked(false);
+      setMessage(uiText('تم تصحيح المعاملة وتحديث رصيد النقدية.'));
+      try { await load(true,[pending.id]); } catch { setMessage(uiText('تم حفظ التصحيح. تعذر تحديث العرض مؤقتًا؛ لا تكرر العملية.')); }
+    } catch(error) {
+      setMessage(errorText(error));
+      if (error instanceof ApiError && error.status>=400 && error.status<500) {
+        correctionRequest.current=null;setCorrectionLocked(false);
+        // A stale preview must be reopened using the latest balance/revision.
+        if (error.status===409) { setCorrectionTarget(null);await load(true,[pending.id]).catch(()=>undefined); }
+      } else setCorrectionLocked(true);
+    } finally {submitting.current=false;setBusy(false);}
   }
 
   async function older() {
@@ -169,7 +219,7 @@ export function TreasurySection({ user }: { user: User }) {
           <RefreshCw size={16} />
         </button>
       </header>
-      {message && <div className="treasury-message">{message}</div>}
+      {message && <div className="treasury-message" role="status">{message}</div>}
       <TreasuryCards dashboard={dashboard} />
       <section className="treasury-cash-panel">
         <div className="treasury-panel-head">
@@ -189,11 +239,15 @@ export function TreasurySection({ user }: { user: User }) {
           )}
         </div>
         {mode && <TreasuryCashEntryForm key={mode} mode={mode} busy={busy} onCancel={cancelEntry} onSubmit={submit} />}
+        {correctionTarget && <TreasuryCorrectionForm key={`${correctionTarget.entry.id}:${correctionTarget.entry.correction?.revision ?? 0}`}
+          entry={correctionTarget.entry} balance={correctionTarget.balance} busy={busy} locked={correctionLocked}
+          onSave={values=>void saveCorrection(values)} onCancel={()=>{setCorrectionTarget(null);correctionRequest.current=null;setCorrectionLocked(false);}} />}
         {nextBefore && (
           <button className="treasury-older" disabled={busy} onClick={() => void older()}>
             {uiText("تحميل حركات أقدم")}</button>
         )}
-        <TreasuryCashLedger entries={entries} scrollRequest={scrollRequest} />
+        <TreasuryCashLedger entries={entries} scrollRequest={scrollRequest} busy={busy}
+          onCorrect={user.role==='admin' ? entry=>void openCorrection(entry) : undefined} />
       </section>
     </section>
   );

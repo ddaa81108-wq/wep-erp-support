@@ -71,7 +71,8 @@ test('schema 50 upgrades pending receipts to independent installments without de
   try {
     const body={mode:'partial',amountUnits:15,requestId:'pre-upgrade-pending-key'};
     const first=submitCollection(db,collector,assignments[0],body,'test');
-    db.exec(`ALTER TABLE debt_assignments DROP COLUMN first_submission_balance_units;
+    db.exec(`DROP TABLE treasury_cash_corrections;
+      ALTER TABLE debt_assignments DROP COLUMN first_submission_balance_units;
       ALTER TABLE debt_assignments DROP COLUMN assigned_balance_units;
       DROP TABLE notification_speech_settings;
       ALTER TABLE collection_unlinked_receipts DROP COLUMN currency;

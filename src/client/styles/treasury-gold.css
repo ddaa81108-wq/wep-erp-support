@@ -1,4 +1,27 @@
 /* Treasury presentation only; retain financial colors, geometry and scrolling. */
+.treasury-correction-form { flex-shrink:0; max-height:55dvh; overflow:auto; padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--paper); color:var(--ink); }
+.treasury-correction-form h3,.treasury-correction-form p { margin:0 0 8px; }
+.treasury-correction-fields { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+.treasury-correction-fields label { display:grid; gap:4px; font-size:12px; }
+.treasury-correction-fields :is(input,select) { width:100%; min-width:0; box-sizing:border-box; min-height:38px; border:1px solid var(--line); border-radius:8px; padding:6px; background:var(--field-bg,var(--paper)); color:var(--ink); }
+.treasury-correction-preview { display:flex; flex-wrap:wrap; gap:8px 16px; padding-block:10px; font-size:13px; }
+.treasury-correction-actions { display:flex; gap:8px; }
+.treasury-correction-actions button,.treasury-correct-button { min-height:34px; border:1px solid var(--line); border-radius:8px; padding:5px 10px; background:var(--paper); color:var(--ink); }
+.treasury-correction-actions .primary { background:#087443; color:#fff; }
+.treasury-ledger-row > .treasury-entry-description { flex-direction:column; gap:4px; }
+.treasury-row-actions .treasury-correct-button { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; min-inline-size:34px; white-space:nowrap; margin:3px; font-size:11px; }
+@media(min-width:901px) {
+  .active-section-treasury .treasury-ledger.has-corrections .treasury-ledger-row { grid-template-columns:52px minmax(180px,2fr) repeat(5,minmax(0,1fr)) 56px; }
+}
+.treasury-ledger-row .treasury-correction-details { font-size:11px; line-height:1.7; }
+.treasury-correction-details summary { cursor:pointer; font-weight:800; }
+.treasury-correction-details p { margin:4px 0; }
+@media(max-width:700px) {
+  .treasury-correction-fields { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .treasury-correction-fields label:nth-child(n+3) { grid-column:1/-1; }
+  .treasury-correction-form { max-height:none; }
+  .treasury-correction-actions button,.treasury-row-actions .treasury-correct-button { min-height:40px; }
+}
 @media (min-width: 901px) {
   :root[data-theme] .workspace.active-section-treasury > .dashboard-utility-bar {
     min-height: 62px; max-height: 62px; padding: 8px 12px; gap: 14px; border: 3px double #ffdc60; border-radius: 999px;
@@ -225,4 +248,8 @@
   }
   :root[data-theme] .active-section-treasury .treasury-date-phone { font-size: 11px; }
   :root[data-theme] .active-section-treasury :is(.treasury-older, .treasury-new-movements) { min-height: 40px; font-size: 11px; max-width: 100%; }
+  :root[data-theme] .active-section-treasury .treasury-ledger.has-corrections .treasury-ledger-row { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  :root[data-theme] .active-section-treasury .treasury-ledger.has-corrections .treasury-ledger-row > .treasury-row-actions { grid-column:1/-1; display:flex; justify-content:flex-end; min-height:44px; }
+  :root[data-theme] .active-section-treasury .treasury-ledger-row > .treasury-row-actions::before { content:none; }
+  :root[data-theme] .active-section-treasury .treasury-ledger.has-corrections .treasury-ledger-row > .treasury-row-actions:empty { display:none; }
 }

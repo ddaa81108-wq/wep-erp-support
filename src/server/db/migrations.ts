@@ -21,6 +21,7 @@ import { collectionAssignedAmountMigrations } from './migrationsCollectionAssign
 import { collectionSubmissionBalanceMigrations } from './migrationsCollectionSubmissionBalance.ts';
 import { collectionRejectedBalanceMigrations } from './migrationsCollectionRejectedBalance.ts';
 import { sectionZeroReviewMigrations } from './migrationsSectionZeroReview.ts';
+import { treasuryCorrectionMigrations } from './migrationsTreasuryCorrections.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -46,4 +47,5 @@ export const migrations: Migration[] = [
   ...collectionSubmissionBalanceMigrations,
   ...collectionRejectedBalanceMigrations,
   ...sectionZeroReviewMigrations,
+  ...treasuryCorrectionMigrations,
 ];

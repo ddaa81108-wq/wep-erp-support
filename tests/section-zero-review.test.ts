@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import { Worker } from 'node:worker_threads';
 import { DatabaseSync } from 'node:sqlite';
 import { createApp, listen } from '../src/server/app.ts';
-import { loadConfig } from '../src/server/config.ts';
+import { loadConfig,SCHEMA_VERSION } from '../src/server/config.ts';
 import { openDatabase, type AppDatabase } from '../src/server/db/database.ts';
 import { migrations } from '../src/server/db/migrations.ts';
 import {
@@ -783,7 +783,7 @@ test('schema 57 runs once from schema 56 and a trigger-only rollback keeps balan
         reopened.close();
         const afterRollback = openDatabase(path);
         try {
-          assert.equal(afterRollback.prepare('SELECT MAX(version) AS v FROM schema_migrations').get()?.v, 57);
+          assert.equal(afterRollback.prepare('SELECT MAX(version) AS v FROM schema_migrations').get()?.v, Number(SCHEMA_VERSION));
           assert.equal(afterRollback.prepare('SELECT COUNT(*) AS n FROM schema_migrations WHERE version=57').get()?.n, 1);
           assert.doesNotMatch(String(afterRollback.prepare("SELECT sql FROM sqlite_master WHERE name='customer_zero_review_insert'").get()?.sql), /company_debts/);
           assert.deepEqual(afterRollback.prepare('SELECT id,name,version,current_balance_units,financial_updated_at,zero_review_pending,zero_review_financial_version,zero_reviewed_at FROM customers ORDER BY name').all(), before);

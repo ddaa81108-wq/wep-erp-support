@@ -2,6 +2,11 @@ import { language, uiText } from './language.ts';
 
 // Translate protocol errors by stable codes, never by modifying returned data.
 const messages: Readonly<Record<string, string>> = {
+  INVALID_CASH_REVISION: 'Refresh the transaction before editing it.',
+  CASH_CORRECTION_REASON_REQUIRED: 'Enter a correction reason of up to 500 characters.',
+  CASH_ADJUSTMENT_NOT_EDITABLE: 'Edit the original transaction, not its correction movement.',
+  CASH_CORRECTION_CHANGED: 'The transaction was changed on another device. Refresh and review it.',
+  CASH_CORRECTION_UNCHANGED: 'The transaction data has not changed.',
   ACCOUNT_DELETE_REASON_REQUIRED: 'Enter a deletion reason between 5 and 500 characters.',
   ACCOUNT_DELETE_CONFIRMATION_CHANGED: 'Review the latest balance, enter the account name and confirm the effect on totals.',
   ACCOUNT_HAS_UNSETTLED_COLLECTIONS: 'Review pending receipts and confirm outstanding cash before deleting this account.',

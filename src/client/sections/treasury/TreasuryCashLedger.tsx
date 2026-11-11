@@ -1,6 +1,7 @@
 import { uiText, displayLocale } from '../../i18n/language.ts';
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { TreasuryCashEntry } from '../../api.ts';
+import { Pencil } from 'lucide-react';
 import { treasuryNumberFormat } from './treasuryViewModel.ts';
 
 const desktopDate = new Intl.DateTimeFormat(displayLocale, {
@@ -11,9 +12,13 @@ const desktopDate = new Intl.DateTimeFormat(displayLocale, {
 export function TreasuryCashLedger({
   entries,
   scrollRequest = 0,
+  onCorrect,
+  busy = false,
 }: {
   entries: readonly TreasuryCashEntry[];
   scrollRequest?: number;
+  onCorrect?: (entry: TreasuryCashEntry) => void;
+  busy?: boolean;
 }) {
   const viewport = useRef<HTMLDivElement>(null);
   const position = useRef({ following: true, sequence: '', offset: 0, latest: 0, request: 0 });
@@ -75,7 +80,7 @@ export function TreasuryCashLedger({
         <button className="treasury-new-movements" onClick={goToLatest}>
           {uiText("حركات جديدة — انتقل لآخر السجل ↓")}</button>
       )}
-      <div className="treasury-ledger" ref={viewport} onScroll={rememberPosition}>
+      <div className={`treasury-ledger${onCorrect ? ' has-corrections' : ''}`} ref={viewport} onScroll={rememberPosition}>
         <div className="treasury-ledger-row head">
           <span><b>{uiText("التسلسل")}</b></span>
           <span><b>{uiText("التاريخ")}</b></span>
@@ -84,6 +89,7 @@ export function TreasuryCashLedger({
           <span><b>{uiText("البيان")}</b></span>
           <span><b>{uiText("بواسطة")}</b></span>
           <span><b>{uiText("الرصيد")}</b></span>
+          {onCorrect && <span><b>{uiText('الإجراءات')}</b></span>}
         </div>
         {entries.length === 0 ? (
           <div className="empty">{uiText("لا توجد حركات فلوس نشطة حتى الآن.")}</div>
@@ -103,11 +109,28 @@ export function TreasuryCashLedger({
               <span data-label={uiText("القيمة")} dir="ltr">
                 {treasuryNumberFormat.format(entry.amountUnits)}
               </span>
-              <span data-label={uiText("البيان")}>{entry.description || '—'}</span>
+              <span data-label={uiText("البيان")} className="treasury-entry-description">
+                {entry.description || '—'}
+                {entry.correctionOf && <small>{uiText('تصحيح المعاملة #{0}',[entry.correctionOf.sequence])}</small>}
+                {entry.correction && <details className="treasury-correction-details">
+                  <summary>{uiText('تم تصحيحها — عرض التفاصيل')}</summary>
+                  <p>{uiText('القيمة الصحيحة: {0} — {1}',[treasuryNumberFormat.format(entry.correction.amountUnits),entry.correction.direction==='in'?uiText('دخول'):uiText('خروج')])}</p>
+                  <p>{entry.correction.description || '—'}</p>
+                  <p>{uiText('سبب التصحيح: {0}',[entry.correction.reason])}</p>
+                  <p>{entry.correction.correctedBy} — {new Date(entry.correction.correctedAt).toLocaleString(displayLocale)}</p>
+                  <small>{uiText('القيمة الأصلية باقية في السجل، والفرق مسجّل بحركة تصحيح مستقلة.')}</small>
+                </details>}
+              </span>
               <span data-label={uiText("بواسطة")}>{entry.actorIsOwner ? '—' : entry.actorName}</span>
               <span data-label={uiText("الرصيد")} dir="ltr">
                 {treasuryNumberFormat.format(entry.balanceAfterUnits)}
               </span>
+              {onCorrect && <span className="treasury-row-actions" data-label={uiText('الإجراءات')}>
+                {!entry.correctionOf && <button type="button" className="treasury-correct-button"
+                  disabled={busy} title={uiText('تعديل')} aria-label={uiText('تعديل المعاملة {0}',[entry.sequence])} onClick={()=>onCorrect(entry)}>
+                  <Pencil size={14} aria-hidden="true" />
+                </button>}
+              </span>}
             </div>
           ))
         )}

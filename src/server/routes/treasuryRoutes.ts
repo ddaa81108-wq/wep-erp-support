@@ -10,6 +10,8 @@ import {
 import type { EventHub } from '../events.ts';
 import { forbidden } from '../http/errors.ts';
 import { requirePermission } from '../http/guards.ts';
+import { correctTreasuryCashEntry } from '../domain/treasuryCorrections.ts';
+import { decodePathSegment } from '../http/web.ts';
 import { readJson, sendJson } from '../http/io.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
 
@@ -26,6 +28,14 @@ type TreasuryRouteContext = {
 
 export async function routeTreasury(context: TreasuryRouteContext) {
   const { database, events, request, response, user, url, method, correlationId } = context;
+  const correction=url.pathname.match(/^\/api\/treasury\/cash-entries\/([^/]+)\/corrections$/);
+  if (method==='POST' && correction) {
+    if (user.role!=='admin') throw forbidden('treasury.correct');
+    const result=correctTreasuryCashEntry(database,user,decodePathSegment(correction[1]),await readJson(request),correlationId);
+    if (result.eventSequence && !result.replayed) events.publish(result.eventSequence);
+    sendJson(response,200,{ok:true,data:result});
+    return true;
+  }
 
   if (method === 'GET' && url.pathname === '/api/treasury') {
     requirePermission(user, 'treasury.read');
