@@ -142,6 +142,57 @@ export function fcmAccessToken(account: FcmAccount, nowSeconds = Math.floor(Date
   return `${header}.${claim}.${signature}`;
 }
 
+/**
+ * Who may receive a phone push. This is not the in-app recipient list.
+ *
+ * In-app rows still go to every other active admin for any successful audit
+ * action, including an action by an admin, and a collections assignment is
+ * also written to the assignee. Payroll rows are written to that employee too.
+ * None of those inserts are changed here.
+ *
+ * Push is narrower: every active admin receives an employee’s transaction,
+ * and an employee receives one only for `collection.assign` when that
+ * employee has `collections.read`.
+ */
+export function mobilePushAllowed(input: {
+  recipientRole: string | null;
+  actorRole: string | null;
+  action: string;
+  collectionsRead: boolean;
+}) {
+  if (input.recipientRole === 'admin') return input.actorRole === 'employee';
+  if (input.recipientRole === 'employee') {
+    return input.collectionsRead && input.action === 'collection.assign';
+  }
+  return false;
+}
+
+const hiddenDetailKey = /password|token|secret|hash|csrf/i;
+
+/** The shade text. The in-app row already stores these details; the push repeats them. */
+export function mobilePushBody(action: string, actorName: string, details: Record<string, unknown>) {
+  const head = browserPushMessage(
+    action,
+    actorName,
+    String(details.paymentMode ?? details.mode ?? ''),
+  );
+  const lines = Object.entries(details)
+    .filter(
+      ([key, value]) =>
+        key !== 'suppressNotification' &&
+        !hiddenDetailKey.test(key) &&
+        value !== null &&
+        value !== undefined &&
+        value !== '',
+    )
+    .map(([key, value]) => {
+      const text = typeof value === 'string' || typeof value === 'number' ? String(value) : JSON.stringify(value);
+      return `${key}: ${text}`;
+    });
+  const body = lines.length ? `${head}\n${lines.join('\n')}` : head;
+  return body.slice(0, 900);
+}
+
 export function fcmMessageBody(message: FcmMessage) {
   return {
     message: {
@@ -167,6 +218,9 @@ type OutboxRow = {
   notification_id: number;
   action: string;
   actor_name: string | null;
+  actor_role: string | null;
+  recipient_role: string | null;
+  collections_read: number;
   payment_mode: string | null;
   details_json: string | null;
   recipient_user_id: string;
@@ -189,7 +243,11 @@ export function createMobilePushDispatcher(
       const rows = db
         .prepare(
           `SELECT q.id, q.device_id, q.attempts, q.notification_id, d.token,
-                  n.action, n.details_json, n.recipient_user_id, u.display_name actor_name, c.mode payment_mode
+                  n.action, n.details_json, n.recipient_user_id,
+                  u.display_name actor_name, u.role actor_role, uowner.role recipient_role,
+                  EXISTS(SELECT 1 FROM user_permissions p
+                    WHERE p.user_id=uowner.id AND p.permission='collections.read' AND p.allowed=1) collections_read,
+                  c.mode payment_mode
              FROM mobile_push_outbox q
              JOIN mobile_push_devices d ON d.id=q.device_id
              JOIN notifications n ON n.id=q.notification_id
@@ -209,14 +267,24 @@ export function createMobilePushDispatcher(
         } catch {
           details = {};
         }
+        if (
+          !mobilePushAllowed({
+            recipientRole: row.recipient_role,
+            actorRole: row.actor_role,
+            action: String(row.action),
+            collectionsRead: Number(row.collections_read) === 1,
+          })
+        ) {
+          db.prepare('DELETE FROM mobile_push_outbox WHERE id=?').run(row.id);
+          continue;
+        }
+        if (row.payment_mode && details.paymentMode == null && details.mode == null) {
+          details.paymentMode = row.payment_mode;
+        }
         const message: FcmMessage = {
           token: String(row.token),
           title: 'VIB',
-          body: browserPushMessage(
-            String(row.action),
-            String(row.actor_name ?? 'النظام'),
-            String(row.payment_mode ?? details.paymentMode ?? details.mode ?? ''),
-          ),
+          body: mobilePushBody(String(row.action), String(row.actor_name ?? 'النظام'), details),
           channelId: fcmChannelId,
           data: {
             notificationId: String(row.notification_id),

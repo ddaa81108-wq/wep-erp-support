@@ -104,8 +104,12 @@ test('local file migration sends only through the mock and rolls back without to
       });
       assert.equal(registered.status, 200);
       db.prepare(
-        `INSERT INTO notifications(organization_id,recipient_user_id,action,entity_type,details_json,created_at)
-         VALUES(?,?,'customer.payment','customer','{}',?)`,
+        `INSERT INTO users(id,username,display_name,password_hash,role,organization_id,home_branch_id,created_at,updated_at)
+         VALUES('e2e-employee','e2e-employee','موظف تجريبي','hash','employee','org-default','branch-main',?,?)`,
+      ).run(now, now);
+      db.prepare(
+        `INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at)
+         VALUES(?,?,'e2e-employee','customer.payment','customer','{}',?)`,
       ).run('org-default', 'e2e-user', now);
       assert.equal(Number(db.prepare('SELECT COUNT(*) n FROM mobile_push_outbox').get()?.n), 1);
       assert.equal(

@@ -40,8 +40,14 @@ function fixture() {
     csrfHash: 'csrf',
   };
   const other: AuthenticatedUser = { ...actor, id: 'other-user', username: 'other' };
+  const employee: AuthenticatedUser = {
+    ...actor,
+    id: 'employee-actor',
+    username: 'employee-actor',
+    role: 'employee',
+  };
   const now = new Date().toISOString();
-  for (const user of [actor, other]) {
+  for (const user of [actor, other, employee]) {
     db.prepare(
       'INSERT INTO users(id,username,display_name,password_hash,role,organization_id,home_branch_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)',
     ).run(
@@ -49,7 +55,7 @@ function fixture() {
       user.username,
       user.displayName,
       'hash',
-      'admin',
+      user.role,
       user.organizationId,
       user.homeBranchId,
       now,
@@ -57,7 +63,7 @@ function fixture() {
     );
   }
   const token = 'a'.repeat(40);
-  return { db, actor, other, token };
+  return { db, actor, other, employee, token };
 }
 
 test('credentials are off when the file is absent and the key is not logged', () => {
@@ -108,7 +114,7 @@ test('a device token registers and unregisters only for its user', () => {
 });
 
 test('a new notification is sent on the sound channel and an UNREGISTERED token is removed', async () => {
-  const { db, actor, other, token } = fixture();
+  const { db, actor, other, employee, token } = fixture();
   registerMobileDevice(db, actor, { token, platform: 'android' });
   const sent: FcmMessage[] = [];
   const dispatcher = createMobilePushDispatcher(db, account, async (message) => {
@@ -118,7 +124,7 @@ test('a new notification is sent on the sound channel and an UNREGISTERED token 
   registerMobileDevice(db, other, { token: otherToken, platform: 'android' });
   db.prepare(
     "INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,'customer.debt','customer','{}',?)",
-  ).run(actor.organizationId, actor.id, actor.id, new Date().toISOString());
+  ).run(actor.organizationId, actor.id, employee.id, new Date().toISOString());
   await dispatcher.drain();
   assert.equal(sent.length, 1);
   assert.equal(sent[0].token, token);
@@ -130,7 +136,7 @@ test('a new notification is sent on the sound channel and an UNREGISTERED token 
 
   db.prepare(
     "INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,'customer.payment','customer','{}',?)",
-  ).run(actor.organizationId, actor.id, actor.id, new Date().toISOString());
+  ).run(actor.organizationId, actor.id, employee.id, new Date().toISOString());
   const failing = createMobilePushDispatcher(db, account, async () => {
     const error = new Error('gone') as Error & { status: number; errorCode: string };
     error.status = 404;
@@ -161,7 +167,7 @@ test('no service account means nothing is sent', async () => {
 });
 
 test('HTTP v1 posts the sound channel and drops an UNREGISTERED token', async () => {
-  const { db, actor, token } = fixture();
+  const { db, actor, employee, token } = fixture();
   registerMobileDevice(db, actor, { token, platform: 'android' });
   const calls: Array<{ url: string; body: string }> = [];
   const original = globalThis.fetch;
@@ -184,7 +190,7 @@ test('HTTP v1 posts the sound channel and drops an UNREGISTERED token', async ()
     const dispatcher = createMobilePushDispatcher(db, account);
     db.prepare(
       "INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,'customer.debt','customer','{}',?)",
-    ).run(actor.organizationId, actor.id, actor.id, new Date().toISOString());
+    ).run(actor.organizationId, actor.id, employee.id, new Date().toISOString());
     await dispatcher.drain();
     const send = calls.find((call) => call.url.includes('/messages:send'));
     assert.ok(send);
@@ -202,7 +208,7 @@ test('HTTP v1 posts the sound channel and drops an UNREGISTERED token', async ()
     fail = true;
     db.prepare(
       "INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,'customer.payment','customer','{}',?)",
-    ).run(actor.organizationId, actor.id, actor.id, new Date().toISOString());
+    ).run(actor.organizationId, actor.id, employee.id, new Date().toISOString());
     await dispatcher.drain();
     assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_devices').get()?.n, 0);
     dispatcher.stop();
