@@ -1,3 +1,4 @@
+import type { AppDatabase } from './database.ts';
 import type { Migration } from './migrationTypes.ts';
 
 /** Undo for version 59. Not applied automatically. */
@@ -6,6 +7,28 @@ DROP TRIGGER IF EXISTS trg_notification_mobile_push;
 DROP TABLE IF EXISTS mobile_push_outbox;
 DROP TABLE IF EXISTS mobile_push_devices;
 `;
+
+/**
+ * One-step undo for a later deploy. Drops only the two new tables and the
+ * trigger, then forgets version 59 so the previous program can open the file.
+ * Financial tables and notification rows are not written. Not called on startup.
+ */
+export function rollbackMobilePush(db: AppDatabase) {
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    db.exec(mobilePushRollbackSql);
+    const removed = db
+      .prepare('DELETE FROM schema_migrations WHERE version=? AND name=?')
+      .run(59, 'mobile-fcm-device-tokens');
+    if (Number(removed.changes) !== 1) {
+      throw new Error('Mobile push migration 59 was not the recorded row.');
+    }
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
 
 export const mobilePushMigrations: Migration[] = [
   {
