@@ -5,6 +5,8 @@ import { databaseMonitor } from './domain/databaseMonitor.ts';
 import { requireBackupOwner } from './domain/emergencyBackup.ts';
 import { createPushDispatcher, type PushTransport } from './domain/browserPush.ts';
 import { routeBrowserPush } from './routes/browserPushRoutes.ts';
+import { routeMobilePush } from './routes/mobilePushRoutes.ts';
+import { createMobilePushDispatcher, loadFcmAccount } from './domain/mobilePush.ts';
 import { randomUUID } from 'node:crypto';
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { extname } from 'node:path';
@@ -137,6 +139,7 @@ async function route(
     return sendJson(response, 200, { ok: true, data: await databaseMonitor(database, config) });
   }
   if (await routeBrowserPush(database,config,user,request,response,url)) return;
+  if (await routeMobilePush(database, user, request, response, url)) return;
   if(method==='GET'&&url.pathname==='/api/account-search'){routeAccountSearch(database,user,url,response);return;}
 
   if (method === 'GET' && url.pathname === '/api/events') {
@@ -297,6 +300,7 @@ export function createApp(
   const events = new EventHub(database);
   const stopReports = startReportScheduler(database);
   const pushDispatcher = createPushDispatcher(database, config, options.pushSend);
+  const mobilePush = createMobilePushDispatcher(database, loadFcmAccount());
   const internetGate = new InternetGate(config);
   const internetCheck = options.internetCheck ?? (() => internetGate.isAvailable());
   const server = createServer(async (request, response) => {
@@ -344,6 +348,7 @@ export function createApp(
   server.closeRealtimeConnections = () => {
     stopReports();
     pushDispatcher.stop();
+    mobilePush.stop();
     events.close();
     activity.stop();
   };

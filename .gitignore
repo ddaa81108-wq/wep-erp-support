@@ -27,6 +27,8 @@ var/data/
 # Private staging credentials and tunnel tokens must never be versioned.
 *.private
 *.private.json
+*service-account*.json
+*firebase-adminsdk*.json
 
 # Local deployment verification screenshots (account details).
 /cloudflare-dns-saved.png
