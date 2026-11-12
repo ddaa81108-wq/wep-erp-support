@@ -1427,4 +1427,10 @@ export const english: Readonly<Record<string, string>> = {
   'لم يتأكد الحفظ. أعد محاولة نفس التصحيح دون تغيير بياناته.': 'Saving is unconfirmed. Retry the same correction without changing its data.',
   'تم تصحيح المعاملة وتحديث رصيد النقدية.': 'Transaction corrected and cash balance updated.',
   'تم حفظ التصحيح. تعذر تحديث العرض مؤقتًا؛ لا تكرر العملية.': 'Correction saved. Refreshing the view failed temporarily; do not repeat the operation.',
+  'فتح سجل {0}': 'Open ledger for {0}',
+  'عرض كارت {0}': 'Show card for {0}',
+  'عرض الكارت': 'Show card',
+  'موجّه إلى: {0}': 'Assigned to: {0}',
+  'غير موجّه': 'Not assigned',
+  'تعذر فتح الحساب. حاول مرة أخرى.': 'Could not open the account. Try again.',
 };
