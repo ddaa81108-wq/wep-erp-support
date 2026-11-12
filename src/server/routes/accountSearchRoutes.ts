@@ -26,5 +26,14 @@ export function routeAccountSearch(
       }));
     })
     .slice(0, 12);
-  sendJson(response, 200, { ok: true, data: { items } });
+  const ids=items.filter(item=>item.section==='customers'||item.section==='companies').map(item=>item.id);
+  const assignments=ids.length ? database.prepare(`SELECT a.id,a.customer_id,u.display_name
+    FROM debt_assignments a JOIN customers c ON c.id=a.customer_id JOIN users u ON u.id=a.assignee_user_id
+    WHERE a.status='active' AND c.organization_id=? AND u.organization_id=?
+      AND a.customer_id IN (${ids.map(()=>'?').join(',')})`).all(user.organizationId,user.organizationId,...ids) : [];
+  const assigned=new Map(assignments.map(row=>[String(row.customer_id),row]));
+  sendJson(response, 200, { ok: true, data: { items:items.map(item=>({...item,
+    activeAssignmentId:assigned.has(item.id)?String(assigned.get(item.id)!.id):null,
+    activeAssigneeName:assigned.has(item.id)?String(assigned.get(item.id)!.display_name):null,
+  })) } });
 }

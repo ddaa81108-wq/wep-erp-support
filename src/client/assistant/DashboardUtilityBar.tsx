@@ -2,8 +2,7 @@ import { uiText } from '../i18n/language.ts';
 import type { User } from '../api.ts';
 import type { MainSection } from '../../shared/sections.ts';
 import { NotificationCenter } from './NotificationCenter.tsx';
-import type { DebtSection } from '../sections/debts/sectionConfig.ts';
-import { GlobalAccountSearch } from './GlobalAccountSearch.tsx';
+import { GlobalAccountSearch,type SearchAccountSelect } from './GlobalAccountSearch.tsx';
 import { SyncStatus } from './SyncStatus.tsx';
 import { Readability } from '../components/Readability.tsx';
 import { Menu } from 'lucide-react';
@@ -19,7 +18,7 @@ export function DashboardUtilityBar({
   user: User;
   activeSection: MainSection;
   onOpenSection: (section: MainSection) => void;
-  onOpenAccount: (section: DebtSection, id: string) => void;
+  onOpenAccount: SearchAccountSelect;
   onOpenMenu: () => void;
 }) {
   const isDebtSection = activeSection === 'customers' || activeSection === 'companies'

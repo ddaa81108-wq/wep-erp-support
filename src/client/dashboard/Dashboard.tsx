@@ -16,6 +16,7 @@ import { preloadSection } from './sectionLoaders.ts';
 import type { DashboardDialog, DashboardNotice } from './dashboardTypes.ts';
 import { DashboardUtilityBar } from '../assistant/DashboardUtilityBar.tsx';
 import type { DebtPageProps } from '../sections/debts/pages/debtPageTypes.ts';
+import type { SearchAccountTarget } from '../assistant/GlobalAccountSearch.tsx';
 
 export function Dashboard({
   user,
@@ -39,7 +40,7 @@ export function Dashboard({
   } = useDashboardNavigation(user);
   const [dialog, setDialog] = useState<DashboardDialog>(null);
   const [notice, setNotice] = useState<DashboardNotice>(null);
-  const [pendingAccount, setPendingAccount] = useState<{ section: DebtSection; id: string } | null>(null);
+  const [pendingAccount, setPendingAccount] = useState<{ section: DebtSection; id: string;target:SearchAccountTarget } | null>(null);
   const debtSection: DebtSection = debtSectionFor(activeSection);
   const permissionPrefix = permissionPrefixFor(debtSection);
   const canRead = user.role === 'admin' || user.permissions?.includes(`${permissionPrefix}.read`) === true;
@@ -121,7 +122,7 @@ export function Dashboard({
   }, [activeSection, resetRouting]);
   useEffect(() => {
     if (!pendingAccount || activeSection !== pendingAccount.section || debtSection !== pendingAccount.section || !canRead) return;
-    if (pendingAccount.section === 'customers' || pendingAccount.section === 'companies') {
+    if (pendingAccount.target==='card' && (pendingAccount.section === 'customers' || pendingAccount.section === 'companies')) {
       debtAccounts.revealCard(pendingAccount.id);
       setPendingAccount(null);
       return;
@@ -187,13 +188,13 @@ export function Dashboard({
         onLogout={() => void logout()}
       />
       <main className={`workspace section-${debtSection} active-section-${activeSection}`}>
-        <DashboardUtilityBar user={user} activeSection={activeSection} onOpenSection={setActiveSection} onOpenMenu={() => setMenu(true)} onOpenAccount={async (section, id) => {
-          if (!(await flushBeforeNavigation())) return;
+        <DashboardUtilityBar user={user} activeSection={activeSection} onOpenSection={setActiveSection} onOpenMenu={() => setMenu(true)} onOpenAccount={async (section, id,target) => {
+          if (!(await flushBeforeNavigation())) return false;
           if (section === 'customers' || section === 'companies') {
             await debtAccounts.closeLedger();
             cancelRouting();
           }
-          setPendingAccount({ section, id }); void setActiveSection(section);
+          setPendingAccount({ section, id,target }); void setActiveSection(section);return true;
         }} />
         <DashboardSectionContent
           activeSection={activeSection}

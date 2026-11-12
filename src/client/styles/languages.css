@@ -78,6 +78,7 @@ html[lang='en']
   :is(
     .sidebar nav button,
     .global-search-results > button,
+    .global-search-open-ledger,
     .notification-panel,
     .notification-panel button,
     .duplicate-suggestions > button,

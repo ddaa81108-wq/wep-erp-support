@@ -116,15 +116,15 @@ try {
           assert.equal(await search.evaluate((input) => getComputedStyle(input).outlineStyle), 'none');
           await search.fill('عميل بحث');
           await page
-            .locator('.global-search-results > button')
+            .locator('.global-search-result')
             .filter({ hasText: 'عميل بحث تجريبي' })
             .waitFor();
-          const result = page.locator('.global-search-results > button').first();
+          const result = page.locator('.global-search-result').first();
           for (const state of ['normal', 'hover', 'focus']) {
             if (state === 'hover') await result.hover();
             if (state === 'focus') {
               await search.hover();
-              await result.focus();
+              await result.locator('.global-search-open-ledger').focus();
             }
             const colors = await result.evaluate((button) => {
               const rgb = (color: string) => (color.match(/[\d.]+/g) ?? []).map(Number);
@@ -192,7 +192,7 @@ try {
   }
   // A suggestion now reveals the outside card; its own button still opens the ledger.
   await search.fill('عميل بحث');
-  await page.locator('.global-search-results > button').filter({ hasText: 'عميل بحث تجريبي' }).click();
+  await page.getByRole('button',{name:'عرض كارت عميل بحث تجريبي',exact:true}).click();
   const foundCard = page.locator('.customer-card').filter({ hasText: 'عميل بحث تجريبي' });
   await foundCard.locator('.customer-card-main').waitFor();
   assert.equal(await page.locator('.ledger-panel').count(), 0);

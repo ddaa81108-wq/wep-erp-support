@@ -152,11 +152,17 @@
 :root[data-royal-shell='03'] .workspace .global-search-results :is(button, strong, small, b, p) {
   color: var(--rs-text) !important;
 }
-:root[data-royal-shell='03'] .workspace .global-search-results > button {
+:root[data-royal-shell='03'] .workspace .global-search-results > button,
+:root[data-royal-shell='03'] .workspace .global-search-result {
   background: var(--rs-control) !important;
   border-color: var(--rs-line) !important;
 }
-:root[data-royal-shell='03'] .workspace .global-search-results > button:is(:hover, :focus-visible) {
+:root[data-royal-shell='03'] .workspace .global-search-show-card {
+  background: var(--rs-control) !important;
+  border-color: var(--rs-line) !important;
+}
+:root[data-royal-shell='03'] .workspace .global-search-results > button:is(:hover, :focus-visible),
+:root[data-royal-shell='03'] .workspace .global-search-open-ledger:is(:hover, :focus-visible) {
   background: var(--rs-hover) !important;
 }
 
