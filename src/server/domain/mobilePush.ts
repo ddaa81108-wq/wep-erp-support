@@ -116,12 +116,34 @@ export function removeMobileDevice(db: AppDatabase, user: AuthenticatedUser, tok
 export class FcmRequestError extends Error {
   status: number;
   errorCode: string;
+  dropDevice: boolean;
 
-  constructor(status: number, errorCode: string) {
+  constructor(status: number, errorCode: string, dropDevice = false) {
     super('FCM request failed');
     this.status = status;
     this.errorCode = errorCode;
+    this.dropDevice = dropDevice;
   }
+}
+
+type FcmErrorDetail = {
+  errorCode?: string;
+  fieldViolations?: Array<{ field?: string; description?: string }>;
+};
+
+/** Drop the device only when FCM says this token cannot be used again. */
+export function fcmDropsDevice(
+  status: number,
+  body: { error?: { status?: string; details?: FcmErrorDetail[] } } | null,
+) {
+  const details = body?.error?.details ?? [];
+  const codes = details.map((item) => item.errorCode).filter((code): code is string => !!code);
+  if (status === 404 || codes.includes('UNREGISTERED')) return true;
+  const tokenField = details.some((item) =>
+    (item.fieldViolations ?? []).some((violation) => String(violation.field ?? '').includes('token')),
+  );
+  const invalid = codes.includes('INVALID_ARGUMENT') || body?.error?.status === 'INVALID_ARGUMENT';
+  return invalid && tokenField;
 }
 
 export function fcmAccessToken(account: FcmAccount, nowSeconds = Math.floor(Date.now() / 1000)) {
@@ -296,8 +318,8 @@ export function createMobilePushDispatcher(
           if (!stopped) db.prepare('DELETE FROM mobile_push_outbox WHERE id=?').run(row.id);
         } catch (error) {
           if (stopped) return;
-          const coded = error as { status?: number; errorCode?: string };
-          if (coded.status === 404 || coded.errorCode === 'UNREGISTERED') {
+          const coded = error as { status?: number; errorCode?: string; dropDevice?: boolean };
+          if (coded.dropDevice || coded.status === 404 || coded.errorCode === 'UNREGISTERED') {
             db.prepare('DELETE FROM mobile_push_devices WHERE id=?').run(row.device_id);
           } else {
             db.prepare('UPDATE mobile_push_outbox SET attempts=attempts+1, next_attempt_at=? WHERE id=?').run(
@@ -353,13 +375,12 @@ async function defaultFcmSend(message: FcmMessage, account: FcmAccount) {
   );
   if (response.ok) return;
   let errorCode = '';
+  let body: { error?: { status?: string; details?: FcmErrorDetail[] } } | null = null;
   try {
-    const body = (await response.json()) as {
-      error?: { details?: Array<{ errorCode?: string }> };
-    };
-    errorCode = body.error?.details?.find((item) => item.errorCode)?.errorCode ?? '';
+    body = (await response.json()) as { error?: { status?: string; details?: FcmErrorDetail[] } };
+    errorCode = body.error?.details?.find((item) => item.errorCode)?.errorCode ?? body.error?.status ?? '';
   } catch {
     // A non-JSON error body still deletes the token when the status says so.
   }
-  throw new FcmRequestError(response.status, errorCode);
+  throw new FcmRequestError(response.status, errorCode, fcmDropsDevice(response.status, body));
 }

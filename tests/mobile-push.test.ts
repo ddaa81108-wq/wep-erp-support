@@ -8,7 +8,9 @@ import { mobilePushRollbackSql } from '../src/server/db/migrationsMobilePush.ts'
 import {
   createMobilePushDispatcher,
   fcmChannelId,
+  fcmDropsDevice,
   fcmMessageBody,
+  FcmRequestError,
   loadFcmAccount,
   parseFcmAccount,
   registerMobileDevice,
@@ -281,6 +283,54 @@ test('the device route requires the session CSRF and stays on that user', async 
   } finally {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   }
+});
+
+test('an invalid token is dropped and a bad payload is retried', async () => {
+  assert.equal(
+    fcmDropsDevice(400, {
+      error: {
+        status: 'INVALID_ARGUMENT',
+        details: [
+          { errorCode: 'INVALID_ARGUMENT' },
+          { fieldViolations: [{ field: 'message.token', description: 'bad' }] },
+        ],
+      },
+    }),
+    true,
+  );
+  assert.equal(
+    fcmDropsDevice(400, {
+      error: {
+        status: 'INVALID_ARGUMENT',
+        details: [{ errorCode: 'INVALID_ARGUMENT', fieldViolations: [{ field: 'message.notification' }] }],
+      },
+    }),
+    false,
+  );
+  assert.equal(fcmDropsDevice(404, { error: { details: [{ errorCode: 'UNREGISTERED' }] } }), true);
+  const { db, actor, employee, token } = fixture();
+  registerMobileDevice(db, actor, { token, platform: 'android' });
+  db.prepare(
+    "INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,'customer.debt','customer','{}',?)",
+  ).run(actor.organizationId, actor.id, employee.id, new Date().toISOString());
+  const dropping = createMobilePushDispatcher(db, account, async () => {
+    throw new FcmRequestError(400, 'INVALID_ARGUMENT', true);
+  });
+  await dropping.drain();
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_devices').get()?.n, 0);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_outbox').get()?.n, 0);
+  dropping.stop();
+  registerMobileDevice(db, actor, { token, platform: 'android' });
+  db.prepare(
+    "INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,'customer.debt','customer','{}',?)",
+  ).run(actor.organizationId, actor.id, employee.id, new Date().toISOString());
+  const retrying = createMobilePushDispatcher(db, account, async () => {
+    throw new FcmRequestError(400, 'INVALID_ARGUMENT', false);
+  });
+  await retrying.drain();
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_devices').get()?.n, 1);
+  assert.equal(db.prepare('SELECT attempts FROM mobile_push_outbox').get()?.attempts, 1);
+  retrying.stop();
 });
 
 test('version 59 rolls back by dropping only the mobile push tables', () => {
