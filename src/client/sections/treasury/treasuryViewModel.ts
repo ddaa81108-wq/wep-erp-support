@@ -1,5 +1,8 @@
-import { uiText } from '../../i18n/language.ts';
+import { uiText,displayLocale } from '../../i18n/language.ts';
 import type { TreasuryDashboard } from '../../api.ts';
+export const treasuryDesktopDate=new Intl.DateTimeFormat(displayLocale,{
+  timeZone:'Africa/Tripoli',weekday:'long',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',
+});
 
 export const treasuryNumberFormat = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 0,

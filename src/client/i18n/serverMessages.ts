@@ -2,6 +2,7 @@ import { language, uiText } from './language.ts';
 
 // Translate protocol errors by stable codes, never by modifying returned data.
 const messages: Readonly<Record<string, string>> = {
+  CASH_LEDGER_MISMATCH: 'The ledger balance could not be reconciled. Refresh and review the treasury.',
   INVALID_CASH_REVISION: 'Refresh the transaction before editing it.',
   CASH_CORRECTION_REASON_REQUIRED: 'Enter a correction reason of up to 500 characters.',
   CASH_ADJUSTMENT_NOT_EDITABLE: 'Edit the original transaction, not its correction movement.',

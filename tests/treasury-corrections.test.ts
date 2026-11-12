@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtempSync, rmSync,writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
@@ -19,7 +19,7 @@ import { HttpError } from '../src/server/http/errors.ts';
 import { createApp, listen } from '../src/server/app.ts';
 import { loadConfig } from '../src/server/config.ts';
 import { createSession } from '../src/server/security/sessions.ts';
-import { createEmergencyBackup,validateBackupFile } from '../src/server/domain/emergencyBackup.ts';
+import { createEmergencyBackup, validateBackupFile } from '../src/server/domain/emergencyBackup.ts';
 
 function fixture(path = ':memory:') {
   const db = openDatabase(path),
@@ -55,6 +55,97 @@ const snapshot = (db: AppDatabase) =>
     ].map((table) => db.prepare(`SELECT * FROM ${table}`).all()),
   );
 const code = (expected: string) => (error: unknown) => error instanceof HttpError && error.code === expected;
+
+test('inline view edits the original in place, recomputes subsequent balances across pages and leaves the raw API intact', () => {
+  const { db, admin, entry, input } = fixture();
+  try {
+    const body = input();
+    delete (body as Record<string, unknown>).reason;
+    correctTreasuryCashEntry(db, admin, entry.id, body, 'inline');
+    for (let i = 0; i < 111; i++)
+      addTreasuryCashEntry(
+        db,
+        admin,
+        {
+          requestId: randomUUID(),
+          expectedVersion: i + 2,
+          direction: 'in',
+          amountUnits: 1,
+          description: 'لاحقة',
+        },
+        'test',
+      );
+    const read = (before?: number | null) =>
+      treasuryCashLedger(
+        db,
+        admin.organizationId,
+        new URL(`http://local?view=effective${before ? '&before=' + before : ''}`),
+      );
+    const first = read(),
+      older = read(first.nextBefore),
+      items = [...older.items, ...first.items];
+    assert.equal(items.length, 112);
+    assert.equal(new Set(items.map((row) => row.id)).size, 112);
+    assert.equal(items[0].id, entry.id);
+    assert.equal(items[0].amountUnits, 500);
+    assert.equal(items[0].balanceAfterUnits, 500);
+    assert.equal(items[1].balanceBeforeUnits, 500);
+    assert.equal(items.at(-1)!.balanceAfterUnits, 611);
+    assert.equal(
+      items.some((row) => row.correctionOf),
+      false,
+    );
+    correctTreasuryCashEntry(
+      db,
+      admin,
+      entry.id,
+      input({ expectedEntryRevision: 1, amountUnits: 700, reason: undefined }),
+      'inline',
+    );
+    assert.equal(read().items[0].balanceAfterUnits, first.items[0].balanceAfterUnits + 200);
+    assert.equal(read().items.at(-1)!.balanceAfterUnits, 811);
+    const raw = treasuryCashLedger(db, admin.organizationId, new URL('http://local?before=3'));
+    assert.equal(raw.items[0].amountUnits, 5000);
+    assert.equal(raw.items[1].correctionOf?.id, entry.id);
+    assert.equal(reconcileFinancials(db).issueCount, 0);
+  } finally {
+    db.close();
+  }
+});
+
+test('an inline edit cannot overflow an intermediate displayed balance even if the current total would fit', () => {
+  const { db, admin, entry, input } = fixture();
+  try {
+    correctTreasuryCashEntry(db, admin, entry.id, input({ amountUnits: Number.MAX_SAFE_INTEGER }), 'test');
+    const outgoing = addTreasuryCashEntry(
+      db,
+      admin,
+      { requestId: randomUUID(), expectedVersion: 2, direction: 'out', amountUnits: Number.MAX_SAFE_INTEGER },
+      'test',
+    ).entry;
+    addTreasuryCashEntry(
+      db,
+      admin,
+      { requestId: randomUUID(), expectedVersion: 3, direction: 'in', amountUnits: 2 },
+      'test',
+    );
+    addTreasuryCashEntry(
+      db,
+      admin,
+      { requestId: randomUUID(), expectedVersion: 4, direction: 'out', amountUnits: 2 },
+      'test',
+    );
+    const before = snapshot(db);
+    assert.throws(
+      () =>
+        correctTreasuryCashEntry(db, admin, outgoing.id, input({ amountUnits: 1, direction: 'out' }), 'test'),
+      code('TREASURY_TOTAL_OUT_OF_RANGE'),
+    );
+    assert.equal(snapshot(db), before);
+  } finally {
+    db.close();
+  }
+});
 
 test('cash corrections apply only differences, preserve originals/closings and replay without duplicate money', () => {
   const { db, admin, entry, input } = fixture();
@@ -249,23 +340,36 @@ test('schema 58 upgrade and reopen preserve schema 57 cash history and balances'
   }
 });
 
-test('backup roundtrip retains corrections, original cash history and replay protection',async()=>{
-  const {db,admin,entry,input}=fixture();
-  const directory=mkdtempSync(join(tmpdir(),'cash-correction-backup-'));
+test('backup roundtrip retains corrections, original cash history and replay protection', async () => {
+  const { db, admin, entry, input } = fixture();
+  const directory = mkdtempSync(join(tmpdir(), 'cash-correction-backup-'));
   try {
-    const body=input();correctTreasuryCashEntry(db,admin,entry.id,body,'test');
-    const backup=await createEmergencyBackup(db,{...admin,isOwner:true});
-    const path=join(directory,'restored.sqlite');writeFileSync(path,Buffer.from(backup.database,'base64'));
-    validateBackupFile(path,admin.organizationId);
-    const restored=openDatabase(path);
+    const body = input();
+    correctTreasuryCashEntry(db, admin, entry.id, body, 'test');
+    const backup = await createEmergencyBackup(db, { ...admin, isOwner: true });
+    const path = join(directory, 'restored.sqlite');
+    writeFileSync(path, Buffer.from(backup.database, 'base64'));
+    validateBackupFile(path, admin.organizationId);
+    const restored = openDatabase(path);
     try {
-      assert.deepEqual(restored.prepare('SELECT * FROM treasury_cash_entries ORDER BY sequence').all(),db.prepare('SELECT * FROM treasury_cash_entries ORDER BY sequence').all());
-      assert.deepEqual(restored.prepare('SELECT * FROM treasury_cash_corrections').all(),db.prepare('SELECT * FROM treasury_cash_corrections').all());
-      assert.equal(correctTreasuryCashEntry(restored,admin,entry.id,body,'retry').replayed,true);
-      assert.equal(treasuryDashboard(restored,admin.organizationId).activeCashUnits,500);
-      assert.equal(reconcileFinancials(restored).issueCount,0);
-    }finally{restored.close();}
-  }finally{db.close();rmSync(directory,{recursive:true,force:true});}
+      assert.deepEqual(
+        restored.prepare('SELECT * FROM treasury_cash_entries ORDER BY sequence').all(),
+        db.prepare('SELECT * FROM treasury_cash_entries ORDER BY sequence').all(),
+      );
+      assert.deepEqual(
+        restored.prepare('SELECT * FROM treasury_cash_corrections').all(),
+        db.prepare('SELECT * FROM treasury_cash_corrections').all(),
+      );
+      assert.equal(correctTreasuryCashEntry(restored, admin, entry.id, body, 'retry').replayed, true);
+      assert.equal(treasuryDashboard(restored, admin.organizationId).activeCashUnits, 500);
+      assert.equal(reconcileFinancials(restored).issueCount, 0);
+    } finally {
+      restored.close();
+    }
+  } finally {
+    db.close();
+    rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 test('HTTP cash correction requires administration, CSRF and preserves replay after a lost response', async () => {

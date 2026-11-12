@@ -48,5 +48,5 @@ export type TreasuryCorrectionInput = {
   direction: 'in' | 'out';
   amountUnits: number;
   description: string;
-  reason: string;
+  reason?: string;
 };

@@ -3,6 +3,7 @@ import { inImmediateTransaction, nowIso, type AppDatabase } from '../db/database
 import { badRequest, conflict, forbidden, notFound } from '../http/errors.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
 import { cashInput, ensureCashAccount, requestId, safeUnits } from './treasurySupport.ts';
+import { EFFECTIVE_CASH_CTE } from './treasuryCashView.ts';
 
 /** Append a cash difference now; original movements and historical balances remain intact. */
 export function correctTreasuryCashEntry(
@@ -18,7 +19,12 @@ export function correctTreasuryCashEntry(
   const revision = input.expectedEntryRevision;
   if (!Number.isSafeInteger(revision) || Number(revision) < 0)
     throw badRequest('INVALID_CASH_REVISION', 'حدّث المعاملة قبل تعديلها.');
-  const reason = typeof input.reason === 'string' ? input.reason.trim() : '';
+  const reason =
+    input.reason === undefined
+      ? 'تعديل مباشر من سجل الخزينة'
+      : typeof input.reason === 'string'
+        ? input.reason.trim()
+        : '';
   if (!reason || reason.length > 500)
     throw badRequest('CASH_CORRECTION_REASON_REQUIRED', 'اكتب سبب التصحيح بما لا يتجاوز 500 حرف.');
   const fingerprint = createHash('sha256')
@@ -61,6 +67,23 @@ export function correctTreasuryCashEntry(
     const delta = safeUnits(newEffect - oldEffect, 'فرق تصحيح النقدية');
     const before = Number(account.balance_units),
       after = safeUnits(BigInt(before) + BigInt(delta), 'رصيد الفلوس النشطة');
+    // Inline editing also changes the displayed running balances after this row.
+    // Reject a change that would make any of those balances numerically unsafe.
+    if (delta !== 0) {
+      let running = 0n;
+      for (const row of db
+        .prepare(
+          `${EFFECTIVE_CASH_CTE} SELECT id,shown_amount,shown_direction FROM current_entries ORDER BY sequence`,
+        )
+        .all(actor.organizationId)) {
+        const amount = row.id === entryId ? parsed.amountUnits : Number(row.shown_amount);
+        const direction = row.id === entryId ? parsed.direction : row.shown_direction;
+        running += BigInt(amount) * (direction === 'in' ? 1n : -1n);
+        safeUnits(running, 'رصيد السجل بعد التعديل');
+      }
+      if (running !== BigInt(after))
+        throw conflict('CASH_LEDGER_MISMATCH', 'تعذر مطابقة رصيد السجل. حدّث الخزينة وراجعها.');
+    }
     const now = nowIso(),
       correctionId = randomUUID(),
       adjustmentId = delta === 0 ? null : randomUUID();

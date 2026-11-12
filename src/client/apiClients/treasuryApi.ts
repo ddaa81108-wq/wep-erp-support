@@ -10,7 +10,7 @@ export const treasuryApi = {
   treasury: () => request<TreasuryDashboard>('/api/treasury'),
   treasuryCashLedger: (before?: number | null) =>
     request<{ items: TreasuryCashEntry[]; nextBefore: number | null }>(
-      `/api/treasury/cash-ledger${before ? `?before=${before}` : ''}`,
+      `/api/treasury/cash-ledger?view=effective${before ? `&before=${before}` : ''}`,
     ),
   addTreasuryCashEntry: (body: {
     requestId: string;

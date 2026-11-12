@@ -7,7 +7,7 @@ import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { TreasuryCards } from './TreasuryCards.tsx';
 import { TreasuryCashEntryForm, type TreasuryEntryMode } from './TreasuryCashEntryForm.tsx';
 import { TreasuryCashLedger } from './TreasuryCashLedger.tsx';
-import { TreasuryCorrectionForm, type CashCorrectionValues } from './TreasuryCorrectionForm.tsx';
+import type { CashCorrectionValues } from './TreasuryCorrectionForm.tsx';
 import type { TreasuryCorrectionInput } from '../../apiTypes/treasury.ts';
 
 const errorText = (error: unknown) => (error instanceof ApiError ? error.message : uiText("تعذر تنفيذ العملية."));
@@ -25,7 +25,7 @@ export function TreasurySection({ user }: { user: User }) {
   const oldestCursor = useRef<number | null>(null);
   const submitting = useRef(false);
   const pendingRequestId = useRef<string | null>(null);
-  const [correctionTarget,setCorrectionTarget]=useState<{entry:TreasuryCashEntry;balance:number;version:number}|null>(null);
+  const [correctionTarget,setCorrectionTarget]=useState<{entry:TreasuryCashEntry;version:number}|null>(null);
   const correctionRequest=useRef<{id:string;body:TreasuryCorrectionInput}|null>(null);
   const [correctionLocked,setCorrectionLocked]=useState(false);
 
@@ -36,7 +36,7 @@ export function TreasurySection({ user }: { user: User }) {
     try {
       const [summary, ledger] = await Promise.all([api.treasury(), api.treasuryCashLedger()]);
       if (request !== latestLoad.current) return;
-      const preserveHistory = quiet && window.matchMedia('(min-width: 901px)').matches && loadedEntries.current.length > 0;
+      const preserveHistory = quiet && loadedEntries.current.length > 0;
       if (preserveHistory) {
         // Bridge any gap after reconnecting before merging the retained history.
         const previousLatest = loadedEntries.current.at(-1)!.sequence;
@@ -51,7 +51,7 @@ export function TreasurySection({ user }: { user: User }) {
         // Refresh corrected originals outside the newest page without losing
         // the reader's history/scroll anchor or rereading history on every event.
         const newestIds=new Set(ledger.items.map(entry=>entry.id));
-        const targets=loadedEntries.current.filter(entry=>!newestIds.has(entry.id) && (refreshHistory||correctedIds.includes(entry.id)))
+        const targets=loadedEntries.current.filter(entry=>!newestIds.has(entry.id) && (refreshHistory||correctedIds.length>0))
           .sort((a,b)=>b.sequence-a.sequence);
         let refreshedFrom=Infinity;
         for (const target of targets) {
@@ -151,7 +151,7 @@ export function TreasurySection({ user }: { user: User }) {
     if (user.role!=='admin'||!dashboard||submitting.current||entry.correctionOf) return;
     if ((mode||correctionTarget) && !(await flushBeforeNavigation())) return;
     setMode(null);pendingRequestId.current=null;correctionRequest.current=null;setCorrectionLocked(false);
-    setCorrectionTarget({entry,balance:dashboard.activeCashUnits,version:dashboard.cashVersion});setMessage('');
+    setCorrectionTarget({entry,version:dashboard.cashVersion});setMessage('');
   }
 
   async function saveCorrection(values:CashCorrectionValues) {
@@ -172,7 +172,7 @@ export function TreasurySection({ user }: { user: User }) {
         correctionRequest.current=null;setCorrectionLocked(false);
         // A stale preview must be reopened using the latest balance/revision.
         if (error.status===409) { setCorrectionTarget(null);await load(true,[pending.id]).catch(()=>undefined); }
-      } else setCorrectionLocked(true);
+      } else {setCorrectionLocked(true);setMessage(uiText('لم يتأكد الحفظ. أعد محاولة نفس التصحيح دون تغيير بياناته.'));}
     } finally {submitting.current=false;setBusy(false);}
   }
 
@@ -239,14 +239,13 @@ export function TreasurySection({ user }: { user: User }) {
           )}
         </div>
         {mode && <TreasuryCashEntryForm key={mode} mode={mode} busy={busy} onCancel={cancelEntry} onSubmit={submit} />}
-        {correctionTarget && <TreasuryCorrectionForm key={`${correctionTarget.entry.id}:${correctionTarget.entry.correction?.revision ?? 0}`}
-          entry={correctionTarget.entry} balance={correctionTarget.balance} busy={busy} locked={correctionLocked}
-          onSave={values=>void saveCorrection(values)} onCancel={()=>{setCorrectionTarget(null);correctionRequest.current=null;setCorrectionLocked(false);}} />}
         {nextBefore && (
           <button className="treasury-older" disabled={busy} onClick={() => void older()}>
             {uiText("تحميل حركات أقدم")}</button>
         )}
         <TreasuryCashLedger entries={entries} scrollRequest={scrollRequest} busy={busy}
+          editing={correctionTarget ? {entry:correctionTarget.entry,locked:correctionLocked,onSave:values=>void saveCorrection(values),
+            onCancel:()=>{setCorrectionTarget(null);correctionRequest.current=null;setCorrectionLocked(false);}} : undefined}
           onCorrect={user.role==='admin' ? entry=>void openCorrection(entry) : undefined} />
       </section>
     </section>

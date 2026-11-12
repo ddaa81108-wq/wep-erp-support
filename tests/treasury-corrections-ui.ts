@@ -77,16 +77,25 @@ try {
     await expect(target.locator('.treasury-ledger [data-sequence]')).toHaveCount(111);
   }
   const edit = page.getByRole('button', { name: 'تعديل المعاملة 1', exact: true });
-  assert.ok(await edit.evaluate(button=>button.parentElement===button.closest('[data-sequence]')?.lastElementChild),'Edit is the last cell after the balance');
+  assert.ok(
+    await edit.evaluate(
+      (button) => button.parentElement === button.closest('[data-sequence]')?.lastElementChild,
+    ),
+    'Edit is the last cell after the balance',
+  );
   await expect(page.locator('.treasury-ledger-row.head > span')).toHaveCount(8);
   const form = page.getByRole('form', { name: 'تصحيح معاملة الخزينة' });
   await edit.click();
   console.log('Opened historical cash correction form.');
   await expect(form.getByLabel('القيمة الصحيحة', { exact: true })).toHaveValue('5000');
   await form.getByLabel('القيمة الصحيحة', { exact: true }).fill('500');
-  await form.getByLabel('سبب التصحيح', { exact: true }).fill('تصحيح صفر زائد بالخطأ');
-  await expect(form).toContainText('فرق النقدية: -4,500');
-  await expect(form).toContainText('الرصيد المتوقع: 610');
+  await expect(form.locator(':scope > span').nth(6)).toHaveText('500');
+  await expect(form.getByRole('textbox')).toHaveCount(1);
+  await expect(form.locator('[aria-label="سبب التصحيح"]')).toHaveCount(0);
+  assert.ok(
+    await form.evaluate((el) => el.parentElement?.classList.contains('treasury-ledger')),
+    'Editor replaces its transaction in the ledger',
+  );
   assert.equal(
     treasuryDashboard(db, admin.organizationId).activeCashUnits,
     5110,
@@ -111,15 +120,15 @@ try {
           await form.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
           'Correction form fits phone',
         );
-        if(width===390) {
-          const placement=await page.locator('[data-sequence="1"]').evaluate(row=>{
-            const action=row.querySelector('.treasury-row-actions')!.getBoundingClientRect();
-            const actor=row.children[5].getBoundingClientRect();
-            return action.top>=actor.bottom-1 && action.right<=row.getBoundingClientRect().right+1;
+        if (width === 390) {
+          const placement = await page.locator('[data-sequence="1"]').evaluate((row) => {
+            const action = row.querySelector('.treasury-row-actions')!.getBoundingClientRect();
+            const actor = row.children[5].getBoundingClientRect();
+            return action.top >= actor.bottom - 1 && action.right <= row.getBoundingClientRect().right + 1;
           });
-          assert.ok(placement,'Phone edit action sits at the bottom of its transaction');
+          assert.ok(placement, 'Phone edit action sits at the bottom of its transaction');
         }
-        await expect(form.getByRole('button', { name: 'اعتماد التصحيح', exact: true })).toBeInViewport();
+        await expect(form.getByRole('button', { name: 'حفظ التعديل', exact: true })).toBeInViewport();
         await page.screenshot({ path: `artifacts/treasury-corrections/${theme}-${shell}-${width}.png` });
       }
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -134,9 +143,9 @@ try {
       await route.abort('failed');
     } else await route.continue();
   });
-  await form.getByRole('button', { name: 'اعتماد التصحيح', exact: true }).click();
+  await form.getByRole('button', { name: 'حفظ التعديل', exact: true }).click();
   await expect(
-    form.getByText('لم يتأكد الحفظ. أعد محاولة نفس التصحيح دون تغيير بياناته.', { exact: true }),
+    page.getByText('لم يتأكد الحفظ. أعد محاولة نفس التصحيح دون تغيير بياناته.', { exact: true }),
   ).toBeVisible();
   await expect(form.getByLabel('القيمة الصحيحة', { exact: true })).toBeDisabled();
   assert.equal(db.prepare('SELECT COUNT(*) n FROM treasury_cash_corrections').get()!.n, 1);
@@ -147,10 +156,10 @@ try {
   assert.equal(db.prepare('SELECT COUNT(*) n FROM treasury_cash_entries').get()!.n, 112);
   assert.equal(treasuryDashboard(db, admin.organizationId).activeCashUnits, 610);
   for (const target of [page, viewer]) {
-    await expect(target.locator('[data-sequence="1"] .treasury-correction-details summary')).toHaveText(
-      'تم تصحيحها — عرض التفاصيل',
-    );
-    await expect(target.locator('[data-sequence="1"] > span').nth(3)).toHaveText('5,000');
+    await expect(target.locator('[data-sequence="1"] > span').nth(3)).toHaveText('500');
+    await expect(target.locator('[data-sequence="1"] > span').nth(6)).toHaveText('500');
+    await expect(target.locator('[data-sequence="2"] > span').nth(6)).toHaveText('501');
+    await expect(target.locator('.treasury-ledger [data-sequence]')).toHaveCount(111);
     await expect(target.locator('[data-sequence="112"] .treasury-correct-button')).toHaveCount(0);
   }
   await page.unroute('**/api/treasury/cash-entries/*/corrections');
@@ -158,8 +167,7 @@ try {
   await viewer.getByRole('button', { name: 'تعديل المعاملة 1', exact: true }).click();
   await expect(form.getByLabel('القيمة الصحيحة', { exact: true })).toHaveValue('500');
   await form.getByLabel('البيان المصحح', { exact: true }).fill('بيان مصحح فقط');
-  await form.getByLabel('سبب التصحيح', { exact: true }).fill('تصحيح البيان');
-  await form.getByRole('button', { name: 'اعتماد التصحيح', exact: true }).click();
+  await form.getByRole('button', { name: 'حفظ التعديل', exact: true }).click();
   await expect(form).toHaveCount(0);
   assert.equal(
     db.prepare('SELECT COUNT(*) n FROM treasury_cash_entries').get()!.n,
@@ -168,20 +176,18 @@ try {
   );
   const otherForm = viewer.getByRole('form', { name: 'تصحيح معاملة الخزينة' });
   await otherForm.getByLabel('القيمة الصحيحة', { exact: true }).fill('700');
-  await otherForm.getByLabel('سبب التصحيح', { exact: true }).fill('محاولة من نسخة قديمة');
-  await otherForm.getByRole('button', { name: 'اعتماد التصحيح', exact: true }).click();
+  await otherForm.getByRole('button', { name: 'حفظ التعديل', exact: true }).click();
   await expect(viewer.locator('.treasury-message')).toContainText('تم تعديل المعاملة من جهاز آخر');
   assert.equal(db.prepare('SELECT COUNT(*) n FROM treasury_cash_corrections').get()!.n, 2);
   await edit.click();
   await form.getByLabel('الحركة الصحيحة', { exact: true }).selectOption('out');
-  await form.getByLabel('سبب التصحيح', { exact: true }).fill('الصحيح خروج وليس دخول');
-  await expect(form).toContainText('فرق النقدية: -1,000');
-  await form.getByRole('button', { name: 'اعتماد التصحيح', exact: true }).click();
+  await expect(form.locator(':scope > span').nth(6)).toHaveText('-500');
+  await form.getByRole('button', { name: 'حفظ التعديل', exact: true }).click();
   await expect(form).toHaveCount(0);
   assert.equal(treasuryDashboard(db, admin.organizationId).activeCashUnits, -390);
   const count = db.prepare('SELECT COUNT(*) n FROM treasury_cash_corrections').get()!.n;
   await edit.click();
-  await form.getByRole('button', { name: 'إلغاء', exact: true }).click();
+  await form.getByRole('button', { name: 'إلغاء التعديل', exact: true }).click();
   await expect(form).toHaveCount(0);
   assert.equal(db.prepare('SELECT COUNT(*) n FROM treasury_cash_corrections').get()!.n, count);
   const { page: employee } = await open('cash-writer');
@@ -195,7 +201,7 @@ try {
     5000,
   );
   console.log(
-    'PASS cash correction UI: historical original + two-device sync, lost response/replay, unchanged description cash, stale conflict, direction reversal, cancellation, employee restriction, both shells/themes/phone. Synthetic data only.',
+    'PASS inline cash editing without reasons: historical original + two-device sync, lost response/replay, unchanged description cash, stale conflict, direction reversal, cancellation, employee restriction, both shells/themes/phone. Synthetic data only.',
   );
 } finally {
   await browser.close();
