@@ -6,12 +6,14 @@ import { API_VERSION, loadConfig } from '../src/server/config.ts';
 import { openDatabase } from '../src/server/db/database.ts';
 import { mobilePushRollbackSql } from '../src/server/db/migrationsMobilePush.ts';
 import {
+  authorizeFcm,
   createMobilePushDispatcher,
   fcmChannelId,
   fcmDropsDevice,
   fcmMessageBody,
   FcmRequestError,
   loadFcmAccount,
+  resetFcmAccessCache,
   parseFcmAccount,
   registerMobileDevice,
   type FcmMessage,
@@ -331,6 +333,31 @@ test('an invalid token is dropped and a bad payload is retried', async () => {
   assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_devices').get()?.n, 1);
   assert.equal(db.prepare('SELECT attempts FROM mobile_push_outbox').get()?.attempts, 1);
   retrying.stop();
+});
+
+test('the access token is reused until five minutes before expiry', async () => {
+  resetFcmAccessCache();
+  let oauth = 0;
+  const original = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    const url = String(input);
+    if (!url.includes('oauth2.googleapis.com')) throw new Error(url);
+    oauth += 1;
+    return new Response(JSON.stringify({ access_token: 'cached-access', expires_in: 3600 }), {
+      status: 200,
+    });
+  };
+  try {
+    const start = 1_000_000;
+    assert.equal(await authorizeFcm(account, start), 'cached-access');
+    assert.equal(await authorizeFcm(account, start + 60_000), 'cached-access');
+    assert.equal(oauth, 1);
+    assert.equal(await authorizeFcm(account, start + 3300 * 1000), 'cached-access');
+    assert.equal(oauth, 2);
+  } finally {
+    globalThis.fetch = original;
+    resetFcmAccessCache();
+  }
 });
 
 test('version 59 rolls back by dropping only the mobile push tables', () => {

@@ -348,8 +348,20 @@ export function createMobilePushDispatcher(
   };
 }
 
-async function defaultFcmSend(message: FcmMessage, account: FcmAccount) {
-  const jwt = fcmAccessToken(account);
+type CachedAccess = { key: string; value: string; refreshAfterMs: number };
+let cachedAccess: CachedAccess | null = null;
+
+/** Tests reset this. Production keeps one token until five minutes before expiry. */
+export function resetFcmAccessCache() {
+  cachedAccess = null;
+}
+
+export async function authorizeFcm(account: FcmAccount, now = Date.now()) {
+  const key = `${account.projectId}\n${account.clientEmail}`;
+  if (cachedAccess && cachedAccess.key === key && now < cachedAccess.refreshAfterMs) {
+    return cachedAccess.value;
+  }
+  const jwt = fcmAccessToken(account, Math.floor(now / 1000));
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
@@ -359,9 +371,20 @@ async function defaultFcmSend(message: FcmMessage, account: FcmAccount) {
     }),
   });
   if (!tokenResponse.ok) throw new FcmRequestError(tokenResponse.status, 'AUTH');
-  const tokenBody = (await tokenResponse.json()) as { access_token?: string };
+  const tokenBody = (await tokenResponse.json()) as { access_token?: string; expires_in?: number };
   const access = tokenBody.access_token;
   if (!access) throw new FcmRequestError(tokenResponse.status, 'AUTH');
+  const expiresInSec = Number(tokenBody.expires_in ?? 3600);
+  cachedAccess = {
+    key,
+    value: access,
+    refreshAfterMs: now + Math.max(0, expiresInSec - 300) * 1000,
+  };
+  return access;
+}
+
+async function defaultFcmSend(message: FcmMessage, account: FcmAccount) {
+  const access = await authorizeFcm(account);
   const response = await fetch(
     `https://fcm.googleapis.com/v1/projects/${encodeURIComponent(account.projectId)}/messages:send`,
     {
