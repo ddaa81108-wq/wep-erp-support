@@ -29,10 +29,10 @@ test('the push rule is narrower than the in-app recipient list', () => {
     mobilePushAllowed({
       recipientRole: 'admin',
       actorRole: 'admin',
-      action: 'collection.assign',
+      action: 'user.update',
       collectionsRead: false,
     }),
-    false,
+    true,
   );
   assert.equal(
     mobilePushAllowed({
@@ -144,10 +144,13 @@ test('admins get every employee transaction, and only a collections employee get
     assert.deepEqual(afterAssign, ['admin-b', 'collector']);
     await dispatcher.drain();
     assert.deepEqual(
-      sent.map((message) => message.token),
-      [tokens.collector],
+      sent.map((message) => message.token).sort(),
+      [tokens['admin-b'], tokens.collector].sort(),
     );
-    assert.equal(sent[0].body.includes('توجيه كروت'), true);
+    assert.equal(
+      sent.some((message) => message.body.includes('توجيه كروت')),
+      true,
+    );
     assert.deepEqual(recipients(db, 'collection.assign'), afterAssign);
 
     sent.length = 0;
@@ -158,7 +161,10 @@ test('admins get every employee transaction, and only a collections employee get
     });
     assert.equal(recipients(db, 'collection.assign').includes('plain'), true);
     await dispatcher.drain();
-    assert.deepEqual(sent, []);
+    assert.deepEqual(
+      sent.map((message) => message.token),
+      [tokens['admin-b']],
+    );
 
     sent.length = 0;
     db.prepare(
@@ -170,11 +176,21 @@ test('admins get every employee transaction, and only a collections employee get
       1,
     );
     await dispatcher.drain();
-    assert.deepEqual(sent, []);
+    assert.equal(sent.length, 0);
     assert.equal(
       db.prepare(`SELECT COUNT(*) n FROM notifications WHERE action='collection.payroll.entry.create'`).get()?.n,
       1,
     );
+
+    sent.length = 0;
+    audit(db, 'admin-a', 'user.update', 'admin-b', { role: 'admin', permissions: ['collections.read'] });
+    assert.deepEqual(recipients(db, 'user.update'), ['admin-b']);
+    await dispatcher.drain();
+    assert.deepEqual(
+      sent.map((message) => message.token),
+      [tokens['admin-b']],
+    );
+    assert.equal(sent[0].body.includes('collections.read'), true);
   } finally {
     dispatcher.stop();
     db.close();

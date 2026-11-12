@@ -143,15 +143,14 @@ export function fcmAccessToken(account: FcmAccount, nowSeconds = Math.floor(Date
 }
 
 /**
- * Who may receive a phone push. This is not the in-app recipient list.
+ * Who may receive a phone push. In-app rows are not changed.
  *
- * In-app rows still go to every other active admin for any successful audit
- * action, including an action by an admin, and a collections assignment is
- * also written to the assignee. Payroll rows are written to that employee too.
- * None of those inserts are changed here.
+ * An admin receives a push for every in-app row already addressed to that
+ * admin: employee actions, another admin’s action, security events that
+ * already write `audit_log`, and the rest of today’s successful audits.
+ * The acting admin has no in-app row, so this does not invent one.
  *
- * Push is narrower: every active admin receives an employee’s transaction,
- * and an employee receives one only for `collection.assign` when that
+ * An employee still receives a push only for `collection.assign` when that
  * employee has `collections.read`.
  */
 export function mobilePushAllowed(input: {
@@ -160,7 +159,7 @@ export function mobilePushAllowed(input: {
   action: string;
   collectionsRead: boolean;
 }) {
-  if (input.recipientRole === 'admin') return input.actorRole === 'employee';
+  if (input.recipientRole === 'admin') return true;
   if (input.recipientRole === 'employee') {
     return input.collectionsRead && input.action === 'collection.assign';
   }
