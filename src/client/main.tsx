@@ -3,6 +3,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { loadLanguageCatalog } from './i18n/language.ts';
 import { syncPushLanguage } from './i18n/pushLanguage.ts';
 import { startInternetGuard } from './internetGuard.ts';
+import { startNumberInputGuard } from './numberInputGuard.ts';
 import './styles/foundation-auth.css';
 import './styles/workspace.css';
 import './styles/backup-center.css';
@@ -47,6 +48,7 @@ import './styles/collection-board.css';
 import './styles/employee-collection-board.css';
 
 let root: Root | undefined;
+startNumberInputGuard();
 void loadLanguageCatalog()
   .then(async () => {
     syncPushLanguage();
