@@ -1432,5 +1432,6 @@ export const english: Readonly<Record<string, string>> = {
   'عرض الكارت': 'Show card',
   'موجّه إلى: {0}': 'Assigned to: {0}',
   'غير موجّه': 'Not assigned',
+  'موظف التحصيل': 'Collection employee',
   'تعذر فتح الحساب. حاول مرة أخرى.': 'Could not open the account. Try again.',
 };
