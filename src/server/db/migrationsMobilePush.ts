@@ -39,22 +39,69 @@ export const mobilePushShadeRollbackSql = `
 ALTER TABLE mobile_push_devices DROP COLUMN push_capabilities;
 `;
 
+export type ShadeRollbackResult = {
+  status: 'rolled-back' | 'already';
+  droppedColumn: boolean;
+  sqliteVersion: string;
+};
+
+export function sqliteVersion(db: AppDatabase) {
+  return String((db.prepare('SELECT sqlite_version() AS v').get() as { v: string }).v);
+}
+
+/** SQLite 3.35 added ALTER TABLE DROP COLUMN. */
+export function sqliteSupportsDropColumn(version: string) {
+  const [major = 0, minor = 0, patch = 0] = version.split('.').map((part) => Number(part) || 0);
+  if (major !== 3) return major > 3;
+  if (minor !== 35) return minor > 35;
+  return patch >= 0;
+}
+
+function shadeColumnPresent(db: AppDatabase) {
+  return db
+    .prepare('PRAGMA table_info(mobile_push_devices)')
+    .all()
+    .some((column) => column.name === 'push_capabilities');
+}
+
 /**
- * One-step cleanup after redeploying the previous program. Drops only the
- * nullable capability column and forgets version 60. Notification rows,
- * device tokens, and the outbox are not deleted. Not called on startup.
+ * Forgets version 60 so a build whose newest migration is 59 can open the
+ * file. Drops the nullable column when SQLite can. A second call is a no-op.
+ * Refuses when a migration newer than 60 is recorded. Not called on startup.
  */
-export function rollbackMobilePushShade(db: AppDatabase) {
+export function rollbackMobilePushShade(db: AppDatabase): ShadeRollbackResult {
+  const version = sqliteVersion(db);
+  const canDrop = sqliteSupportsDropColumn(version);
+  const latest = Number(
+    (db.prepare('SELECT COALESCE(MAX(version), 0) AS v FROM schema_migrations').get() as { v: number }).v,
+  );
+  const recorded = db.prepare('SELECT name FROM schema_migrations WHERE version=60').get() as
+    { name: string } | undefined;
+  if (latest > 60 || (recorded && latest !== 60)) {
+    throw new Error('Shade rollback refused: version 60 is not the latest migration.');
+  }
+  if (recorded && recorded.name !== 'mobile-push-shade-capability') {
+    throw new Error('Shade rollback refused: version 60 has an unexpected name.');
+  }
+  const column = shadeColumnPresent(db);
+  if (!recorded && !column) return { status: 'already', droppedColumn: false, sqliteVersion: version };
   db.exec('BEGIN IMMEDIATE');
   try {
-    db.exec(mobilePushShadeRollbackSql);
-    const removed = db
-      .prepare('DELETE FROM schema_migrations WHERE version=? AND name=?')
-      .run(60, 'mobile-push-shade-capability');
-    if (Number(removed.changes) !== 1) {
-      throw new Error('Mobile push migration 60 was not the recorded row.');
+    let droppedColumn = false;
+    if (column && canDrop) {
+      db.exec(mobilePushShadeRollbackSql);
+      droppedColumn = true;
+    }
+    if (recorded) {
+      const removed = db
+        .prepare('DELETE FROM schema_migrations WHERE version=? AND name=?')
+        .run(60, 'mobile-push-shade-capability');
+      if (Number(removed.changes) !== 1) {
+        throw new Error('Mobile push migration 60 was not the recorded row.');
+      }
     }
     db.exec('COMMIT');
+    return { status: 'rolled-back', droppedColumn, sqliteVersion: version };
   } catch (error) {
     db.exec('ROLLBACK');
     throw error;

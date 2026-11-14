@@ -13,7 +13,9 @@ export function beforeTransactionCommit(database: AppDatabase, observer: () => v
   const observers = commitObservers.get(database) ?? new Set<() => void>();
   observers.add(observer);
   commitObservers.set(database, observers);
-  return () => { observers.delete(observer); };
+  return () => {
+    observers.delete(observer);
+  };
 }
 
 export function nowIso() {
@@ -39,7 +41,10 @@ export function openDatabase(path: string): AppDatabase {
   return database;
 }
 
-function applyMigrations(database: AppDatabase) {
+export function applyMigrations(
+  database: AppDatabase,
+  plan: readonly (typeof migrations)[number][] = migrations,
+) {
   database.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
       version INTEGER PRIMARY KEY,
@@ -47,7 +52,7 @@ function applyMigrations(database: AppDatabase) {
       applied_at TEXT NOT NULL
     ) STRICT;
   `);
-  for (const [index, migration] of migrations.entries()) {
+  for (const [index, migration] of plan.entries()) {
     const expectedVersion = index + 1;
     if (migration.version !== expectedVersion) {
       throw new Error(
@@ -58,22 +63,23 @@ function applyMigrations(database: AppDatabase) {
   const appliedRows = database
     .prepare('SELECT version,name FROM schema_migrations ORDER BY version')
     .all() as Array<{ version: number; name: string }>;
-  const knownByVersion = new Map(migrations.map((migration) => [migration.version, migration]));
+  const knownByVersion = new Map(plan.map((migration) => [migration.version, migration]));
   const checksum = (sql: string) => createHash('sha256').update(sql.replace(/\r\n/g, '\n')).digest('hex');
-  const hasChecksums = database.prepare('PRAGMA table_info(schema_migrations)').all()
-    .some(column => column.name === 'sql_sha256');
+  const hasChecksums = database
+    .prepare('PRAGMA table_info(schema_migrations)')
+    .all()
+    .some((column) => column.name === 'sql_sha256');
   for (const row of appliedRows) {
     const known = knownByVersion.get(Number(row.version));
     if (!known) {
       throw new Error(`Database schema version ${row.version} is newer than this application.`);
     }
     if (known.name !== String(row.name) && !known.legacyNames?.includes(String(row.name))) {
-      throw new Error(
-        `Migration history mismatch at version ${row.version}: expected ${known.name}.`,
-      );
+      throw new Error(`Migration history mismatch at version ${row.version}: expected ${known.name}.`);
     }
     if (hasChecksums) {
-      const saved = database.prepare('SELECT sql_sha256 FROM schema_migrations WHERE version=?')
+      const saved = database
+        .prepare('SELECT sql_sha256 FROM schema_migrations WHERE version=?')
         .get(row.version) as { sql_sha256: string | null };
       if (saved.sql_sha256 && saved.sql_sha256 !== checksum(known.sql)) {
         throw new Error(`Migration SQL checksum mismatch at version ${row.version}.`);
@@ -81,16 +87,16 @@ function applyMigrations(database: AppDatabase) {
     }
   }
   const applied = new Set(appliedRows.map((row) => Number(row.version)));
-  for (const migration of migrations) {
+  for (const migration of plan) {
     if (applied.has(migration.version)) continue;
     database.exec('BEGIN IMMEDIATE');
     try {
       migration.before?.(database);
       database.exec(migration.sql);
       migration.after?.(database);
-      database.prepare(
-        'INSERT INTO schema_migrations(version, name, applied_at) VALUES (?, ?, ?)',
-      ).run(migration.version, migration.name, nowIso());
+      database
+        .prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES (?, ?, ?)')
+        .run(migration.version, migration.name, nowIso());
       database.exec('COMMIT');
     } catch (error) {
       database.exec('ROLLBACK');
@@ -101,8 +107,10 @@ function applyMigrations(database: AppDatabase) {
   // existing checksums. Hook implementation changes still require code review.
   database.exec('BEGIN IMMEDIATE');
   try {
-    const baseline = database.prepare('UPDATE schema_migrations SET sql_sha256=? WHERE version=? AND sql_sha256 IS NULL');
-    for (const migration of migrations) baseline.run(checksum(migration.sql), migration.version);
+    const baseline = database.prepare(
+      'UPDATE schema_migrations SET sql_sha256=? WHERE version=? AND sql_sha256 IS NULL',
+    );
+    for (const migration of plan) baseline.run(checksum(migration.sql), migration.version);
     database.exec('COMMIT');
   } catch (error) {
     database.exec('ROLLBACK');
@@ -138,9 +146,9 @@ export function inImmediateTransaction<T>(database: AppDatabase, work: () => T):
 
 export function databaseHealth(database: AppDatabase) {
   const check = database.prepare('PRAGMA quick_check(1)').get() as Record<string, unknown>;
-  const migration = database.prepare(
-    'SELECT COALESCE(MAX(version), 0) AS version FROM schema_migrations',
-  ).get() as { version: number };
+  const migration = database
+    .prepare('SELECT COALESCE(MAX(version), 0) AS version FROM schema_migrations')
+    .get() as { version: number };
   return {
     integrity: String(Object.values(check)[0] ?? 'unknown'),
     schemaVersion: Number(migration.version),
@@ -153,12 +161,17 @@ export function maintainOperationalData(database: AppDatabase) {
   const oneHundredEightyDaysAgo = new Date(Date.now() - 180 * 24 * 60 * 60_000).toISOString();
   database.exec('BEGIN IMMEDIATE');
   try {
-    database.prepare('DELETE FROM sessions WHERE expires_at < ? OR (revoked_at IS NOT NULL AND revoked_at < ?)')
+    database
+      .prepare('DELETE FROM sessions WHERE expires_at < ? OR (revoked_at IS NOT NULL AND revoked_at < ?)')
       .run(now, oneDayAgo);
     database.prepare('DELETE FROM login_failures WHERE occurred_at < ?').run(oneDayAgo);
     database.prepare('DELETE FROM oauth_states WHERE expires_at < ? OR consumed_at IS NOT NULL').run(now);
     database.prepare('DELETE FROM mfa_challenges WHERE expires_at < ?').run(now);
-    database.prepare('UPDATE user_mfa SET pending_secret=NULL,pending_session=NULL,pending_expires_at=NULL WHERE pending_expires_at < ?').run(now);
+    database
+      .prepare(
+        'UPDATE user_mfa SET pending_secret=NULL,pending_session=NULL,pending_expires_at=NULL WHERE pending_expires_at < ?',
+      )
+      .run(now);
     // Financial idempotency records are permanent: deleting them could allow an old
     // retried request to be posted a second time after the retention window.
     database.prepare('DELETE FROM event_log WHERE created_at < ?').run(oneHundredEightyDaysAgo);

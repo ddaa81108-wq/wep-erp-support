@@ -512,7 +512,9 @@ test('version 60 rolls back by dropping only the capability column', () => {
       ?.push_capabilities,
     shadeCapability,
   );
-  rollbackMobilePushShade(db);
+  const first = rollbackMobilePushShade(db);
+  assert.equal(first.status, 'rolled-back');
+  assert.equal(first.droppedColumn, true);
   const columns = db
     .prepare('PRAGMA table_info(mobile_push_devices)')
     .all()
@@ -520,7 +522,14 @@ test('version 60 rolls back by dropping only the capability column', () => {
   assert.equal(columns.includes('push_capabilities'), false);
   assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_devices').get()?.n, 1);
   assert.equal(db.prepare('SELECT COUNT(*) n FROM schema_migrations WHERE version=60').get()?.n, 0);
+  assert.equal(rollbackMobilePushShade(db).status, 'already');
   assert.equal(mobilePushShadeRollbackSql.includes('DROP TABLE'), false);
+  db.prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES(61, ?, ?)').run(
+    'future',
+    new Date().toISOString(),
+  );
+  assert.throws(() => rollbackMobilePushShade(db), /not the latest/);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_devices').get()?.n, 1);
 });
 
 test('version 59 rolls back by dropping only the mobile push tables', () => {
