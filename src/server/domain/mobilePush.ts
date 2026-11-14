@@ -20,6 +20,11 @@ export type FcmMessage = {
   body: string;
   data: Record<string, string>;
   channelId: string;
+  /**
+   * True only when this device registered `shade_v1`. Absent or false keeps
+   * the legacy `notification` block for every older install.
+   */
+  shade?: boolean;
 };
 
 export type FcmSend = (message: FcmMessage, account: FcmAccount) => Promise<void>;
@@ -64,7 +69,7 @@ export function validateDeviceToken(input: Record<string, unknown>) {
   if (token.length < 32 || token.length > 4096 || !tokenPattern.test(token)) {
     throw badRequest('INVALID_PUSH_TOKEN', 'رمز الجهاز غير صالح.');
   }
-  return { token, platform, unregister: input.unregister === true };
+  return { token, platform, unregister: input.unregister === true, shade: deviceRequestsShade(input) };
 }
 
 export function registerMobileDevice(
@@ -92,14 +97,24 @@ export function registerMobileDevice(
     const id = existing?.id ?? randomUUID();
     const now = nowIso();
     db.prepare(
-      `INSERT INTO mobile_push_devices(id, token, user_id, organization_id, platform, created_at, updated_at)
-       VALUES(?,?,?,?,?,?,?)
+      `INSERT INTO mobile_push_devices(id, token, user_id, organization_id, platform, created_at, updated_at, push_capabilities)
+       VALUES(?,?,?,?,?,?,?,?)
        ON CONFLICT(token) DO UPDATE SET
          user_id=excluded.user_id,
          organization_id=excluded.organization_id,
          platform=excluded.platform,
-         updated_at=excluded.updated_at`,
-    ).run(id, value.token, user.id, user.organizationId, value.platform, now, now);
+         updated_at=excluded.updated_at,
+         push_capabilities=excluded.push_capabilities`,
+    ).run(
+      id,
+      value.token,
+      user.id,
+      user.organizationId,
+      value.platform,
+      now,
+      now,
+      value.shade ? shadeCapability : null,
+    );
     return { registered: true };
   });
 }
@@ -190,13 +205,70 @@ export function mobilePushAllowed(input: {
 
 const hiddenDetailKey = /password|token|secret|hash|csrf/i;
 
+/** The only capability that switches a device to the data-only shade. */
+export const shadeCapability = 'shade_v1';
+
+const shadeDetailKeys = [
+  'subjectName',
+  'subjectSection',
+  'amountUnits',
+  'paidUnits',
+  'remainingUnits',
+  'vodafoneConsumedUnits',
+  'paymentMode',
+  'mode',
+  'currency',
+  'payrollKind',
+  'employeeName',
+  'reason',
+] as const;
+
+/**
+ * True only for an explicit `pushCapabilities` list that contains `shade_v1`.
+ * A missing field, a non-array, or any other token stays on the legacy payload.
+ */
+export function deviceRequestsShade(input: Record<string, unknown>) {
+  const raw = input.pushCapabilities;
+  if (!Array.isArray(raw)) return false;
+  return raw.some((item) => item === shadeCapability);
+}
+
+function shadeText(value: unknown) {
+  if (typeof value === 'string') {
+    const text = value.trim();
+    return text ? text : null;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === 'boolean') return value ? 'true' : 'false';
+  return null;
+}
+
+/** Stored detail fields as FCM data strings. Secrets, nulls, and objects are dropped. */
+export function shadeData(
+  details: Record<string, unknown>,
+  actorName: string,
+  actorRole: string | null,
+  createdAt: string,
+) {
+  const data: Record<string, string> = {};
+  const actor = shadeText(actorName);
+  if (actor) data.actorName = actor;
+  const role = shadeText(actorRole);
+  if (role) data.actorRole = role;
+  const when = shadeText(createdAt);
+  if (when) data.createdAt = when;
+  for (const key of shadeDetailKeys) {
+    if (hiddenDetailKey.test(key)) continue;
+    const text = shadeText(details[key]);
+    if (!text) continue;
+    data[key] = text;
+  }
+  return data;
+}
+
 /** The shade text. The in-app row already stores these details; the push repeats them. */
 export function mobilePushBody(action: string, actorName: string, details: Record<string, unknown>) {
-  const head = browserPushMessage(
-    action,
-    actorName,
-    String(details.paymentMode ?? details.mode ?? ''),
-  );
+  const head = browserPushMessage(action, actorName, String(details.paymentMode ?? details.mode ?? ''));
   const lines = Object.entries(details)
     .filter(
       ([key, value]) =>
@@ -207,7 +279,8 @@ export function mobilePushBody(action: string, actorName: string, details: Recor
         value !== '',
     )
     .map(([key, value]) => {
-      const text = typeof value === 'string' || typeof value === 'number' ? String(value) : JSON.stringify(value);
+      const text =
+        typeof value === 'string' || typeof value === 'number' ? String(value) : JSON.stringify(value);
       return `${key}: ${text}`;
     });
   const body = lines.length ? `${head}\n${lines.join('\n')}` : head;
@@ -215,18 +288,21 @@ export function mobilePushBody(action: string, actorName: string, details: Recor
 }
 
 export function fcmMessageBody(message: FcmMessage) {
+  const legacy = message.shade !== true;
   return {
     message: {
       token: message.token,
-      notification: { title: message.title, body: message.body },
+      ...(legacy ? { notification: { title: message.title, body: message.body } } : {}),
       data: message.data,
-      android: {
-        priority: 'HIGH',
-        notification: {
-          channel_id: message.channelId,
-          sound: 'default',
-        },
-      },
+      android: legacy
+        ? {
+            priority: 'HIGH' as const,
+            notification: {
+              channel_id: message.channelId,
+              sound: 'default' as const,
+            },
+          }
+        : { priority: 'HIGH' as const },
     },
   };
 }
@@ -245,6 +321,8 @@ type OutboxRow = {
   payment_mode: string | null;
   details_json: string | null;
   recipient_user_id: string;
+  created_at: string | null;
+  push_capabilities: string | null;
 };
 
 export function createMobilePushDispatcher(
@@ -263,8 +341,8 @@ export function createMobilePushDispatcher(
       );
       const rows = db
         .prepare(
-          `SELECT q.id, q.device_id, q.attempts, q.notification_id, d.token,
-                  n.action, n.details_json, n.recipient_user_id,
+          `SELECT q.id, q.device_id, q.attempts, q.notification_id, d.token, d.push_capabilities,
+                  n.action, n.details_json, n.recipient_user_id, n.created_at,
                   u.display_name actor_name, u.role actor_role, uowner.role recipient_role,
                   EXISTS(SELECT 1 FROM user_permissions p
                     WHERE p.user_id=uowner.id AND p.permission='collections.read' AND p.allowed=1) collections_read,
@@ -302,16 +380,29 @@ export function createMobilePushDispatcher(
         if (row.payment_mode && details.paymentMode == null && details.mode == null) {
           details.paymentMode = row.payment_mode;
         }
+        const shade = row.push_capabilities === shadeCapability;
+        const identity = {
+          notificationId: String(row.notification_id),
+          recipientUserId: String(row.recipient_user_id),
+          operationType: String(row.action),
+        };
         const message: FcmMessage = {
           token: String(row.token),
           title: 'VIB',
           body: mobilePushBody(String(row.action), String(row.actor_name ?? 'النظام'), details),
           channelId: fcmChannelId,
-          data: {
-            notificationId: String(row.notification_id),
-            recipientUserId: String(row.recipient_user_id),
-            operationType: String(row.action),
-          },
+          shade,
+          data: shade
+            ? {
+                ...identity,
+                ...shadeData(
+                  details,
+                  String(row.actor_name ?? 'النظام'),
+                  row.actor_role,
+                  String(row.created_at ?? ''),
+                ),
+              }
+            : identity,
         };
         try {
           await send(message, account);

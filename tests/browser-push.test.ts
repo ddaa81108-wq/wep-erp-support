@@ -131,8 +131,12 @@ test('push is transactional, excludes old/read notifications and encrypts actor 
     notice();
     await dispatcher.drain();
     assert.equal(delivered.length, 1);
-    assert.equal(JSON.parse(delivered[0]).title, 'VIB Abdo Company');
-    assert.equal(JSON.parse(delivered[0]).body, 'مدير — إضافة دين عميل');
+    const web = JSON.parse(delivered[0]) as Record<string, unknown>;
+    assert.deepEqual(Object.keys(web).sort(), ['badgeCount', 'body', 'tag', 'title', 'url']);
+    assert.equal(web.title, 'VIB Abdo Company');
+    assert.equal(web.body, 'مدير — إضافة دين عميل');
+    assert.equal('notification' in web, false);
+    assert.equal('data' in web, false);
     assert.ok(!delivered[0].includes('5000'));
     assert.ok(!delivered[0].includes('اسم خاص'));
     const read = notice();

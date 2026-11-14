@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src", "tests", "scripts/reconcile-financials.ts"]
+  "include": ["src", "tests", "scripts/reconcile-financials.ts", "scripts/rollback-shade.ts"]
 }
