@@ -4,7 +4,11 @@ import { test } from 'node:test';
 import { createApp, listen } from '../src/server/app.ts';
 import { API_VERSION, loadConfig } from '../src/server/config.ts';
 import { openDatabase } from '../src/server/db/database.ts';
-import { mobilePushRollbackSql } from '../src/server/db/migrationsMobilePush.ts';
+import {
+  mobilePushRollbackSql,
+  mobilePushShadeRollbackSql,
+  rollbackMobilePushShade,
+} from '../src/server/db/migrationsMobilePush.ts';
 import {
   authorizeFcm,
   createMobilePushDispatcher,
@@ -15,7 +19,10 @@ import {
   loadFcmAccount,
   resetFcmAccessCache,
   parseFcmAccount,
+  deviceRequestsShade,
   registerMobileDevice,
+  shadeCapability,
+  shadeData,
   type FcmMessage,
 } from '../src/server/domain/mobilePush.ts';
 import { SESSION_COOKIE, createSession } from '../src/server/security/sessions.ts';
@@ -134,7 +141,8 @@ test('a new notification is sent on the sound channel and an UNREGISTERED token 
   assert.equal(sent[0].token, token);
   assert.equal(sent[0].channelId, fcmChannelId);
   assert.equal(sent[0].data.recipientUserId, actor.id);
-  assert.equal(fcmMessageBody(sent[0]).message.android.notification.channel_id, fcmChannelId);
+  assert.equal(fcmMessageBody(sent[0]).message.notification?.title, 'VIB');
+  assert.equal(fcmMessageBody(sent[0]).message.android.notification?.channel_id, fcmChannelId);
   assert.equal(fcmMessageBody(sent[0]).message.android.priority, 'HIGH');
   assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_outbox').get()?.n, 0);
 
@@ -358,6 +366,161 @@ test('the access token is reused until five minutes before expiry', async () => 
     globalThis.fetch = original;
     resetFcmAccessCache();
   }
+});
+
+test('an unknown device keeps the legacy notification and a shade device gets data only', async () => {
+  const { db, actor, employee, token } = fixture();
+  const createdAt = '2026-11-14T13:25:00.000Z';
+  const details = {
+    subjectName: 'سالم',
+    subjectSection: 'customers',
+    amountUnits: 1500,
+    paymentMode: 'partial',
+    currency: 'LYD',
+    empty: '',
+    missing: null,
+    nested: { phone: '091' },
+    password: 'hidden-password',
+    token: 'hidden-token',
+    secret: 'hidden-secret',
+    hash: 'hidden-hash',
+    csrf: 'hidden-csrf',
+  };
+  registerMobileDevice(db, actor, { token, platform: 'android' });
+  assert.equal(deviceRequestsShade({}), false);
+  assert.equal(deviceRequestsShade({ pushCapabilities: 'shade_v1' }), false);
+  assert.equal(deviceRequestsShade({ pushCapabilities: ['shade_v2'] }), false);
+  assert.equal(
+    db.prepare('SELECT push_capabilities FROM mobile_push_devices WHERE token=?').get(token)
+      ?.push_capabilities,
+    null,
+  );
+  const legacySent: FcmMessage[] = [];
+  const legacy = createMobilePushDispatcher(db, account, async (message) => {
+    legacySent.push(message);
+  });
+  db.prepare(
+    'INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,?,?,?,?)',
+  ).run(
+    actor.organizationId,
+    actor.id,
+    employee.id,
+    'customer.payment',
+    'customer',
+    JSON.stringify(details),
+    createdAt,
+  );
+  await legacy.drain();
+  assert.equal(legacySent.length, 1);
+  const legacyWire = fcmMessageBody(legacySent[0]);
+  assert.equal(legacyWire.message.notification?.title, 'VIB');
+  assert.equal(legacyWire.message.notification?.body, legacySent[0].body);
+  assert.equal(legacyWire.message.android.priority, 'HIGH');
+  assert.equal(legacyWire.message.android.notification?.channel_id, fcmChannelId);
+  assert.deepEqual(legacySent[0].data, {
+    notificationId: String(legacySent[0].data.notificationId),
+    recipientUserId: actor.id,
+    operationType: 'customer.payment',
+  });
+  assert.equal('subjectName' in legacySent[0].data, false);
+  assert.equal(JSON.stringify(legacyWire).includes('hidden-password'), false);
+  legacy.stop();
+
+  registerMobileDevice(db, actor, {
+    token,
+    platform: 'android',
+    pushCapabilities: [shadeCapability, 'not-a-capability'],
+  });
+  assert.equal(
+    db.prepare('SELECT push_capabilities FROM mobile_push_devices WHERE token=?').get(token)
+      ?.push_capabilities,
+    shadeCapability,
+  );
+  const shadeSent: FcmMessage[] = [];
+  const shaded = createMobilePushDispatcher(db, account, async (message) => {
+    shadeSent.push(message);
+  });
+  db.prepare(
+    'INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,?,?,?,?)',
+  ).run(
+    actor.organizationId,
+    actor.id,
+    employee.id,
+    'customer.payment',
+    'customer',
+    JSON.stringify(details),
+    createdAt,
+  );
+  await shaded.drain();
+  assert.equal(shadeSent.length, 1);
+  const wire = fcmMessageBody(shadeSent[0]);
+  assert.equal(shadeSent[0].shade, true);
+  assert.equal(wire.message.notification, undefined);
+  assert.equal(wire.message.android.notification, undefined);
+  assert.equal(wire.message.android.priority, 'HIGH');
+  assert.equal(wire.message.data.subjectName, 'سالم');
+  assert.equal(wire.message.data.subjectSection, 'customers');
+  assert.equal(wire.message.data.amountUnits, '1500');
+  assert.equal(wire.message.data.paymentMode, 'partial');
+  assert.equal(wire.message.data.currency, 'LYD');
+  assert.equal(wire.message.data.actorName, employee.displayName);
+  assert.equal(wire.message.data.actorRole, 'employee');
+  assert.equal(wire.message.data.createdAt, createdAt);
+  assert.equal(wire.message.data.operationType, 'customer.payment');
+  for (const secret of [
+    'password',
+    'token',
+    'secret',
+    'hash',
+    'csrf',
+    'empty',
+    'missing',
+    'nested',
+    'phone',
+  ]) {
+    assert.equal(secret in wire.message.data, false, secret);
+  }
+  assert.equal(JSON.stringify(wire).includes('hidden-'), false);
+  assert.equal(JSON.stringify(wire).includes('091'), false);
+  shaded.stop();
+
+  registerMobileDevice(db, actor, { token, platform: 'android' });
+  assert.equal(
+    db.prepare('SELECT push_capabilities FROM mobile_push_devices WHERE token=?').get(token)
+      ?.push_capabilities,
+    null,
+  );
+  const coerced = shadeData(
+    { amountUnits: 1500, subjectName: '  ', reason: false, paidUnits: Number.NaN },
+    'أحمد',
+    null,
+    '',
+  );
+  assert.equal(coerced.amountUnits, '1500');
+  assert.equal(coerced.reason, 'false');
+  assert.equal('subjectName' in coerced, false);
+  assert.equal('paidUnits' in coerced, false);
+  assert.equal('createdAt' in coerced, false);
+  assert.equal(coerced.actorName, 'أحمد');
+});
+
+test('version 60 rolls back by dropping only the capability column', () => {
+  const { db, actor, token } = fixture();
+  registerMobileDevice(db, actor, { token, platform: 'android', pushCapabilities: [shadeCapability] });
+  assert.equal(
+    db.prepare('SELECT push_capabilities FROM mobile_push_devices WHERE token=?').get(token)
+      ?.push_capabilities,
+    shadeCapability,
+  );
+  rollbackMobilePushShade(db);
+  const columns = db
+    .prepare('PRAGMA table_info(mobile_push_devices)')
+    .all()
+    .map((row) => String(row.name));
+  assert.equal(columns.includes('push_capabilities'), false);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_devices').get()?.n, 1);
+  assert.equal(db.prepare('SELECT COUNT(*) n FROM schema_migrations WHERE version=60').get()?.n, 0);
+  assert.equal(mobilePushShadeRollbackSql.includes('DROP TABLE'), false);
 });
 
 test('version 59 rolls back by dropping only the mobile push tables', () => {

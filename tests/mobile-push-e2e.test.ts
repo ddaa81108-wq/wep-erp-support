@@ -38,7 +38,7 @@ test('local file migration sends only through the mock and rolls back without to
     return originalFetch(input, init);
   };
   try {
-    assert.equal(db.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, 59);
+    assert.equal(db.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, 60);
     const now = new Date().toISOString();
     db.prepare(
       `INSERT INTO users(id,username,display_name,password_hash,role,organization_id,home_branch_id,created_at,updated_at)
@@ -147,7 +147,7 @@ test('local file migration sends only through the mock and rolls back without to
   }
 });
 
-test('reopening after the undo applies version 59 again and does not rewrite the old rows', () => {
+test('reopening after the undo applies the mobile push migrations again and does not rewrite the old rows', () => {
   const root = mkdtempSync(join(tmpdir(), 'vib-fcm-reopen-'));
   const path = join(root, 'local.sqlite');
   const now = new Date().toISOString();
@@ -174,7 +174,14 @@ test('reopening after the undo applies version 59 again and does not rewrite the
   first.close();
   const again = openDatabase(path);
   try {
-    assert.equal(again.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, 59);
+    assert.equal(again.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, 60);
+    assert.equal(
+      again
+        .prepare('PRAGMA table_info(mobile_push_devices)')
+        .all()
+        .some((column) => column.name === 'push_capabilities'),
+      true,
+    );
     assert.equal(
       again.prepare('SELECT current_balance_units n FROM customers WHERE id=?').get('e2e-customer')?.n,
       1250,

@@ -23,6 +23,37 @@ export function rollbackMobilePush(db: AppDatabase) {
     if (Number(removed.changes) !== 1) {
       throw new Error('Mobile push migration 59 was not the recorded row.');
     }
+    db.prepare('DELETE FROM schema_migrations WHERE version=? AND name=?').run(
+      60,
+      'mobile-push-shade-capability',
+    );
+    db.exec('COMMIT');
+  } catch (error) {
+    db.exec('ROLLBACK');
+    throw error;
+  }
+}
+
+/** Undo for version 60. Not applied automatically. Devices and outbox rows stay. */
+export const mobilePushShadeRollbackSql = `
+ALTER TABLE mobile_push_devices DROP COLUMN push_capabilities;
+`;
+
+/**
+ * One-step cleanup after redeploying the previous program. Drops only the
+ * nullable capability column and forgets version 60. Notification rows,
+ * device tokens, and the outbox are not deleted. Not called on startup.
+ */
+export function rollbackMobilePushShade(db: AppDatabase) {
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    db.exec(mobilePushShadeRollbackSql);
+    const removed = db
+      .prepare('DELETE FROM schema_migrations WHERE version=? AND name=?')
+      .run(60, 'mobile-push-shade-capability');
+    if (Number(removed.changes) !== 1) {
+      throw new Error('Mobile push migration 60 was not the recorded row.');
+    }
     db.exec('COMMIT');
   } catch (error) {
     db.exec('ROLLBACK');
@@ -60,6 +91,13 @@ export const mobilePushMigrations: Migration[] = [
       SELECT id, NEW.id FROM mobile_push_devices
       WHERE user_id = NEW.recipient_user_id AND organization_id = NEW.organization_id;
   END;
+`,
+  },
+  {
+    version: 60,
+    name: 'mobile-push-shade-capability',
+    sql: `
+  ALTER TABLE mobile_push_devices ADD COLUMN push_capabilities TEXT;
 `,
   },
 ];
