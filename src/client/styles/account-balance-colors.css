@@ -1,6 +1,6 @@
 /* Account cards only: debt owed by the customer is red, their credit is green,
    and zero is black. Ownership already accounts for each section's sign rules.
-   Age labels, ticker, typography, dimensions and ledger totals stay unchanged. */
+   Age labels, ticker, typography and dimensions stay unchanged. */
 :root[data-theme] .workspace:is(.section-customers,.section-companies,.section-libyan-deposits) .customer-card[data-balance-owner='system'] { background:linear-gradient(160deg,#bd3b47,#781425 55%,#350d16);border-color:#f08895; }
 :root[data-theme] .workspace:is(.section-customers,.section-companies,.section-libyan-deposits) .customer-card[data-balance-owner='customer'] { background:linear-gradient(160deg,#219e6d,#075534 55%,#092b20);border-color:#65dba3; }
 :root[data-theme] .workspace:is(.section-customers,.section-companies,.section-libyan-deposits) .customer-card[data-balance-owner='zero'] { background:linear-gradient(#343434,#080808);border-color:#928b79; }
@@ -23,9 +23,11 @@
 :root[data-theme] .purchases-page .purchase-metrics article.zero,
 :root[data-theme] .purchases-page .purchase-register-total .purchase-total-remaining.zero { background:#334155;color:#fff;border-color:#94a3b8; }
 :root[data-theme] .purchases-page .purchase-metrics article:is(.liability,.credit,.zero) :is(span,b) { color:inherit; }
-/* Debt account ledger totals keep their existing gold presentation. */
-:root[data-theme] .ledger-panel:is(.section-customers,.section-companies) .ledger-footer-grid > .ledger-total[data-balance-sign] {
- background:linear-gradient(175deg,#fff8cc,#ffe57b 17%,#e7ae12 58%,#ffdf60 85%,#fff0a1);color:#211600;border:2px solid #ffedab;
-}
-/* Libyan account ledger totals retain their existing gold presentation. */
-:root[data-theme] .ledger-panel.section-libyan-deposits .ledger-footer-grid > .ledger-total[data-balance-owner][data-balance-sign] { background:linear-gradient(175deg,#fff8cc,#ffe57b 17%,#e7ae12 58%,#ffdf60 85%,#fff0a1);color:#211600;border:2px solid #ffedab; }
+/* Ledger totals mirror their outer account cards using the same ownership
+   attribute. Libyan deposits already map the opposite balance sign upstream.
+   Egyptian deposits retain their independent presentation. */
+:root[data-theme] .ledger-panel:is(.section-customers,.section-companies,.section-libyan-deposits) .ledger-footer-grid > .ledger-total[data-balance-owner='system'][data-balance-sign] { background:linear-gradient(160deg,#bd3b47,#781425 55%,#350d16);color:#fff;border:2px solid #f08895; }
+:root[data-theme] .ledger-panel:is(.section-customers,.section-companies,.section-libyan-deposits) .ledger-footer-grid > .ledger-total[data-balance-owner='customer'][data-balance-sign] { background:linear-gradient(160deg,#219e6d,#075534 55%,#092b20);color:#fff;border:2px solid #65dba3; }
+:root[data-theme] .ledger-panel:is(.section-customers,.section-companies,.section-libyan-deposits) .ledger-footer-grid > .ledger-total[data-balance-owner='zero'][data-balance-sign] { background:linear-gradient(#343434,#080808);color:#fff;border:2px solid #928b79; }
+:root[data-theme] .ledger-panel:is(.section-customers,.section-companies,.section-libyan-deposits) .ledger-footer-grid > .ledger-total[data-balance-owner][data-balance-sign] { box-shadow:inset 0 1px 0 #ffffff20,0 3px 10px #0002; }
+:root[data-theme] .ledger-panel:is(.section-customers,.section-companies,.section-libyan-deposits) .ledger-total[data-balance-owner][data-balance-sign] :is(span,strong,small,em) { color:inherit; }
