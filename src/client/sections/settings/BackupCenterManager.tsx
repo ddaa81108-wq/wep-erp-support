@@ -60,10 +60,15 @@ export function BackupCenterManager() {
   }, []);
   useEffect(() => { void load(); }, [load]);
   const schedule = health?.backupSchedule;
+  const capacity = health?.backupCapacity;
   const backupTime = (value: string) => new Intl.DateTimeFormat(displayLocale, { dateStyle: 'short', timeStyle: 'short', timeZone: 'Africa/Tripoli' }).format(new Date(value));
 
   return <div className="settings-backup-page">
     {notice && <div className="alert error">{notice}</div>}
+    {capacity && capacity.level !== 'ok' && <div role="alert" className="alert error">
+      {uiText(capacity.level === 'limit' ? 'حجم قاعدة البيانات تجاوز حد النسخة الطارئة من الصفحة. يلزم معالجة الحجم قبل الاعتماد على هذا المسار.' : 'حجم قاعدة البيانات اقترب من حد النسخ الاحتياطي. راجع السعة قبل بلوغ الحد.')}
+      {' '}{uiText('الحجم الحالي: {0} ميجابايت؛ حد الصفحة: {1} ميجابايت.', [(capacity.databaseBytes / 1048576).toFixed(1), String(capacity.emergencyLimitBytes / 1048576)])}
+    </div>}
     {backupNotice && <div role="status" className="backup-policy-note">{backupNotice}</div>}
     <div className="backup-details-grid backup-actions-grid">
       <section className="backup-panel">

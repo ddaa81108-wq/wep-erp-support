@@ -62,6 +62,13 @@ export type OperationsHealth = {
   technicalErrors: number;
   financialMismatches: number;
   backupPolicy: 'unverified';
+  backupCapacity?: {
+    databaseBytes: number;
+    emergencyLimitBytes: number;
+    scheduledLimitBytes: number;
+    warningThresholdBytes: number;
+    level: 'ok' | 'warning' | 'limit';
+  };
   restoreStatus?: { state: string; completedAt: string | null } | null;
   backupSchedule?: {
     output: string;

@@ -1,22 +1,32 @@
 import { uiText } from '../../i18n/language.ts';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ApiError, request } from '../../apiTransport.ts';
 
 export function AccountSecurityManager() {
   const [status, setStatus] = useState<{ configured: boolean; enabled: boolean } | null>(null);
+  const [loading, setLoading] = useState(true);
   const [password, setPassword] = useState(''),
     [code, setCode] = useState('');
   const [enrollment, setEnrollment] = useState<{ secret: string } | null>(null);
   const [codes, setCodes] = useState<string[]>([]),
     [notice, setNotice] = useState(''),
     [busy, setBusy] = useState(false);
-  const load = () =>
-    request<{ configured: boolean; enabled: boolean }>('/api/auth/mfa/status').then(setStatus);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await request<{ configured: boolean; enabled: boolean }>('/api/auth/mfa/status', { signal: AbortSignal.timeout(15_000) });
+      setStatus(result);
+    } finally { setLoading(false); }
+  }, []);
+  const retry = () => {
+    setNotice('');
+    void load().catch(error => setNotice(error instanceof ApiError ? error.message : uiText('تعذر تحميل حالة الحماية.')));
+  };
   useEffect(() => {
     void load().catch((error) =>
       setNotice(error instanceof ApiError ? error.message : uiText("تعذر تحميل حالة الحماية.")),
     );
-  }, []);
+  }, [load]);
   async function act(action: 'begin' | 'confirm' | 'disable') {
     setBusy(true);
     setNotice('');
@@ -68,8 +78,9 @@ export function AccountSecurityManager() {
     <section className="backup-panel stack" aria-label={uiText("حماية حسابي")}>
       <h3>{uiText("حماية حسابي — التحقق بخطوتين")}</h3>
       <p>
-        {uiText("الحالة: ")}{status ? (status.enabled ? uiText("مفعّل") : uiText("غير مفعّل")) : uiText("جارٍ التحقق…")}{uiText(". بعد التفعيل يلزم رمز التطبيق بالإضافة إلى تسجيل الدخول، بما في ذلك الدخول بواسطة Google.")}</p>
+        {uiText("الحالة: ")}{status ? (status.enabled ? uiText("مفعّل") : uiText("غير مفعّل")) : uiText(loading ? 'جارٍ التحقق…' : 'تعذر التحقق من حالة الحماية')}{uiText(". بعد التفعيل يلزم رمز التطبيق بالإضافة إلى تسجيل الدخول، بما في ذلك الدخول بواسطة Google.")}</p>
       {notice && <p role="status">{notice}</p>}
+      {!loading && <button className="secondary" disabled={busy} onClick={retry}>{uiText('إعادة تحميل حالة الحماية')}</button>}
       {status && !status.configured && <p>{uiText("يلزم تهيئة مفتاح الحماية على الخادم قبل إعداد التطبيق.")}</p>}
       {status?.configured && !codes.length && (
         <>

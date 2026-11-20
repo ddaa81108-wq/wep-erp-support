@@ -1,5 +1,5 @@
 import type { IncomingMessage } from 'node:http';
-import { backupStatus, installedDatabase } from './backupStatus.ts';
+import { backupStatus, databaseBackupCapacity, installedDatabase } from './backupStatus.ts';
 import { customerBalance } from './customerAccountRepository.ts';
 import { restoreStatus } from './emergencyBackup.ts';
 import { SCHEMA_VERSION, UI_VERSION } from '../config.ts';
@@ -37,6 +37,7 @@ export function operationsSnapshot(database: AppDatabase, actor: AuthenticatedUs
       WHERE organization_id=? AND severity='error'`),
     financialMismatches,
     backupPolicy: 'unverified',
+    backupCapacity: databaseBackupCapacity(database),
     backupSchedule: installedDatabase(database) ? backupStatus() : null,
     restoreStatus: actor.isOwner && installedDatabase(database) ? restoreStatus() : null,
     restoreDrillStatus: 'unverified',

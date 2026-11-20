@@ -107,7 +107,7 @@ test('scheduled capture runs without an open browser and survives restart unchan
   const db = openDatabase(':memory:');
   let stop = startReportScheduler(db);
   try {
-    db.prepare('UPDATE treasury_cash_accounts SET balance_units=700 WHERE organization_id=?').run(org);
+    inImmediateTransaction(db, () => db.prepare('UPDATE treasury_cash_accounts SET balance_units=700 WHERE organization_id=?').run(org));
     context.mock.timers.tick(60_000);
     const closed = readFiveAmClosing(db, org, '2026-10-20');
     assert.equal(closed.state, 'recorded');

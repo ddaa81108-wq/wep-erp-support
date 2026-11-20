@@ -6,6 +6,11 @@ import type { PositionSnapshot } from './reportModel.ts';
 const TIMEZONE = 'Africa/Tripoli';
 const CAPTURE_WINDOW_MS = 60_000;
 
+export type CommittedClosingPosition = {
+  snapshot: PositionSnapshot & { auditCursor: number };
+  committedAt: number;
+};
+
 function shiftDay(day: string, days: number) {
   return new Date(Date.parse(`${day}T12:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
 }
@@ -14,26 +19,28 @@ export function fiveAmDeadline(reportDay: string) {
   return new Date(Date.parse(businessDayRange(shiftDay(reportDay, 1), TIMEZONE).start) + 5 * 3_600_000);
 }
 
-/** Called only inside the scheduler's outer write transaction. Never backfill a missed deadline. */
+/** Preserve the verified pre-deadline commit; legacy callers keep the live window. */
 export function captureFiveAmClosing(
   database: AppDatabase,
   organizationId: string,
   startedAt: number,
   now = new Date(),
+  committed?: CommittedClosingPosition,
 ) {
   const day = shiftDay(currentBusinessDate(now, TIMEZONE), -1);
   const deadline = fiveAmDeadline(day);
   const due = deadline.getTime();
-  if (startedAt >= due || now.getTime() < due || now.getTime() >= due + CAPTURE_WINDOW_MS) return false;
+  const verified = committed && Number.isFinite(committed.committedAt) && committed.committedAt < due;
+  if (startedAt >= due || now.getTime() < due || (!verified && now.getTime() >= due + CAPTURE_WINDOW_MS)) return false;
   if (
     database
       .prepare('SELECT 1 FROM daily_financial_closings WHERE organization_id=? AND business_date=?')
       .get(organizationId, day)
   )
     return false;
-  const treasury = treasuryDashboard(database, organizationId);
-  const auditCursor = Number((database.prepare('SELECT COALESCE(MAX(id),0) id FROM audit_log WHERE organization_id=?').get(organizationId) as { id: number }).id);
-  const snapshot: PositionSnapshot & { auditCursor: number } = {
+  const treasury = verified ? committed.snapshot : treasuryDashboard(database, organizationId);
+  const auditCursor = verified ? committed.snapshot.auditCursor : Number((database.prepare('SELECT COALESCE(MAX(id),0) id FROM audit_log WHERE organization_id=?').get(organizationId) as { id: number }).id);
+  const snapshot = {
     auditCursor,
     receivablesUnits: treasury.receivablesUnits,
     liabilitiesUnits: treasury.liabilitiesUnits,
@@ -42,6 +49,8 @@ export function captureFiveAmClosing(
     egyptianConvertedUnits: treasury.egyptianConvertedUnits,
     egyptianRate: treasury.egyptianRate,
     netUnits: treasury.netUnits,
+    asOf: verified ? deadline.toISOString() : now.toISOString(),
+    captureMethod: verified ? 'committed-before-deadline' : 'live-within-window',
   };
   const result = database
     .prepare(

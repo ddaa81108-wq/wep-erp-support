@@ -27,7 +27,42 @@ export type FcmMessage = {
   shade?: boolean;
 };
 
-export type FcmSend = (message: FcmMessage, account: FcmAccount) => Promise<void>;
+export type FcmSend = (message: FcmMessage, account: FcmAccount, signal?: AbortSignal) => Promise<void>;
+
+export const FCM_REQUEST_TIMEOUT_MS = 15_000;
+
+/** Bound the entire authorization/send, including a transport ignoring abort. */
+export async function sendFcmWithDeadline(
+  send: FcmSend, message: FcmMessage, account: FcmAccount,
+  timeoutMs = FCM_REQUEST_TIMEOUT_MS, shutdown?: AbortSignal,
+) {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  let abortListener: (() => void) | undefined;
+  try {
+    await Promise.race([
+      new Promise<never>((_, reject) => {
+        const fail = () => { controller.abort(); reject(new FcmRequestError(0, 'SEND_ABORTED')); };
+        if (shutdown?.aborted) return fail();
+        shutdown?.addEventListener('abort', fail, { once: true });
+        // Remove the rejection listener as well as the controller on completion.
+        abortListener = fail;
+        timer = setTimeout(() => {
+          controller.abort();
+          reject(new FcmRequestError(0, 'SEND_TIMEOUT'));
+        }, timeoutMs);
+      }),
+      Promise.resolve().then(() => {
+        controller.signal.throwIfAborted();
+        return send(message, account, controller.signal);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+    if (abortListener) shutdown?.removeEventListener('abort', abortListener);
+    controller.abort();
+  }
+}
 
 /** Reads the service-account file. Absent file or env means the feature is off. */
 export function loadFcmAccount(
@@ -329,9 +364,16 @@ export function createMobilePushDispatcher(
   db: AppDatabase,
   account: FcmAccount | null,
   send: FcmSend = defaultFcmSend,
+  options: { timeoutMs?: number; onFailure?: (code: string) => void } = {},
 ) {
   let running = false;
   let stopped = false;
+  const shutdown = new AbortController();
+  const reportFailure = (code: string) => {
+    // Never include tokens, message contents, credentials or remote error bodies.
+    try { (options.onFailure ?? ((value) => console.warn('[mobile-push]', value)))(code); }
+    catch { /* A diagnostic sink must not change retry bookkeeping. */ }
+  };
   async function drain() {
     if (!account || running || stopped) return;
     running = true;
@@ -405,11 +447,12 @@ export function createMobilePushDispatcher(
             : identity,
         };
         try {
-          await send(message, account);
+          await sendFcmWithDeadline(send, message, account, options.timeoutMs, shutdown.signal);
           if (!stopped) db.prepare('DELETE FROM mobile_push_outbox WHERE id=?').run(row.id);
         } catch (error) {
           if (stopped) return;
           const coded = error as { status?: number; errorCode?: string; dropDevice?: boolean };
+          reportFailure(coded.errorCode === 'SEND_TIMEOUT' ? 'SEND_TIMEOUT' : 'SEND_FAILED');
           if (coded.dropDevice || coded.status === 404 || coded.errorCode === 'UNREGISTERED') {
             db.prepare('DELETE FROM mobile_push_devices WHERE id=?').run(row.device_id);
           } else {
@@ -426,7 +469,7 @@ export function createMobilePushDispatcher(
   }
   const timer = account
     ? setInterval(() => {
-        void drain().catch(() => undefined);
+        void drain().catch(() => reportFailure('DISPATCH_FAILED'));
       }, 3000)
     : null;
   timer?.unref();
@@ -434,6 +477,7 @@ export function createMobilePushDispatcher(
     drain,
     stop() {
       stopped = true;
+      shutdown.abort();
       if (timer) clearInterval(timer);
     },
   };
@@ -447,13 +491,14 @@ export function resetFcmAccessCache() {
   cachedAccess = null;
 }
 
-export async function authorizeFcm(account: FcmAccount, now = Date.now()) {
+export async function authorizeFcm(account: FcmAccount, now = Date.now(), signal?: AbortSignal) {
   const key = `${account.projectId}\n${account.clientEmail}`;
   if (cachedAccess && cachedAccess.key === key && now < cachedAccess.refreshAfterMs) {
     return cachedAccess.value;
   }
   const jwt = fcmAccessToken(account, Math.floor(now / 1000));
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+    signal: signal ?? AbortSignal.timeout(FCM_REQUEST_TIMEOUT_MS),
     method: 'POST',
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -474,12 +519,13 @@ export async function authorizeFcm(account: FcmAccount, now = Date.now()) {
   return access;
 }
 
-async function defaultFcmSend(message: FcmMessage, account: FcmAccount) {
-  const access = await authorizeFcm(account);
+async function defaultFcmSend(message: FcmMessage, account: FcmAccount, signal?: AbortSignal) {
+  const access = await authorizeFcm(account, Date.now(), signal);
   const response = await fetch(
     `https://fcm.googleapis.com/v1/projects/${encodeURIComponent(account.projectId)}/messages:send`,
     {
       method: 'POST',
+      signal: signal ?? AbortSignal.timeout(FCM_REQUEST_TIMEOUT_MS),
       headers: {
         authorization: `Bearer ${access}`,
         'content-type': 'application/json',

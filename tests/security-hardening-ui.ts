@@ -65,8 +65,27 @@ try {
   await second.getByLabel('رمز التحقق', { exact: true }).fill(recovery[0]);
   await second.getByRole('button', { name: 'تأكيد الدخول', exact: true }).click();
   await expect(second.locator('.app-shell')).toBeVisible();
+  let failStatus = true;
+  await page.route('**/api/auth/mfa/status', route => failStatus ? route.abort() : route.continue());
+  await page.getByRole('button', { name: 'العودة إلى الإعدادات', exact: true }).click();
+  await page.getByRole('button', { name: /مركز التشغيل والأمان/ }).click();
+  await expect(page.getByText('تعذر التحقق من حالة الحماية')).toBeVisible();
+  failStatus = false;
+  await page.getByRole('button', { name: 'إعادة تحميل حالة الحماية', exact: true }).click();
+  await expect(page.getByLabel('كلمة مرور حسابك الحالية')).toBeVisible();
+  await expect(page.getByText('تعذر التحقق من حالة الحماية')).toHaveCount(0);
+  await page.route('**/api/operations/health', async route => {
+    const response = await route.fetch();
+    const body = await response.json();
+    body.data.backupCapacity = { databaseBytes: 40 * 1048576, emergencyLimitBytes: 48 * 1048576, scheduledLimitBytes: 49 * 1048576, warningThresholdBytes: 38.4 * 1048576, level: 'warning' };
+    await route.fulfill({ response, json: body });
+  });
+  await page.getByRole('button', { name: 'العودة إلى الإعدادات', exact: true }).click();
+  await page.getByRole('button', { name: /النسخ الاحتياطي والاستعادة/ }).click();
+  await expect(page.getByRole('alert')).toContainText('اقترب من حد النسخ الاحتياطي');
+  await page.screenshot({ path: join(output, 'backup-size-warning.png'), fullPage: true });
   assert.deepEqual(errors, []);
-  console.log('PASS: real enrollment, recovery-code login, encrypted backup download and decrypt, desktop/mobile layout, no browser errors.');
+  console.log('PASS: isolated enrollment, recovery login, encrypted backup, layouts, failed-status retry and early capacity warning.');
 } finally {
   await browser.close(); server.closeRealtimeConnections(); server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve()));
   db.close(); rmSync(root, { recursive: true, force: true });

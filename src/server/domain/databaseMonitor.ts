@@ -2,7 +2,7 @@ import { lstat, readdir, readFile, statfs } from 'node:fs/promises';
 import { basename, dirname, join, resolve } from 'node:path';
 import type { AppDatabase } from '../db/database.ts';
 import type { ServerConfig } from '../config.ts';
-import { backupStatus } from './backupStatus.ts';
+import { backupStatus, databaseBackupCapacity } from './backupStatus.ts';
 import { BUILD_INFO } from '../../shared/buildInfo.ts';
 
 async function fileSize(path: string): Promise<number | null> {
@@ -62,7 +62,7 @@ export async function databaseMonitor(db: AppDatabase, config: ServerConfig) {
   let unreadableFiles = 0;
   try {
     const files = (await readdir(folder, { withFileTypes: true })).filter(
-      (entry) => entry.isFile() && !entry.isSymbolicLink() && entry.name.endsWith('.sqlite'),
+      (entry) => entry.isFile() && !entry.isSymbolicLink() && /\.(sqlite|abdobackup)$/.test(entry.name),
     );
     for (const file of files) {
       try {
@@ -121,6 +121,7 @@ export async function databaseMonitor(db: AppDatabase, config: ServerConfig) {
   const freePages = Number(db.prepare('PRAGMA freelist_count').get()!.freelist_count);
   return {
     build: BUILD_INFO,
+    backupCapacity: databaseBackupCapacity(db),
     checkedAt: new Date().toISOString(),
     database: {
       name: databasePath ? basename(databasePath) : 'قاعدة مؤقتة في الذاكرة',

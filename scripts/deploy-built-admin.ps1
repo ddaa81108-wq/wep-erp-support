@@ -177,4 +177,9 @@ try {
 } catch {
   Write-Warning "Program deployment succeeded, but its report could not be saved: $($_.Exception.Message)"
 }
+# Retire only verified old program releases after a fully successful deploy.
+# ZIP recovery copies remain local; live data and the preceding release stay.
+try {
+  & (Join-Path $PSScriptRoot 'archive-program-releases.ps1') -InstallRoot $InstallRoot -Apply | Out-Null
+} catch { Write-Warning "Deployment succeeded; program archiving was skipped: $($_.Exception.Message)" }
 $deploymentResult

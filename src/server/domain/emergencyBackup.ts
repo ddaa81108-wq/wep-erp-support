@@ -8,6 +8,7 @@ import { SCHEMA_VERSION } from '../config.ts';
 import { badRequest, conflict, forbidden } from '../http/errors.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
 import { encryptBackup, decryptBackup } from '../security/backupEncryption.ts';
+import { BACKUP_DOWNLOAD_LIMIT_BYTES } from '../../shared/backupPolicy.ts';
 
 let backupOperationBusy = false;
 export async function protectedBackupOperation<T>(operation: () => Promise<T>): Promise<T> {
@@ -56,7 +57,7 @@ export async function restoreBackup(db: AppDatabase, user: AuthenticatedUser, bo
   }
 }
 
-export const MAX_BACKUP_BYTES = 48 * 1024 * 1024;
+export const MAX_BACKUP_BYTES = BACKUP_DOWNLOAD_LIMIT_BYTES;
 const hash = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
 export function restoreStatus() {
   const root = process.env.ABDO_RESTORE_ROOT;

@@ -11,6 +11,7 @@ import {
 } from '../src/server/db/migrationsMobilePush.ts';
 import {
   authorizeFcm,
+  sendFcmWithDeadline,
   createMobilePushDispatcher,
   fcmChannelId,
   fcmDropsDevice,
@@ -35,6 +36,27 @@ const account = {
   clientEmail: 'push@vib-test.iam.gserviceaccount.com',
   privateKey: pem,
 };
+
+test('FCM deadline aborts a stalled transport and ignores a late completion', async () => {
+  let signal: AbortSignal | undefined;
+  let finish!: () => void;
+  const message: FcmMessage = { token: 'test-token', title: 'test', body: '', data: {}, channelId: fcmChannelId };
+  await assert.rejects(sendFcmWithDeadline((_message, _account, received) => {
+    signal = received;
+    return new Promise<void>((resolve) => { finish = resolve; });
+  }, message, account, 15), (error: unknown) => error instanceof FcmRequestError && error.errorCode === 'SEND_TIMEOUT');
+  assert.equal(signal?.aborted, true);
+  finish();
+  await sendFcmWithDeadline(async () => undefined, message, account, 100);
+});
+
+test('stopping a dispatcher aborts its active send deadline promptly', async () => {
+  const controller = new AbortController();
+  const message: FcmMessage = { token: 'test-token', title: 'test', body: '', data: {}, channelId: fcmChannelId };
+  const running = sendFcmWithDeadline(() => new Promise<void>(() => {}), message, account, 60_000, controller.signal);
+  controller.abort();
+  await assert.rejects(running, (error: unknown) => error instanceof FcmRequestError && error.errorCode === 'SEND_ABORTED');
+});
 
 function fixture() {
   const db = openDatabase(':memory:');
@@ -160,6 +182,28 @@ test('a new notification is sent on the sound channel and an UNREGISTERED token 
   assert.equal(db.prepare('SELECT COUNT(*) n FROM mobile_push_devices WHERE token=?').get(otherToken)?.n, 1);
   dispatcher.stop();
   failing.stop();
+});
+
+test('a stalled FCM row remains retryable and does not block the next device', async () => {
+  const { db, actor, other, employee, token } = fixture();
+  const failures: string[] = [], sent: string[] = [];
+  registerMobileDevice(db, actor, { token, platform: 'android' });
+  registerMobileDevice(db, other, { token: 'b'.repeat(40), platform: 'android' });
+  for (const user of [actor, other]) db.prepare("INSERT INTO notifications(organization_id,recipient_user_id,actor_user_id,action,entity_type,details_json,created_at) VALUES(?,?,?,'customer.debt','customer','{}',?)").run(actor.organizationId, user.id, employee.id, new Date().toISOString());
+  const dispatcher = createMobilePushDispatcher(db, account, message => {
+    if (message.token === token) return new Promise<void>(() => {});
+    sent.push(message.token); return Promise.resolve();
+  }, { timeoutMs: 20, onFailure: code => failures.push(code) });
+  try {
+    await dispatcher.drain();
+    assert.equal(sent.length, 1);
+    const remaining = db.prepare('SELECT attempts,next_attempt_at FROM mobile_push_outbox').all();
+    assert.equal(remaining.length, 1);
+    assert.equal(remaining[0].attempts, 1);
+    assert.ok(Number(remaining[0].next_attempt_at) > Date.now());
+    assert.deepEqual(failures, ['SEND_TIMEOUT']);
+    assert.equal(failures.join('').includes(token), false);
+  } finally { dispatcher.stop(); db.close(); }
 });
 
 test('no service account means nothing is sent', async () => {

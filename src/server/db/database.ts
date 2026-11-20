@@ -7,6 +7,15 @@ import { migrations } from './migrations.ts';
 export type AppDatabase = DatabaseSync;
 
 const commitObservers = new WeakMap<AppDatabase, Set<() => void>>();
+const committedObservers = new WeakMap<AppDatabase, Set<() => void>>();
+
+/** Observe successful outer commits only; a cache failure cannot undo a commit. */
+export function afterTransactionCommit(database: AppDatabase, observer: () => void) {
+  const observers = committedObservers.get(database) ?? new Set<() => void>();
+  observers.add(observer);
+  committedObservers.set(database, observers);
+  return () => { observers.delete(observer); };
+}
 
 /** Run derived-data updates inside the outer transaction, before it commits. */
 export function beforeTransactionCommit(database: AppDatabase, observer: () => void) {
@@ -133,15 +142,20 @@ export function inImmediateTransaction<T>(database: AppDatabase, work: () => T):
     }
   }
   database.exec('BEGIN IMMEDIATE');
+  let result: T;
   try {
-    const result = work();
+    result = work();
     for (const observer of commitObservers.get(database) ?? []) observer();
     database.exec('COMMIT');
-    return result;
   } catch (error) {
     database.exec('ROLLBACK');
     throw error;
   }
+  for (const observer of committedObservers.get(database) ?? []) {
+    try { observer(); }
+    catch { console.error('[post-commit-cache] update failed'); }
+  }
+  return result;
 }
 
 export function databaseHealth(database: AppDatabase) {

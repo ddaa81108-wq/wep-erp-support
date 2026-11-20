@@ -2,6 +2,11 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'تعذر التحقق من حالة الحماية': 'Could not verify account protection',
+  'إعادة تحميل حالة الحماية': 'Reload protection status',
+  'حجم قاعدة البيانات تجاوز حد النسخة الطارئة من الصفحة. يلزم معالجة الحجم قبل الاعتماد على هذا المسار.': 'The database exceeds the page emergency-backup limit. Resolve the size before relying on this route.',
+  'حجم قاعدة البيانات اقترب من حد النسخ الاحتياطي. راجع السعة قبل بلوغ الحد.': 'The database is approaching the backup limit. Review capacity before reaching it.',
+  'الحجم الحالي: {0} ميجابايت؛ حد الصفحة: {1} ميجابايت.': 'Current size: {0} MiB; page limit: {1} MiB.',
   'إعادة تهيئة الصوت وتجربته': 'Reset and test speech',
   'يوقف طابور النطق الحالي على هذا الجهاز ثم يشغّل تجربة جديدة؛ لا يعيد الإشعارات القديمة ولا يغيّر إعداد حسابك.': 'Stops the speech queue on this device and runs a new test; it does not replay old notifications or change your account settings.',
   'أُرسل طلب النطق؛ ننتظر تأكيد المتصفح.': 'Speech requested; waiting for the browser to confirm playback.',

@@ -63,6 +63,7 @@ try {
   if (foreignKeyProblems !== 0) throw new Error(`Backup has ${foreignKeyProblems} foreign-key problem(s).`);
   if (schemaVersion < 14) throw new Error(`Backup schema version is unsupported: ${schemaVersion}`);
 
+  const databaseSizeBytes = statSync(outputPath).size;
   if (keyPath) {
     const { encryptBackup } = await import('../src/server/security/backupEncryption.ts');
     // The key is read from an ACL-protected file, never a command argument or log.
@@ -82,6 +83,7 @@ try {
     source: basename(sourcePath),
     file: basename(outputPath),
     fileSizeBytes: statSync(outputPath).size,
+    databaseSizeBytes,
     schemaVersion,
     integrity,
     foreignKeyProblems,
@@ -93,7 +95,10 @@ try {
   renameSync(temporaryManifestPath, manifestPath);
   backupCommitted = true;
 
-  const warnings = [];
+  // Keep the unencrypted recovery tool standalone in legacy installations.
+  const pageDownloadLimitBytes = 48 * 1024 * 1024;
+  const warnings = databaseSizeBytes >= Math.floor(pageDownloadLimitBytes * 0.8)
+    ? ['Backup database size is approaching or above the page download limit.'] : [];
   const removed = [];
   try {
     const retained = readdirSync(outputRoot)

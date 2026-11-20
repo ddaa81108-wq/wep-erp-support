@@ -1,6 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes, scrypt } from 'node:crypto';
+import { BACKUP_ENCRYPTION_LIMIT_BYTES } from '../../shared/backupPolicy.ts';
 
-export const MAX_ENCRYPTED_BACKUP_BYTES = 49 * 1024 * 1024;
+export const MAX_ENCRYPTED_BACKUP_BYTES = BACKUP_ENCRYPTION_LIMIT_BYTES;
 export type EncryptedBackup = {
   format: 'abdo-erp-encrypted-backup';
   version: 1;

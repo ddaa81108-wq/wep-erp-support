@@ -1,0 +1,1493 @@
+
+@media (max-width: 900px) {
+  html, body, #root { width: 100%; min-width: 0; min-height: 100%; overflow-x: hidden; }
+  html, body, #root, .app-shell, .workspace {
+    touch-action: auto;
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  button, a, input, select, textarea { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .sidebar nav,
+  .modal,
+  .audit-list,
+  .operations-list,
+  .technical-events,
+  .notification-list {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+  .settings-operations-page { padding: 0 10px 12px; }
+  .operations-center { min-width: 0; padding: 4px 0; }
+  .operations-health-grid { grid-template-columns: 1fr 1fr; }
+  .operations-list article { grid-template-columns: 1fr 1fr; }
+  .session-identity { grid-column: 1 / -1; }
+  .operations-list article button { grid-column: 1 / -1; }
+  .settings-backup-page { padding: 0 10px 12px; }
+  .backup-status-grid { grid-template-columns: 1fr 1fr; }
+  .backup-details-grid { grid-template-columns: 1fr; }
+  .user-access-grid { grid-template-columns: 1fr; }
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+  .auth-aside {
+    display: none;
+  }
+  .mobile-logo {
+    display: grid;
+  }
+  .auth-page.auth-split-reference {
+    grid-template-columns: 1fr;
+  }
+  .auth-split-reference .auth-showcase {
+    display: none;
+  }
+  .auth-split-reference .auth-panel {
+    min-height: 100vh;
+    padding: 62px clamp(24px, 8vw, 70px) 28px;
+  }
+  .auth-reference-brand {
+    margin-bottom: 34px;
+  }
+  .auth-concept-4,
+  .auth-concept-5 {
+    grid-template-columns: 1fr;
+    padding: 58px 18px 24px;
+    place-items: center;
+  }
+  .auth-concept-4 .auth-aside,
+  .auth-concept-5 .auth-aside {
+    display: none;
+  }
+  .auth-concept-4 .auth-panel,
+  .auth-concept-5 .auth-panel {
+    width: min(560px, 100%);
+    border: 1px solid #ffffffb8;
+    border-radius: 22px;
+  }
+  .auth-concept-5 .auth-panel {
+    border-color: #ae824a;
+  }
+  .app-shell,
+  .app-shell.sidebar-hidden {
+    width: 100%;
+    min-height: 100dvh;
+    padding-right: 0;
+  }
+  .sidebar {
+    transform: translateX(110%);
+    z-index: 70;
+    width: min(280px, 86vw);
+    height: 100dvh;
+    padding-top: calc(9px + env(safe-area-inset-top));
+    padding-bottom: calc(9px + env(safe-area-inset-bottom));
+    overflow: hidden;
+  }
+  .sidebar nav { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .sidebar-hide-button { display: none; }
+  .sidebar-mobile-close {
+    width: 31px;
+    height: 31px;
+    display: grid;
+    place-items: center;
+    color: var(--sidebar-muted);
+    background: #ffffff08;
+    border: 1px solid #ffffff1d;
+    border-radius: 8px;
+  }
+  .sidebar-reveal {
+    display: none;
+  }
+  .drawer-shade {
+    display: block;
+    position: fixed;
+    z-index: 60;
+    inset: 0;
+    border: 0;
+    background: #0b211d8c;
+  }
+  .menu-button {
+    display: grid;
+  }
+  .workspace {
+    width: 100%;
+    min-width: 0;
+    padding: 0 6px calc(12px + env(safe-area-inset-bottom));
+    overflow-x: clip;
+  }
+  .topbar .menu-button { display: none; }
+  .summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .summary-grid article:last-child {
+    display: none;
+  }
+  .debts-toolbar,
+  .workspace.section-customers .debts-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .active-cards-card,
+  .dashboard-search {
+    grid-column: span 1;
+  }
+  .workspace.section-customers .active-cards-card {
+    grid-column: 1 / -1;
+  }
+  .customer-card-grid {
+    grid-template-columns: repeat(2, minmax(190px, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .settings-topbar { width: 100%; min-width: 0; flex-wrap: wrap; gap: 7px; }
+  .settings-topbar > div { min-width: 0; }
+  .settings-topbar > .secondary { margin-right: auto; }
+  .settings-accounts-page { padding: 0 10px 12px; }
+  .users-manager.embedded { min-width: 0; }
+  .account-requests, .users-manager-actions, .managed-users { min-width: 0; }
+  .managed-users article { min-width: 0; grid-template-columns: 34px minmax(0, 1fr) auto; }
+  .managed-user-actions { grid-column: 3; grid-row: 1 / span 2; flex-wrap: wrap; }
+  .theme-toggle {
+    top: 10px;
+    left: 10px;
+    padding: 8px;
+  }
+  .theme-toggle span {
+    display: none;
+  }
+  .auth-panel {
+    padding: 30px 19px;
+    align-items: start;
+  }
+  .auth-card h2 {
+    font-size: 25px;
+  }
+  .auth-theme-position .theme-toggle {
+    top: auto;
+    right: 9px;
+    bottom: 9px;
+    left: auto;
+  }
+  .auth-concept-switch {
+    top: 9px;
+    left: 9px;
+  }
+  .auth-concept-switch span {
+    display: none;
+  }
+  .auth-concept-4,
+  .auth-concept-5 {
+    padding: 50px 10px 10px;
+  }
+  .auth-concept-4 .auth-panel,
+  .auth-concept-5 .auth-panel {
+    padding: 24px 17px;
+    border-radius: 18px;
+  }
+  .workspace {
+    padding: 0 6px calc(12px + env(safe-area-inset-bottom));
+  }
+  .topbar {
+    min-height: 38px;
+    margin: 3px 0 6px;
+  }
+  .topbar h1 {
+    font-size: 18px;
+  }
+  .topbar p {
+    display: none;
+  }
+  .debt-ticker {
+    height: 28px;
+  }
+  .summary-grid {
+    gap: 9px;
+  }
+  .summary-grid article {
+    padding: 12px;
+    grid-template-columns: 36px 1fr;
+    gap: 8px;
+  }
+  .summary-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .summary-grid article > strong {
+    font-size: 16px;
+  }
+  .debts-toolbar,
+  .workspace.section-customers .debts-toolbar {
+    grid-template-columns: 1fr 105px;
+    gap: 6px;
+  }
+  .debt-total-card,
+  .add-customer-card,
+  .active-cards-card,
+  .dashboard-search,
+  .workspace.section-customers .debt-total-card,
+  .workspace.section-customers .add-customer-card,
+  .workspace.section-customers .routing-card,
+  .workspace.section-customers .active-cards-card,
+  .workspace.section-customers .dashboard-search {
+    min-height: 70px;
+    max-height: none;
+  }
+  .active-cards-card,
+  .dashboard-search,
+  .workspace.section-customers .active-cards-card,
+  .workspace.section-customers .dashboard-search {
+    grid-column: 1 / -1;
+  }
+  .workspace.section-egyptian-deposits .debts-toolbar {
+    grid-template-columns: 1fr 105px;
+  }
+  .workspace.section-egyptian-deposits .active-cards-card,
+  .workspace.section-egyptian-deposits .dashboard-search,
+  .workspace.section-egyptian-deposits .exchange-rate-card {
+    grid-column: 1 / -1;
+    min-width: 0;
+    max-height: none;
+  }
+  .workspace.section-egyptian-deposits .exchange-rate-card {
+    min-height: 68px;
+  }
+  .active-cards-card {
+    min-height: 86px;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+  .active-cards-count {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .active-cards-count strong {
+    line-height: 1;
+  }
+  .compact-filters {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .compact-filters button {
+    min-height: 34px;
+    padding-inline: 2px;
+    font-size: 8px;
+  }
+  .card-toolbar {
+    padding: 11px;
+  }
+  .card-toolbar .primary {
+    width: 44px;
+    padding: 0;
+    font-size: 0;
+  }
+  .card-toolbar .primary svg {
+    margin: 0;
+  }
+  .customer-card-grid {
+    grid-template-columns: 1fr;
+    padding: 7px;
+  }
+  .customer-card,
+  .customer-card-main {
+    min-height: 118px;
+  }
+  .customer-card.has-assignee,
+  .customer-card.has-assignee .customer-card-main {
+    min-height: 136px;
+  }
+  .modal-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+  .modal {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    padding-bottom: calc(17px + env(safe-area-inset-bottom));
+    border-radius: 17px 17px 0 0;
+  }
+  .two-cols {
+    grid-template-columns: 1fr;
+  }
+  .ledger-panel {
+    padding: 17px;
+  }
+  .permanent-ledger {
+    padding: 8px;
+    overflow-y: auto;
+    display: block;
+  }
+  .permanent-ledger > header {
+    padding-inline: 1px;
+    flex-wrap: wrap;
+    position: static;
+  }
+  .ledger-customer-title {
+    width: max-content;
+    min-width: 0;
+    max-width: calc(100vw - 90px);
+    flex: 1;
+  }
+  .ledger-panel > header .ledger-edit-details {
+    order: 2;
+    position: static;
+    transform: none;
+    margin-inline: auto;
+  }
+  .ledger-panel > header .icon-button {
+    order: 3;
+    margin-right: 0;
+  }
+  .ledger-table-wrap {
+    margin-top: 7px;
+  }
+  .ledger-table-wrap {
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+  }
+  .ledger-grid-head {
+    display: none;
+  }
+  .ledger-record {
+    min-width: 0;
+    margin-bottom: 10px;
+    padding: 11px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    border: 1px solid #ffffff4d;
+    border-radius: 12px;
+    box-shadow: 0 5px 16px var(--shadow);
+  }
+  .ledger-record:last-child {
+    border-bottom: 1px solid #ffffff4d;
+  }
+  .ledger-record > [data-label] {
+    min-width: 0;
+    min-height: 52px;
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: 3px;
+    padding: 7px 9px;
+    background: #ffffff12;
+    border: 0;
+    border-radius: 8px;
+  }
+  .ledger-record > [data-label]::before {
+    content: attr(data-label);
+    color: #ffffffb8;
+    font-size: 8px;
+    font-weight: 800;
+    text-decoration: none;
+  }
+  .ledger-record.corrected > [data-label]::before,
+  .ledger-record.reversed > [data-label]::before {
+    color: var(--muted);
+  }
+  .ledger-record > .row-action,
+  .ledger-record > .row-action-placeholder {
+    justify-self: stretch;
+    width: auto;
+    height: 42px;
+  }
+  .ledger-record > .row-action-placeholder {
+    display: none;
+  }
+  .ledger-draft-row {
+    min-width: 0;
+    margin-bottom: 10px;
+    padding: 11px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    border: 1px solid #e0c960;
+    border-radius: 12px;
+  }
+  .ledger-draft-row > * {
+    border: 0;
+  }
+  .ledger-draft-field {
+    display: grid;
+    align-content: start;
+    gap: 4px;
+  }
+  .ledger-draft-field > span {
+    display: block;
+    color: var(--muted);
+    font-size: 8px;
+    font-weight: 800;
+  }
+  .ledger-draft-row .sequence-cell,
+  .ledger-draft-row .draft-result {
+    min-height: 56px;
+    padding: 7px 9px;
+    background: color-mix(in srgb, var(--paper) 60%, transparent);
+    border-radius: 8px;
+  }
+  .draft-error {
+    grid-column: 1 / -1;
+  }
+  .ledger-draft-row > .row-action {
+    justify-self: stretch;
+    width: auto;
+    height: 42px;
+  }
+  .ledger-footer-grid {
+    min-width: 0;
+    min-height: auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 8px 0;
+    background: transparent;
+  }
+  .ledger-footer-grid > .ledger-total {
+    grid-column: 1;
+    width: max-content;
+    min-width: 174px;
+    margin: 0 auto 12px;
+  }
+  .managed-users article {
+    grid-template-columns: 38px 1fr auto;
+  }
+  .managed-users article > .icon-button {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+  .managed-users em {
+    display: none;
+  }
+}
+
+/* تنسيق سطح المكتب فقط. قواعد الهاتف السابقة تظل كما هي دون أي تغيير. */
+@media (min-width: 901px) {
+  .workspace {
+    display: flex;
+    flex-direction: column;
+  }
+  .workspace > * { width: 100%; }
+  .workspace > .debt-ticker { order: -2; }
+  .workspace > .dashboard-utility-bar { order: -1; }
+
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) > .admin-page {
+    display: contents;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) > .admin-page > .debt-ticker {
+    order: -2;
+  }
+
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) > .topbar,
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) > .admin-page > .topbar {
+    display: none;
+  }
+
+  .debt-ticker {
+    height: 46px;
+    min-height: 46px;
+    border-radius: 10px;
+  }
+  .debt-ticker.empty-ticker { font-size: 11px; font-weight: 700; }
+  .debt-ticker-track { gap: 9px; padding-inline: 10px; }
+  .debt-ticker-track button {
+    height: 32px;
+    gap: 8px;
+    padding: 3px 12px;
+    border-radius: 10px;
+    font-size: 10px;
+    line-height: 1.3;
+  }
+  .debt-ticker-track button strong,
+  .debt-ticker-track button span { font-weight: 800; }
+  .debt-ticker-track button em { font-size: 9px; font-weight: 700; }
+
+  .workspace.section-customers {
+    --desktop-card-bg: #176c59;
+    --desktop-card-border: #0e5b49;
+    --desktop-card-text: #effffb;
+    --desktop-card-muted: #ccebe3;
+  }
+  .workspace.section-companies {
+    --desktop-card-bg: #315f8d;
+    --desktop-card-border: #244b72;
+    --desktop-card-text: #f2f8ff;
+    --desktop-card-muted: #d0e2f3;
+  }
+  .workspace.section-libyan-deposits {
+    --desktop-card-bg: #0f766e;
+    --desktop-card-border: #0b5e58;
+    --desktop-card-text: #effffd;
+    --desktop-card-muted: #c9efeb;
+  }
+  .workspace.section-egyptian-deposits {
+    --desktop-card-bg: #6b3b80;
+    --desktop-card-border: #522d64;
+    --desktop-card-text: #fff6ff;
+    --desktop-card-muted: #ead5f2;
+  }
+  :root[data-theme='dark'] .workspace.section-customers {
+    --desktop-card-bg: #174f43;
+    --desktop-card-border: #2e806d;
+  }
+  :root[data-theme='dark'] .workspace.section-companies {
+    --desktop-card-bg: #294968;
+    --desktop-card-border: #47759f;
+  }
+  :root[data-theme='dark'] .workspace.section-libyan-deposits {
+    --desktop-card-bg: #155b57;
+    --desktop-card-border: #2a8981;
+  }
+  :root[data-theme='dark'] .workspace.section-egyptian-deposits {
+    --desktop-card-bg: #4b3158;
+    --desktop-card-border: #805497;
+  }
+
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar {
+    gap: 6px;
+    margin: 9px 0 7px;
+    grid-template-columns: minmax(160px, .9fr) 88px minmax(290px, 1.45fr) minmax(185px, 1fr);
+    align-items: stretch;
+  }
+  .workspace:is(.section-customers, .section-companies) .debts-toolbar.admin-debts-toolbar {
+    grid-template-columns: minmax(160px, .9fr) 88px 88px minmax(290px, 1.45fr) minmax(185px, 1fr);
+  }
+  .workspace.section-egyptian-deposits .debts-toolbar {
+    grid-template-columns: minmax(150px, .82fr) 86px minmax(250px, 1.28fr) minmax(175px, .94fr) minmax(225px, 1.12fr);
+  }
+
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) :is(
+    .debt-total-card,
+    .add-customer-card,
+    .routing-card,
+    .active-cards-card,
+    .dashboard-search,
+    .exchange-rate-card
+  ) {
+    min-height: 48px;
+    max-height: 48px;
+    color: var(--desktop-card-text);
+    background: var(--desktop-card-bg);
+    border-color: var(--desktop-card-border);
+    border-radius: 9px;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card {
+    padding: 4px 8px;
+    grid-template-columns: 28px 1fr;
+    column-gap: 7px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card .summary-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--desktop-card-text);
+    background: #ffffff1c;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card > span,
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card small,
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .active-cards-count span,
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search > span {
+    color: var(--desktop-card-muted);
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card > strong {
+    color: var(--desktop-card-text);
+    font-size: 15px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) :is(.add-customer-card, .routing-card) {
+    padding: 5px;
+    gap: 1px;
+    font-size: 9px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) :is(.add-customer-card, .routing-card):hover {
+    background: color-mix(in srgb, var(--desktop-card-bg) 88%, white 12%);
+  }
+  .workspace:is(.section-customers, .section-companies) .routing-card.active {
+    background: color-mix(in srgb, var(--desktop-card-bg) 82%, white 18%);
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) :is(.add-customer-card, .routing-card) svg {
+    width: 16px;
+    height: 16px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .active-cards-card {
+    padding: 4px 6px;
+    gap: 6px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .active-cards-count strong {
+    color: var(--desktop-card-text);
+    font-size: 17px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .compact-filters button {
+    min-height: 24px;
+    padding: 3px;
+    color: var(--desktop-card-muted);
+    background: #ffffff12;
+    border-color: #ffffff24;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .compact-filters button.active {
+    color: #fff;
+    background: #ffffff2b;
+    border-color: #ffffff55;
+  }
+  .workspace.section-customers .admin-debts-toolbar .active-cards-card {
+    min-height: 64px;
+    max-height: none;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search {
+    padding: 4px 6px;
+    gap: 1px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search .search {
+    color: var(--desktop-card-text);
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search input {
+    height: 25px;
+    padding-block: 2px;
+    color: var(--desktop-card-text);
+    background: #ffffff12;
+    border-color: #ffffff2e;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search input::placeholder {
+    color: var(--desktop-card-muted);
+    opacity: 1;
+  }
+  .workspace.section-egyptian-deposits .exchange-rate-card {
+    padding: 5px 7px;
+    color: var(--desktop-card-text);
+  }
+
+  /* بطاقات الحسابات على سطح المكتب: ألوان حالة صريحة ومساحة أكبر لعدد الكروت. */
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 7px;
+    padding: 7px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card-grid .customer-card {
+    contain-intrinsic-size: 106px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card {
+    min-height: 106px;
+    border-color: #19bfd0;
+    border-radius: 11px;
+    box-shadow: inset 0 1px 0 #ffffff45, 0 5px 14px #0000002e;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.new-debt {
+    --card-bg: linear-gradient(145deg, #3548ff 0%, #211caf 52%, #15126f 100%);
+    --card-accent: #e4e7ff;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.warning-debt {
+    --card-bg: linear-gradient(145deg, #ff9a00 0%, #e36d00 52%, #9f3f00 100%);
+    --card-accent: #fff0ce;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.overdue-debt {
+    --card-bg: linear-gradient(145deg, #ff164e 0%, #d30036 52%, #870021 100%);
+    --card-accent: #ffe2e9;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.credit-balance {
+    --card-bg: linear-gradient(145deg, #00c77b 0%, #00965e 52%, #00603e 100%);
+    --card-accent: #ddfff1;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.zero-balance {
+    --card-bg: linear-gradient(145deg, #151515 0%, #050505 58%, #000 100%);
+    --card-accent: #e5e5e5;
+    border-color: #737373;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card-main {
+    min-height: 106px;
+    gap: 2px;
+    padding: 8px 9px 7px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-name-line {
+    max-width: 100%;
+    font-size: 12px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card-main > b {
+    font-size: 17px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-last-movement {
+    margin-top: 3px;
+    padding-top: 4px;
+    font-size: 7px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.has-assignee,
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.has-assignee .customer-card-main {
+    min-height: 122px;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.has-assignee .customer-card-main {
+    padding-top: 27px;
+  }
+  .workspace:is(.section-customers, .section-companies) .customer-assignee-badge {
+    top: 5px;
+    right: 6px;
+    max-width: calc(100% - 42px);
+    padding: 2px 7px;
+    font-size: 7px;
+  }
+}
+
+/* The same compact phone treatment for the other debt-ledger sections. */
+@media (max-width: 560px) {
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "add total"
+      "filters filters"
+      "search search";
+    gap: 7px;
+    direction: ltr;
+    align-items: stretch;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debts-toolbar.admin-debts-toolbar {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas:
+      "add route total"
+      "filters filters filters"
+      "search search search";
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card,
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .add-customer-card,
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .routing-card,
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .active-cards-card,
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search {
+    min-width: 0;
+    min-height: 68px;
+    max-height: none;
+    direction: rtl;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card {
+    grid-area: total;
+    padding: 8px 9px;
+    grid-template-columns: 31px minmax(0, 1fr);
+    column-gap: 7px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card .summary-icon {
+    width: 31px;
+    height: 31px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .debt-total-card > strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workspace.section-companies .debt-total-card > strong {
+    font-size: 11px;
+    letter-spacing: -0.15px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .add-customer-card {
+    grid-area: add;
+    padding: 7px 4px;
+    gap: 2px;
+    font-size: 10px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .routing-card {
+    grid-area: route;
+    padding: 7px 4px;
+    gap: 2px;
+    font-size: 10px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .add-customer-card svg,
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .routing-card svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .active-cards-card {
+    grid-area: filters;
+    min-height: 77px;
+    padding: 8px 9px;
+    gap: 7px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .compact-filters {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .compact-filters button {
+    min-height: 34px;
+    padding: 5px 2px;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search {
+    grid-area: search;
+    min-height: 58px;
+    padding: 7px 9px;
+    background: color-mix(in srgb, var(--paper) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green) 24%, var(--line));
+    box-shadow: 0 5px 16px color-mix(in srgb, var(--shadow) 72%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+    backdrop-filter: blur(14px) saturate(125%);
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .dashboard-search input {
+    width: 100%;
+    height: 42px;
+    padding-inline: 39px 10px;
+    background: color-mix(in srgb, var(--panel-soft) 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green) 18%, var(--line));
+    border-radius: 12px;
+    font-size: 11px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card,
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card-main {
+    min-height: 116px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card-main {
+    padding: 9px 7px 7px;
+    gap: 2px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card-main > b {
+    font-size: 15px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-name-line {
+    max-width: 100%;
+    font-size: 12px;
+  }
+
+  .workspace:is(.section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-last-movement {
+    margin-top: 3px;
+    padding-top: 4px;
+    font-size: 8px;
+  }
+}
+
+/* Customer-debt phone layout: keep the compact controls readable without
+   changing the desktop register or any financial behaviour. */
+@media (max-width: 560px) {
+  .workspace.section-customers .debts-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "add total"
+      "filters filters"
+      "search search";
+    gap: 7px;
+    direction: ltr;
+    align-items: stretch;
+  }
+
+  .workspace.section-customers .debts-toolbar.admin-debts-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "add route total"
+      "filters filters filters"
+      "search search search";
+  }
+
+  .workspace.section-customers .debt-total-card,
+  .workspace.section-customers .add-customer-card,
+  .workspace.section-customers .routing-card,
+  .workspace.section-customers .active-cards-card,
+  .workspace.section-customers .dashboard-search {
+    min-width: 0;
+    min-height: 68px;
+    max-height: none;
+    direction: rtl;
+  }
+
+  .workspace.section-customers .debt-total-card {
+    grid-area: total;
+    padding: 8px 9px;
+    grid-template-columns: 31px minmax(0, 1fr);
+    column-gap: 7px;
+  }
+
+  .workspace.section-customers .debt-total-card .summary-icon {
+    width: 31px;
+    height: 31px;
+  }
+
+  .workspace.section-customers .debt-total-card > span {
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .workspace.section-customers .debt-total-card > strong {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workspace.section-customers .add-customer-card {
+    grid-area: add;
+    padding: 7px 4px;
+    gap: 2px;
+    font-size: 10px;
+  }
+
+  .workspace.section-customers .routing-card {
+    grid-area: route;
+    min-height: 68px;
+    padding: 7px 4px;
+    gap: 2px;
+    font-size: 10px;
+  }
+
+  .workspace.section-customers .add-customer-card svg,
+  .workspace.section-customers .routing-card svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .workspace.section-customers .active-cards-card {
+    grid-area: filters;
+    min-height: 77px;
+    padding: 8px 9px;
+    gap: 7px;
+  }
+
+  .workspace.section-customers .active-cards-count {
+    min-width: 0;
+  }
+
+  .workspace.section-customers .active-cards-count span {
+    font-size: 9px;
+  }
+
+  .workspace.section-customers .active-cards-count strong {
+    font-size: 18px;
+  }
+
+  .workspace.section-customers .compact-filters {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .workspace.section-customers .compact-filters button {
+    min-height: 34px;
+    padding: 5px 2px;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .workspace.section-customers .dashboard-search {
+    grid-area: search;
+    min-height: 58px;
+    padding: 7px 9px;
+    background: color-mix(in srgb, var(--paper) 72%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green) 24%, var(--line));
+    box-shadow: 0 5px 16px color-mix(in srgb, var(--shadow) 72%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+    backdrop-filter: blur(14px) saturate(125%);
+  }
+
+  .workspace.section-customers .dashboard-search > span {
+    font-size: 9px;
+  }
+
+  .workspace.section-customers .dashboard-search .search {
+    width: 100%;
+    max-width: none;
+  }
+
+  .workspace.section-customers .dashboard-search input {
+    width: 100%;
+    height: 42px;
+    padding-inline: 39px 10px;
+    background: color-mix(in srgb, var(--panel-soft) 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--green) 18%, var(--line));
+    border-radius: 12px;
+    font-size: 11px;
+  }
+
+  .workspace.section-customers .customer-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .workspace.section-customers .customer-card,
+  .workspace.section-customers .customer-card-main {
+    min-height: 116px;
+  }
+
+  .workspace.section-customers .customer-card-main {
+    padding: 9px 7px 7px;
+    gap: 2px;
+  }
+
+  .workspace.section-customers .customer-card-main > b {
+    font-size: 15px;
+  }
+
+  .workspace.section-customers .customer-name-line {
+    max-width: 100%;
+    font-size: 12px;
+  }
+
+  .workspace.section-customers .customer-last-movement {
+    margin-top: 3px;
+    padding-top: 4px;
+    font-size: 8px;
+  }
+
+  .workspace.section-customers .customer-card.has-assignee,
+  .workspace.section-customers .customer-card.has-assignee .customer-card-main {
+    min-height: 132px;
+  }
+
+  .workspace.section-customers .customer-assignee-badge {
+    top: 5px;
+    right: 6px;
+    max-width: calc(100% - 42px);
+    padding: 2px 6px;
+    font-size: 7px;
+  }
+}
+
+/* Explicit three-zone ledger header: close | edit | owner, independent of
+   RTL flex ordering so the controls never collapse beside the owner card. */
+.permanent-ledger > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px minmax(0, 1fr);
+  align-items: center;
+  direction: ltr;
+}
+.permanent-ledger > header > div {
+  order: initial;
+}
+.permanent-ledger .ledger-customer-title {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
+  height: 52px;
+  direction: rtl;
+  text-align: center;
+}
+.permanent-ledger > header .ledger-edit-details {
+  grid-column: 2;
+  grid-row: 1;
+  position: static;
+  transform: none;
+  width: 150px;
+  min-width: 150px;
+  height: 52px;
+  margin: 0;
+  direction: rtl;
+}
+.permanent-ledger:is(.section-customers, .section-companies) .ledger-customer-title {
+  border-radius: 26px;
+  padding: 5px 12px;
+  gap: 2px;
+  overflow: hidden;
+}
+.permanent-ledger:is(.section-customers, .section-companies) .ledger-customer-title h2 {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.permanent-ledger > header .icon-button {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  order: initial;
+  width: 52px;
+  min-width: 52px;
+  height: 52px;
+  margin: 0;
+}
+@media (max-width: 760px) {
+  .permanent-ledger > header {
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 32vw) minmax(0, 1fr);
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+  .permanent-ledger .ledger-customer-title,
+  .permanent-ledger > header .ledger-edit-details {
+    width: min(150px, 32vw);
+    min-width: 120px;
+    max-width: 150px;
+    height: 52px;
+  }
+  .permanent-ledger > header .icon-button {
+    width: 52px;
+    min-width: 52px;
+    height: 52px;
+  }
+}
+
+/* Final mobile ledger contract: the phone uses the exact desktop register.
+   The register owns horizontal scrolling; no transaction becomes a card. */
+@media (max-width: 760px) {
+  .permanent-ledger .ledger-table-wrap {
+    overflow-x: auto;
+    overflow-y: auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+  }
+  .permanent-ledger .ledger-grid,
+  .permanent-ledger .ledger-record,
+  .permanent-ledger .ledger-draft-row,
+  .permanent-ledger .ledger-footer-grid {
+    min-width: 1240px;
+    grid-template-columns: 62px 158px 112px minmax(150px, 1fr) 90px 90px 78px 94px 88px 100px 52px 52px;
+  }
+  .permanent-ledger .ledger-grid-head {
+    display: grid;
+  }
+  .permanent-ledger .ledger-record,
+  .permanent-ledger .ledger-draft-row {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    border: 0;
+    border-bottom: 1px solid #ffffff45;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .permanent-ledger .ledger-record > [data-label],
+  .permanent-ledger .ledger-draft-row > :not(.row-action) {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 6px;
+    background: transparent;
+    border: 0;
+    border-inline-start: 1px solid #ffffff4a;
+    border-radius: 0;
+  }
+  .permanent-ledger .ledger-record > [data-label]::before,
+  .permanent-ledger .ledger-draft-field > span {
+    content: none;
+    display: none;
+  }
+  .permanent-ledger .ledger-record > .row-action,
+  .permanent-ledger .ledger-record > .row-action-placeholder,
+  .permanent-ledger .ledger-draft-row > .row-action {
+    width: 27px;
+    height: 27px;
+    justify-self: center;
+    align-self: center;
+  }
+  .permanent-ledger .ledger-footer-grid {
+    display: grid;
+    min-height: 104px;
+    padding-top: 10px;
+    background: var(--paper);
+  }
+  .permanent-ledger .ledger-footer-grid > .ledger-total {
+    grid-column: 10;
+    min-width: 230px;
+    min-height: 88px;
+    margin: 0;
+    justify-self: center;
+  }
+}
+
+/* Ledger tables stay tables on phones as well; horizontal scrolling preserves
+   the same columns, editing flow, and keyboard layout as desktop. */
+@media (max-width: 760px) {
+  .permanent-ledger .ledger-table-wrap {
+    overflow-x: auto;
+    overflow-y: auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 11px;
+  }
+  .permanent-ledger .ledger-grid,
+  .permanent-ledger .ledger-draft-row {
+    min-width: 1240px;
+  }
+  .permanent-ledger .ledger-grid-head {
+    display: grid;
+  }
+  .permanent-ledger .ledger-record {
+    display: grid;
+    min-width: 1240px;
+    margin-bottom: 0;
+    padding: 0;
+    grid-template-columns: 62px 158px 112px minmax(150px, 1fr) 90px 90px 78px 94px 88px 100px 52px 52px;
+    gap: 0;
+    border: 0;
+    border-bottom: 1px solid #ffffff45;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .permanent-ledger .ledger-record > [data-label] {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 6px;
+    background: transparent;
+    border: 0;
+    border-inline-start: 1px solid #ffffff4a;
+    border-radius: 0;
+  }
+  .permanent-ledger .ledger-record > [data-label]::before {
+    content: none;
+  }
+  .permanent-ledger .ledger-record > .row-action,
+  .permanent-ledger .ledger-record > .row-action-placeholder {
+    width: 27px;
+    height: 27px;
+    justify-self: center;
+    align-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.routing-card {
+  min-height: 76px;
+  border: 1px solid #7997d5;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #294c93, #3d68bb);
+  color: #fff;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  font-weight: 800;
+  font-size: 11px;
+}
+.routing-card.active {
+  background: #8447a8;
+}
+.routing-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.routing-bar select {
+  min-width: 150px;
+}
+.routing-bar button {
+  margin-right: auto;
+  padding: 8px 13px;
+  border-radius: 8px;
+  background: var(--green);
+  color: #fff;
+  border: 0;
+  font-weight: 800;
+}
+.routing-select {
+  position: absolute;
+  z-index: 3;
+  top: 8px;
+  left: 8px;
+}
+.routing-select input {
+  position: absolute;
+  opacity: 0;
+}
+.routing-select span {
+  width: 26px;
+  height: 26px;
+  border: 2px solid #fff;
+  border-radius: 7px;
+  background: #0005;
+  color: transparent;
+  display: grid;
+  place-items: center;
+}
+.routing-select input:checked + span {
+  background: #fff;
+  color: #14735c;
+}
+.customer-card.selected-routing {
+  outline: 4px solid #6dd7bc;
+  outline-offset: 1px;
+}
+.customer-card.routing-unavailable {
+  filter: saturate(0.55);
+  opacity: 0.68;
+}
+.customer-card.routing-unavailable .customer-card-main {
+  cursor: not-allowed;
+}
+.workspace.section-companies .debts-toolbar {
+  grid-template-columns: minmax(180px, 0.9fr) 140px minmax(360px, 1.5fr) minmax(250px, 1.1fr);
+  align-items: stretch;
+}
+.workspace.section-companies .debts-toolbar:where(.admin-debts-toolbar) {
+  grid-template-columns: minmax(170px, 0.9fr) 112px 112px minmax(360px, 1.5fr) minmax(240px, 1.1fr);
+}
+.workspace.section-companies .debt-total-card,
+.workspace.section-companies .add-customer-card,
+.workspace.section-companies .routing-card,
+.workspace.section-companies .active-cards-card,
+.workspace.section-companies .dashboard-search {
+  min-height: 64px;
+  max-height: 64px;
+  border-radius: 10px;
+  box-shadow: 0 2px 9px var(--shadow);
+}
+.workspace.section-companies .debt-total-card {
+  padding: 8px 11px;
+  grid-template-columns: 34px 1fr;
+  column-gap: 8px;
+}
+.workspace.section-companies .debt-total-card .summary-icon {
+  width: 34px;
+  height: 34px;
+}
+.workspace.section-companies .debt-total-card > strong {
+  font-size: 17px;
+}
+.workspace.section-companies .add-customer-card,
+.workspace.section-companies .routing-card {
+  padding: 7px;
+  gap: 2px;
+  font-size: 10px;
+}
+.workspace.section-companies .add-customer-card svg,
+.workspace.section-companies .routing-card svg {
+  width: 18px;
+  height: 18px;
+}
+.workspace.section-companies .active-cards-card {
+  padding: 7px 9px;
+  gap: 8px;
+}
+.workspace.section-companies .active-cards-count strong {
+  font-size: 19px;
+}
+.workspace.section-companies .dashboard-search {
+  padding: 7px 9px;
+  gap: 2px;
+}
+.workspace.section-companies .dashboard-search input {
+  height: 31px;
+  padding-block: 5px;
+}
+@media (max-width: 560px) {
+  .workspace.section-companies .debts-toolbar {
+    grid-template-columns: 1fr 105px;
+    gap: 6px;
+  }
+  .workspace.section-companies .debt-total-card,
+  .workspace.section-companies .add-customer-card,
+  .workspace.section-companies .routing-card,
+  .workspace.section-companies .active-cards-card,
+  .workspace.section-companies .dashboard-search {
+    min-height: 70px;
+    max-height: none;
+  }
+  .workspace.section-companies .active-cards-card,
+  .workspace.section-companies .dashboard-search {
+    grid-column: 1/-1;
+  }
+  .workspace.section-customers .active-cards-card,
+  .workspace.section-companies .active-cards-card,
+  .workspace.section-libyan-deposits .active-cards-card,
+  .workspace.section-egyptian-deposits .active-cards-card {
+    min-height: 86px;
+  }
+}
+
+/* Card-only mobile parity: keep every phone layout intact and share the
+   brighter account status treatment used on desktop. */
+@media (max-width: 560px) {
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card {
+    border-color: #19bfd0;
+    border-radius: 11px;
+    box-shadow: inset 0 1px 0 #ffffff45, 0 4px 12px #00000030;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.new-debt {
+    --card-bg: linear-gradient(145deg, #3548ff 0%, #211caf 52%, #15126f 100%);
+    --card-accent: #e4e7ff;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.warning-debt {
+    --card-bg: linear-gradient(145deg, #ff9a00 0%, #e36d00 52%, #9f3f00 100%);
+    --card-accent: #fff0ce;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.overdue-debt {
+    --card-bg: linear-gradient(145deg, #ff164e 0%, #d30036 52%, #870021 100%);
+    --card-accent: #ffe2e9;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.credit-balance {
+    --card-bg: linear-gradient(145deg, #00c77b 0%, #00965e 52%, #00603e 100%);
+    --card-accent: #ddfff1;
+  }
+  .workspace:is(.section-customers, .section-companies, .section-libyan-deposits, .section-egyptian-deposits) .customer-card.zero-balance {
+    --card-bg: linear-gradient(145deg, #151515 0%, #050505 58%, #000 100%);
+    --card-accent: #e5e5e5;
+    border-color: #737373;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace.section-customers .customer-card-main > b {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 2px 4px;
+    width: 100%;
+    min-width: 0;
+    font-size: clamp(12px, 3.6vw, 15px);
+    line-height: 1.5;
+    white-space: normal;
+  }
+  .workspace.section-customers .customer-balance-amount {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  .workspace.section-customers .customer-card-main > b > small {
+    white-space: nowrap;
+  }
+  .workspace.section-customers .debt-total-card > strong {
+    min-width: 0;
+    max-width: 100%;
+    font-size: clamp(12px, 3.6vw, 15px);
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+  }
+}

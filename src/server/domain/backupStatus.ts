@@ -1,6 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import type { AppDatabase } from '../db/database.ts';
+import { backupCapacityFor } from '../../shared/backupPolicy.ts';
+
+export function databaseBackupCapacity(database: AppDatabase) {
+  const pageSize = Number(database.prepare('PRAGMA page_size').get()!.page_size);
+  const pageCount = Number(database.prepare('PRAGMA page_count').get()!.page_count);
+  return backupCapacityFor(pageSize * pageCount);
+}
 
 export function installedDatabase(database: AppDatabase) {
   const path = database.prepare('PRAGMA database_list').all().find(row => row.name === 'main')?.file;
