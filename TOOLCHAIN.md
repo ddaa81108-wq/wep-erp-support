@@ -23,12 +23,15 @@
 ## حزم المشروع
 
 - React وReact DOM وLucide وMotion.
-- Vite 7.3.6 وplugin React وTailwind tooling.
-- TypeScript وVitest وتعريفات Node/React.
+- Vite وplugin React؛ التنسيق الحالي يستخدم CSS مباشرة دون Tailwind.
+- TypeScript وتعريفات Node/React. الاختبارات الوحدوية تعمل عبر مشغّل Node المدمج (`npm test`).
 - Playwright 1.63.0 مع Chrome for Testing 153 وHeadless Shell وFFmpeg وWinldd.
-- خطوط Cairo وJetBrains Mono محليًا من حزم Fontsource.
-- `html-to-image` و`html2canvas` و`jspdf` و`fflate` للتصدير والنسخ.
-- `fake-indexeddb` لاختبارات المسودات المحلية القادمة.
+- خط Cairo محليًا من حزمة Fontsource.
+- `html2canvas` و`jspdf` و`fflate` للتصدير والنسخ.
+
+مراجعة تنظيف المصدر بتاريخ 2026-11-20: أُزيلت الحزم غير المستعملة من تعريفات المشروع وملف القفل؛ لم تُغيّر إصدارات الحزم المتبقية أو آلية تشغيل الاختبارات. جدول برامج الجهاز أعلاه سجل تاريخي بتاريخ التحقق المذكور، وليس فحصًا لحالة الجهاز الحالية.
+
+التحقق بعد التنظيف: نجح `npm run build` و`npm run check` (308 اختبارات ناجحة دون تخطٍّ) و`npm run test:ui`. أعاد `npm audit` صفر ثغرات معلنة. انخفض عدد عناصر `packages` في ملف القفل من 354 إلى 283؛ يشمل هذا العدد الحزم الاختيارية وحزم المنصات الأخرى، وليس عدد الحزم المثبتة على Windows فقط. هذه النتائج لا تمثل قياسًا جديدًا لتغطية جميع الواجهات أو نشرًا على السيرفر.
 
 كل الإصدارات النهائية مقفلة في `package-lock.json`. آخر `npm audit` أعاد 0 ثغرات معلنة. تم استبعاد Vite 6.2.3 الموجود في المصدر لأنه يحمل تحذيرات أمنية، واعتمد Vite 7 المتوافق مع إضافات المشروع.
 
