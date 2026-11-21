@@ -3,6 +3,7 @@ import type { ServerResponse } from 'node:http';
 import { basename, dirname, extname, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { badRequest } from './errors.ts';
+import { applyRequestTiming } from './requestTiming.ts';
 
 const moduleFile = fileURLToPath(import.meta.url);
 const WEB_ROOT =
@@ -52,6 +53,7 @@ export async function serveWebAsset(pathname: string, response: ServerResponse) 
     const body = await readFile(candidate);
     const extension = extname(candidate).toLowerCase();
     const immutable = pathname.startsWith('/assets/');
+    applyRequestTiming(response);
     response.writeHead(200, {
       'Content-Type': WEB_MIME[extension] ?? 'application/octet-stream',
       'Content-Length': body.length,

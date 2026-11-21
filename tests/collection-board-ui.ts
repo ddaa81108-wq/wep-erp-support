@@ -33,14 +33,26 @@ try {
     },
   ]);
   const page = await context.newPage();
+  let boardStyleReads = 0;
+  page.on('request', request => {
+    if (/\/assets\/CollectionsSection-[^/]+\.css$/.test(new URL(request.url()).pathname)) boardStyleReads++;
+  });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(base + '/erp');
+  await expect(page.locator('.customer-card-main').first()).toBeVisible();
+  assert.equal(boardStyleReads, 0, 'Collection styles are not loaded on the customer screen');
   await page.getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
   const board = page.locator('.collection-board');
   const idle = async () => {
     await expect(board.getByRole('status').first()).toHaveText('متصل بالمزامنة الحية');
   };
   await idle();
+  assert.equal(boardStyleReads, 1, 'Collection styles load once, before displaying the board');
+  await page.getByRole('button', { name: 'قسم ديون العملاء', exact: true }).click();
+  await expect(page.locator('.customer-card-main').first()).toBeVisible();
+  await page.getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
+  await idle();
+  assert.equal(boardStyleReads, 1, 'Returning to the collection board reuses its loaded stylesheet');
   await expect(board.getByRole('tab').first()).toHaveAttribute('id', 'board-tab-all');
   await expect(page.locator('#board-tab-all')).toHaveAttribute('aria-selected', 'true');
   await expect(

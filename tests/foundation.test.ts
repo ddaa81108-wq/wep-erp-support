@@ -1658,6 +1658,7 @@ test('built Arabic interface and immutable assets are served locally', async () 
   assert.equal(asset.status, 200);
   assert.match(asset.headers.get('cache-control') ?? '', /immutable/);
   assert.match(asset.headers.get('content-type') ?? '', /javascript/);
+  assert.match(asset.headers.get('server-timing') ?? '', /total;dur=[\d.]+/);
 });
 
 test('employee permissions are enforced immediately and deactivation revokes access', async () => {

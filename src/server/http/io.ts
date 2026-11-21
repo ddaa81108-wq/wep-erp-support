@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { badRequest, payloadTooLarge } from './errors.ts';
+import { applyRequestTiming } from './requestTiming.ts';
 
 const MAX_BODY_BYTES = 1_048_576;
 
@@ -31,6 +32,7 @@ export async function readJson(request: IncomingMessage, maxBytes = MAX_BODY_BYT
 
 export function sendJson(response: ServerResponse, status: number, payload: unknown) {
   const body = JSON.stringify(payload);
+  applyRequestTiming(response);
   response.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Content-Length': Buffer.byteLength(body),

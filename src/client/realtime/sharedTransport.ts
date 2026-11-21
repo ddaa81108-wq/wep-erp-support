@@ -32,7 +32,10 @@ let opened = false,
   recovering = false;
 let poll: ReturnType<typeof setInterval> | undefined;
 let stopTimer: ReturnType<typeof setTimeout> | undefined;
+let resumeTimer: ReturnType<typeof setTimeout> | undefined;
 function stop() {
+  clearTimeout(resumeTimer);
+  resumeTimer = undefined;
   generation++;
   source?.close();
   source = null;
@@ -77,10 +80,15 @@ async function recover() {
   }
 }
 function resume() {
-  if (document.visibilityState === 'visible') {
+  // A tab becoming visible commonly emits both visibilitychange and focus.
+  // Coalesce only those lifecycle events; committed-operation events stay immediate.
+  if (document.visibilityState !== 'visible' || resumeTimer !== undefined) return;
+  resumeTimer = setTimeout(() => {
+    resumeTimer = undefined;
+    if (!source || document.visibilityState !== 'visible') return;
     reconcile();
     void recover();
-  }
+  }, 16);
 }
 function start() {
   if (source) return;

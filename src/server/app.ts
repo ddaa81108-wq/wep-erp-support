@@ -17,6 +17,7 @@ import { API_VERSION, SCHEMA_VERSION, UI_VERSION } from './config.ts';
 import { EventHub } from './events.ts';
 import { HttpError, badRequest, forbidden, unauthorized } from './http/errors.ts';
 import { sendJson } from './http/io.ts';
+import { finishGateTiming, startRequestTiming } from './http/requestTiming.ts';
 import { applyBrowserSecurityHeaders, serveWebAsset } from './http/web.ts';
 import { enforcePublicHttps } from './http/https.ts';
 import { eventCursor } from './http/fields.ts';
@@ -304,12 +305,14 @@ export function createApp(
   const internetGate = new InternetGate(config);
   const internetCheck = options.internetCheck ?? (() => internetGate.isAvailable());
   const server = createServer(async (request, response) => {
+    startRequestTiming(response);
     const correlationId = randomUUID();
     try {
       if (!(await internetCheck())) {
         response.destroy();
         return;
       }
+      finishGateTiming(response);
       applyBrowserSecurityHeaders(response);
       if (enforcePublicHttps(request, response, config.publicOrigin)) return;
       response.setHeader('X-Correlation-Id', correlationId);
