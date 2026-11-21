@@ -5,6 +5,9 @@ import { Pencil } from 'lucide-react';
 import { treasuryNumberFormat,treasuryDesktopDate as desktopDate } from './treasuryViewModel.ts';
 import { TreasuryCorrectionForm,type CashCorrectionValues } from './TreasuryCorrectionForm.tsx';
 
+// A viewport is used by the original desktop layout and the new appearance on phones.
+const usesViewport = () => window.matchMedia('(min-width: 901px)').matches || document.documentElement.dataset.royalShell === '03';
+
 export function TreasuryCashLedger({
   entries,
   scrollRequest = 0,
@@ -20,11 +23,19 @@ export function TreasuryCashLedger({
 }) {
   const viewport = useRef<HTMLDivElement>(null);
   const position = useRef({ following: true, sequence: '', offset: 0, latest: 0, request: 0 });
+  const geometry = useRef({ width: 0, height: 0, content: 0 });
   const [hasNew, setHasNew] = useState(false);
 
   function rememberPosition() {
     const element = viewport.current;
-    if (!element || !window.matchMedia('(min-width: 901px)').matches) return;
+    if (!element || !usesViewport()) return;
+    const next = { width: element.clientWidth, height: element.clientHeight, content: element.scrollHeight };
+    const previous = geometry.current;
+    const resized = next.width !== previous.width || next.height !== previous.height || next.content !== previous.content;
+    // A responsive reflow can emit scroll before ResizeObserver. Keep followers
+    // at the newest row, while readers of older entries retain their anchor.
+    if (position.current.following && resized) { goToLatest(); return; }
+    geometry.current = next;
     const top = element.getBoundingClientRect().top + (element.firstElementChild?.clientHeight ?? 0);
     const anchor = Array.from(element.querySelectorAll<HTMLElement>('[data-sequence]')).find(
       (row) => row.getBoundingClientRect().bottom > top,
@@ -39,13 +50,14 @@ export function TreasuryCashLedger({
     const element = viewport.current;
     if (!element) return;
     element.scrollTop = element.scrollHeight;
+    geometry.current = { width: element.clientWidth, height: element.clientHeight, content: element.scrollHeight };
     position.current.following = true;
     setHasNew(false);
   }
 
   useLayoutEffect(() => {
     const element = viewport.current;
-    if (!element || !window.matchMedia('(min-width: 901px)').matches) return;
+    if (!element || !usesViewport()) return;
     const saved = position.current;
     const latest = entries.at(-1)?.sequence ?? 0;
     if (saved.following || saved.request !== scrollRequest) {
@@ -66,7 +78,7 @@ export function TreasuryCashLedger({
     const element = viewport.current;
     if (!element) return;
     const observer = new ResizeObserver(() => {
-      if (window.matchMedia('(min-width: 901px)').matches && position.current.following) goToLatest();
+      if (usesViewport() && position.current.following) goToLatest();
     });
     observer.observe(element);
     return () => observer.disconnect();

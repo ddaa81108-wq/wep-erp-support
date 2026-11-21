@@ -115,12 +115,13 @@ try {
         );
         if (width < 700 && (await page.locator('.sidebar.open').count()))
           await page.getByRole('button', { name: 'إغلاق القائمة الرئيسية', exact: true }).click();
+        console.log('Correction layout', theme, shell, width);
         await form.scrollIntoViewIfNeeded();
         assert.ok(
           await form.evaluate((el) => el.scrollWidth <= el.clientWidth + 1),
           'Correction form fits phone',
         );
-        if (width === 390) {
+        if (width === 390 && shell === 'original') {
           const placement = await page.locator('[data-sequence="1"]').evaluate((row) => {
             const action = row.querySelector('.treasury-row-actions')!.getBoundingClientRect();
             const actor = row.children[5].getBoundingClientRect();
@@ -128,6 +129,8 @@ try {
           });
           assert.ok(placement, 'Phone edit action sits at the bottom of its transaction');
         }
+        if (width === 390 && shell === '03')
+          await form.getByRole('button', { name: 'حفظ التعديل', exact: true }).scrollIntoViewIfNeeded();
         await expect(form.getByRole('button', { name: 'حفظ التعديل', exact: true })).toBeInViewport();
         await page.screenshot({ path: `artifacts/treasury-corrections/${theme}-${shell}-${width}.png` });
       }

@@ -1,0 +1,57 @@
+/* Appearance only. Deliberately excludes account cards and financial status colors. */
+:root[data-theme][data-royal-shell='03'] :is(.sidebar,.workspace) {
+  background:var(--wg-bg)!important; color:var(--wg-ink)!important;
+}
+:root[data-theme][data-royal-shell='03'] .sidebar,
+:root[data-theme][data-royal-shell='03'] .workspace :is(.dashboard-utility-bar,.debt-ticker,.debts-toolbar) {
+  background:var(--wg-paper)!important; color:var(--wg-ink)!important;
+  border-color:var(--wg-line)!important; box-shadow:var(--wg-shadow)!important;
+}
+:root[data-theme][data-royal-shell='03'] .sidebar :is(.sidebar-identity,.identity-user,.sidebar-controls) {
+  background:transparent!important; border-color:var(--wg-line)!important; box-shadow:none!important;
+}
+:root[data-theme][data-royal-shell='03'] .sidebar :is(strong,small,button) { color:var(--wg-ink)!important; }
+:root[data-theme][data-royal-shell='03'] .sidebar :is(.brand-mark,svg) { color:var(--wg-accent)!important; }
+:root[data-theme][data-royal-shell='03'] .sidebar button {
+  background:var(--wg-paper)!important; border-color:var(--wg-line)!important; box-shadow:none!important;
+}
+:root[data-theme][data-royal-shell='03'] .sidebar nav button.active {
+  background:var(--wg-selected)!important; border-color:var(--wg-line)!important;
+}
+:root[data-theme][data-royal-shell='03'] .sidebar nav button:hover:not(:disabled) { background:var(--wg-soft)!important; }
+:root[data-theme][data-royal-shell='03'] .workspace :is(.dashboard-utility-bar,.debts-toolbar,.debt-ticker) :is(button,input,.sync-status,.global-account-search,.dashboard-section-title,.debt-total-card,.active-cards-card,.egypt-rate-card) {
+  background:var(--wg-paper)!important; color:var(--wg-ink)!important;
+  border-color:var(--wg-line)!important; box-shadow:none!important;
+}
+:root[data-theme][data-royal-shell='03'] .workspace :is(.dashboard-section-heading,.sync-status b,.debt-total-card strong,.debt-total-card span,.active-cards-card span,.active-cards-card strong,.debt-ticker-track span,.debt-ticker-track em) { color:var(--wg-ink)!important; }
+:root[data-theme][data-royal-shell='03'] .workspace :is(.add-customer-card,.routing-card,.compact-filters button[aria-selected='true'],.dashboard-section-title) { background:var(--wg-selected)!important; }
+:root[data-theme][data-royal-shell='03'] .workspace .debt-ticker::after { background:var(--wg-selected)!important; color:var(--wg-ink)!important; }
+:root[data-theme][data-royal-shell='03'] .workspace :is(.dashboard-utility-bar,.debts-toolbar) input::placeholder { color:var(--wg-muted)!important; opacity:1; }
+:root[data-theme][data-royal-shell='03'] .workspace :is(.global-search-results,.global-search-result,.global-search-results>button,.global-search-show-card) {
+  background:var(--wg-paper)!important; color:var(--wg-ink)!important;
+  border-color:var(--wg-line)!important; box-shadow:var(--wg-shadow)!important;
+}
+:root[data-theme][data-royal-shell='03'] .workspace .global-search-results :is(strong,small,b,p,button) { color:var(--wg-ink)!important; }
+:root[data-theme][data-royal-shell='03'] .workspace .global-search-results button:hover { background:var(--wg-soft)!important; }
+:root[data-theme][data-royal-shell='03'] .workspace .global-account-search:focus-within { outline:2px solid var(--wg-line); outline-offset:1px; }
+:root[data-theme][data-royal-shell='03'] .workspace .sync-status:is(.error,.offline),
+:root[data-theme][data-royal-shell='03'] .workspace .sync-status:is(.error,.offline) b { color:#cf5446!important; }
+:root[data-theme][data-royal-shell='03'] .workspace .sync-status.saving,
+:root[data-theme][data-royal-shell='03'] .workspace .sync-status.saving b { color:var(--wg-accent)!important; }
+/* Extra specificity is intentional: account-view CSS is loaded after the shell. */
+:root[data-theme][data-royal-shell='03'] .workspace[class] .debts-toolbar {
+  background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important;
+}
+:root[data-theme][data-royal-shell='03'] .sidebar nav button>svg { background:transparent!important; border-color:var(--wg-line)!important; box-shadow:none!important; }
+/* Form controls must have matching foreground and surface in every section. */
+html:root[data-theme][data-royal-shell='03'] body .workspace[class][class] :is(input,select,textarea) {
+  background:var(--wg-paper)!important; color:var(--wg-ink)!important; -webkit-text-fill-color:var(--wg-ink)!important;
+  border-color:var(--wg-line)!important; box-shadow:none!important; color-scheme:light;
+}
+html:root[data-theme='dark'][data-royal-shell='03'] body .workspace[class][class] :is(input,select,textarea) { color-scheme:dark; }
+html:root[data-theme][data-royal-shell='03'] body .workspace[class][class] input::placeholder { color:var(--wg-muted)!important; -webkit-text-fill-color:var(--wg-muted)!important; opacity:1; }
+:root[data-theme][data-royal-shell='03'] body,
+:root[data-theme][data-royal-shell='03'] .app-shell { background:var(--wg-bg)!important; }
+:root[data-theme][data-royal-shell='03'] .workspace .customer-summary-strip {
+  background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important;
+}

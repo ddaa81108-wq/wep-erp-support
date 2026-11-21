@@ -1,0 +1,13 @@
+/* Shared appearance tokens. Key 03 is retained to migrate existing device preferences. */
+:root[data-royal-shell='03'] {
+  --wg-bg:#f6f4ef; --wg-paper:#fffefa; --wg-soft:#f5efdf; --wg-ink:#252421;
+  --wg-muted:#706958; --wg-line:#b99a54; --wg-accent:#8a651d;
+  --wg-selected:linear-gradient(135deg,#f6ebce,#ead7a4);
+  --wg-shadow:0 2px 8px #4939120a;
+}
+:root[data-theme='dark'][data-royal-shell='03'] {
+  --wg-bg:#191c21; --wg-paper:#24282e; --wg-soft:#30343a; --wg-ink:#f4f0e7;
+  --wg-muted:#c5bcaa; --wg-line:#b99d61; --wg-accent:#e5c782;
+  --wg-selected:linear-gradient(135deg,#55472a,#3e3728);
+  --wg-shadow:0 2px 8px #0002;
+}

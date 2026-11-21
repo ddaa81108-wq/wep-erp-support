@@ -43,7 +43,10 @@ import './styles/readability.css';
 import './styles/auth-l01.css';
 import './styles/languages.css';
 import './styles/duplicate-warning.css';
-import './styles/emerald-shell.css';
+import './styles/white-gold-tokens.css';
+import './styles/white-gold-shell.css';
+import './styles/white-gold-sections.css';
+import './styles/white-gold-treasury.css';
 
 let root: Root | undefined;
 startNumberInputGuard();

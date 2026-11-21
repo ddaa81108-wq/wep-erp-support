@@ -14,7 +14,7 @@ const server = createApp(
 );
 await listen(server, '127.0.0.1', 0);
 const base = 'http://127.0.0.1:' + (server.address() as AddressInfo).port,
-  output = 'artifacts/emerald-shell';
+  output = 'artifacts/white-gold-shell';
 const before = db
   .prepare('SELECT id,current_balance_units,ledger_next_sequence FROM customers ORDER BY id')
   .all();
@@ -91,7 +91,7 @@ try {
         const baseline = await cardState(),
           notification = await page.getByRole('button', { name: 'الإشعارات', exact: true }).boundingBox();
         const search = await page.getByRole('textbox', { name: 'البحث الموحد', exact: true }).boundingBox();
-        await appearance('03 · الزمردي الملكي اللامع');
+        await appearance('الأبيض والذهبي');
         const actual = await cardState();
         assert.equal(actual.length, baseline.length);
         actual.forEach((card, index) => {
@@ -119,7 +119,8 @@ try {
         const shell = await page
           .locator('.dashboard-utility-bar')
           .evaluate((el) => getComputedStyle(el).backgroundImage);
-        assert.ok(shell.includes(mode === 'dark' ? '43, 136, 99' : '70, 181, 138'), shell);
+        assert.equal(shell, 'none');
+        assert.equal(await page.locator('.dashboard-utility-bar').evaluate(el=>getComputedStyle(el).backgroundColor), mode==='dark' ? 'rgb(36, 40, 46)' : 'rgb(255, 254, 250)');
         assert.ok(
           await page
             .locator('.sidebar nav button.active')
@@ -129,7 +130,7 @@ try {
       }
     }
     console.log(
-      `PASS ${section}: glossy light/dark, desktop/mobile; all card text/colors/amounts/dimensions, search and notifications unchanged.`,
+      `PASS ${section}: white/gold light/dark, desktop/mobile; all card text/colors/amounts/dimensions, search and notifications unchanged.`,
     );
   }
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -142,7 +143,7 @@ try {
     ['settings', 'الإعدادات'],
   ];
   const ready: Record<string, string> = {
-    collections: '.collection-overview-header',
+    collections: '.collection-board',
     masraweya: '.masraweya-header',
     purchases: '.purchase-action-dock',
     treasury: '.treasury-panel-head',
@@ -152,16 +153,27 @@ try {
   for (const [name, title] of others) {
     await page.locator('.sidebar').getByRole('button', { name: title, exact: true }).click();
     await expect(page.locator('.sidebar nav button.active')).toHaveText(title);
-    await expect(page.locator(ready[name]).first()).toBeVisible();
+    await expect(page.locator(ready[name]).first()).toBeVisible({timeout:20000});
     for (const mode of ['light', 'dark']) {
       await page.evaluate((value) => {
         document.documentElement.dataset.theme = value;
       }, mode);
-      await appearance('03 · الزمردي الملكي اللامع');
+      await appearance('الأبيض والذهبي');
       const shell = await page
         .locator('.dashboard-utility-bar')
         .evaluate((el) => getComputedStyle(el).backgroundImage);
-      assert.ok(shell.includes(mode === 'dark' ? '43, 136, 99' : '70, 181, 138'));
+      assert.equal(shell, 'none');
+      await expect.poll(async () => page.locator('.workspace input:visible,.workspace select:visible').evaluateAll((elements, mode) => elements.every(element => {
+        const style = getComputedStyle(element);
+        return style.backgroundColor === (mode === 'dark' ? 'rgb(36, 40, 46)' : 'rgb(255, 254, 250)');
+      }), mode)).toBe(true);
+      const fields = await page.locator('.workspace input:visible,.workspace select:visible').evaluateAll(elements => elements.map(element => ({
+        background: getComputedStyle(element).backgroundColor, color: getComputedStyle(element).color,
+      })));
+      for (const field of fields) {
+        assert.equal(field.background, mode === 'dark' ? 'rgb(36, 40, 46)' : 'rgb(255, 254, 250)', `${name}/${mode}: field background`);
+        assert.equal(field.color, mode === 'dark' ? 'rgb(244, 240, 231)' : 'rgb(37, 36, 33)', `${name}/${mode}: field foreground`);
+      }
       await page.screenshot({ path: `${output}/${name}-${mode}.png` });
     }
     console.log(`PASS ${title}: consistent shell in both modes.`);

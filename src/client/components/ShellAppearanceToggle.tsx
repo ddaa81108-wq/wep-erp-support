@@ -37,19 +37,19 @@ export function ShellAppearanceToggle() {
     window.addEventListener('storage', sync);
     return () => window.removeEventListener('storage', sync);
   }, []);
-  const emerald = appearance === '03';
-  const next = uiText(emerald ? 'الرجوع إلى الشكل الأصلي' : 'تفعيل الزمردي الملكي اللامع');
+  const whiteGold = appearance === '03';
+  const next = uiText(whiteGold ? 'الرجوع إلى الشكل الأصلي' : 'تفعيل الأبيض والذهبي');
   return (
     <button
       type="button"
       className="theme-toggle shell-appearance-toggle"
       aria-label={uiText('تبديل تنسيق الأشرطة')}
-      aria-pressed={emerald}
+      aria-pressed={whiteGold}
       title={next}
-      onClick={() => setAppearance(emerald ? 'original' : '03')}
+      onClick={() => setAppearance(whiteGold ? 'original' : '03')}
     >
       <Gem size={18} />
-      <span>{uiText(emerald ? 'الزمردي اللامع' : 'الشكل الأصلي')}</span>
+      <span>{uiText(whiteGold ? 'الأبيض والذهبي' : 'الشكل الأصلي')}</span>
     </button>
   );
 }

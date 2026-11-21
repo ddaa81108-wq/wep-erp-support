@@ -89,6 +89,7 @@ try {
   });
   database.prepare("UPDATE users SET must_change_password=0 WHERE username='reader'").run();
   const viewer = await browser.newContext();
+  await viewer.addInitScript(() => localStorage.setItem('abdo-shell-appearance','original'));
   await viewer.request.post(base + '/api/auth/login', {
     headers: { 'X-Client-Api-Version': '1' },
     data: { username: 'admin', password: 'Live Admin 123!' },

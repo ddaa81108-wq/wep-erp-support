@@ -52,6 +52,7 @@
     "test:unlinked-currency-ui": "node tests/unlinked-currency-ui.ts",
     "test:zero-review-ui": "node tests/customer-zero-review-ui.ts",
     "test:treasury-ui": "node tests/treasury-presentation-ui.ts",
+    "test:white-gold-ui": "node tests/white-gold-shell-ui.ts && node tests/white-gold-ledgers-ui.ts && node tests/white-gold-treasury-ui.ts",
     "test:push-ui": "node tests/browser-push-ui.ts",
     "test:notifications-ui": "node tests/notification-buttons-ui.ts",
     "test:notification-speech-ui": "node tests/notification-speech-ui.ts",
