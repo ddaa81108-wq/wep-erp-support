@@ -70,6 +70,8 @@ try {
   db.prepare("UPDATE user_permissions SET allowed=1 WHERE user_id=? AND permission='collections.write'").run(collector.id);
   await recovery.getByRole('button').click();
   await expect(recovery).toHaveCount(0);
+  await expect(currentCard.locator('.partial-collection-details')).not.toHaveAttribute('open','');
+  await expect(currentCard.locator('input[name="amount"]')).toHaveValue('');
   assert.equal(requests.length,3);
   assert.deepEqual(requests[1],requests[0]);
   assert.deepEqual(requests[2],requests[0]);
@@ -105,10 +107,11 @@ try {
   assert.equal(db.prepare('SELECT COUNT(*) n FROM collection_submissions').get()!.n,2);
   await expect(mobileCard.getByRole('button',{name:'استلام كلي',exact:true})).toBeDisabled();
   for (const [index,amount] of ['20','15'].entries()) {
+    await mobileCard.locator('.partial-collection-details > summary').click();
     await mobileAmount.fill(amount);
     await save.click();
     await expect.poll(()=>Number(db.prepare("SELECT COUNT(*) n FROM collection_submissions WHERE customer_id=? AND status='pending'").get(ids[1])!.n)).toBe(index+2);
-    await expect(save).toBeEnabled();
+    await expect(mobileCard.locator('.partial-collection-form button')).toBeEnabled();
     await expect(mobile.locator('.pending-collection-recovery')).toHaveCount(0);
   }
   assert.equal(db.prepare('SELECT current_balance_units balance FROM customers WHERE id=?').get(ids[1])!.balance,100);

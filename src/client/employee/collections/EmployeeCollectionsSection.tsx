@@ -19,42 +19,7 @@ import { EmployeeCollectionReceipts, EmployeeAssignmentReceipts } from './Employ
 import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { CollectionPayrollPanel } from '../../sections/collections/CollectionPayrollPanel.tsx';
 import { CollectionCardAmounts } from '../../sections/collections/CollectionCardAmounts.tsx';
-
-function PartialReceiptForm({
-  busy,
-  submit,
-}: {
-  busy: boolean;
-  submit: (amount: number) => Promise<boolean>;
-}) {
-  const { bindForm, trackChanges, markSaved } = useUnsavedForm(busy);
-  return (
-    <form
-      ref={bindForm}
-      onInput={trackChanges}
-      onChange={trackChanges}
-      className="partial-collection-form"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        if (await submit(Number(new FormData(event.currentTarget).get('amount')))) markSaved();
-      }}
-    >
-      <label>
-        {uiText('القيمة')}
-        <input
-          name="amount"
-          inputMode="numeric"
-          type="number"
-          min="1"
-          step="1"
-          required
-          placeholder={uiText('المبلغ')}
-        />
-      </label>
-      <button disabled={busy}>{uiText('حفظ')}</button>
-    </form>
-  );
-}
+import { PartialReceiptForm } from './PartialReceiptForm.tsx';
 
 export function EmployeeCollectionsSection({ userId }: { userId: string }) {
   const { data, error, busy, setError, setBusy, load, run } = useCollectionsDashboard();
@@ -86,6 +51,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
   }, [creating]);
   const [payrollOpen, setPayrollOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState<PendingCollectionRequest[]>([]);
+  const [confirmedRequests, setConfirmedRequests] = useState<Record<string, string>>({});
   const submitting = useRef(false);
   useEffect(() => {
     try {
@@ -98,7 +64,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
     writePendingCollections(localStorage, userId, requests);
     setPendingRequests(requests);
   }
-  async function sendPending(request: PendingCollectionRequest, recovering = true) {
+  async function sendPending(request: PendingCollectionRequest, recovering = true, onConfirmed?: () => void) {
     if (submitting.current) return false;
     submitting.current = true;
     try {
@@ -110,6 +76,11 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
             request.amountUnits,
             request.requestId,
           );
+          // Confirmation is independent of the subsequent board refresh.
+          onConfirmed?.();
+          // Recovery can finish outside the original form. Recreate its details
+          // as well, so a stale amount cannot become a fresh accidental receipt.
+          setConfirmedRequests(current => ({ ...current, [request.assignmentId]: request.requestId }));
           keepRequests(
             readPendingCollections(localStorage, userId).filter(
               (item) => item.requestId !== request.requestId,
@@ -141,7 +112,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
       submitting.current = false;
     }
   }
-  async function submit(id: string, mode: 'full' | 'partial', amount: number) {
+  async function submit(id: string, mode: 'full' | 'partial', amount: number, onConfirmed?: () => void) {
     if (!Number.isSafeInteger(amount) || amount <= 0) {
       setError(uiText('اكتب قيمة صحيحة أكبر من صفر.'));
       return false;
@@ -161,7 +132,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
         requestId: crypto.randomUUID(),
       };
       if (!previous) keepRequests([...requests, request]);
-      return await sendPending(request, Boolean(previous));
+      return await sendPending(request, Boolean(previous), onConfirmed);
     } catch {
       setError(uiText('تعذر حفظ مفتاح الطلب على هذا الجهاز. لم يتم إرسال تحصيل جديد.'));
       return false;
@@ -359,11 +330,11 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
                             {inactive || Boolean(assignment.hasPendingFull) ? (
                               <button disabled>{uiText('استلام جزئي')}</button>
                             ) : (
-                              <details className="partial-collection-details">
+                              <details key={confirmedRequests[assignment.id] ?? 'new'} className="partial-collection-details">
                                 <summary>{uiText('استلام جزئي')}</summary>
                                 <PartialReceiptForm
                                   busy={busy === assignment.id}
-                                  submit={(amount) => submit(assignment.id, 'partial', amount)}
+                                  submit={(amount, confirmed) => submit(assignment.id, 'partial', amount, confirmed)}
                                 />
                               </details>
                             )}

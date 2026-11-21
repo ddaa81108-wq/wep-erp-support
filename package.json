@@ -48,6 +48,7 @@
     "test:employee-collection-board-ui": "node tests/employee-collection-board-ui.ts",
     "test:collection-approval-cancellation-ui": "node tests/collection-approval-cancellation-ui.ts",
     "test:collection-idempotency-ui": "node tests/collection-idempotency-ui.ts",
+    "test:partial-receipt-ui": "node tests/partial-receipt-submit-ui.ts && node tests/collection-idempotency-ui.ts",
     "test:collection-exceptional-close-ui": "node tests/collection-exceptional-close-ui.ts",
     "test:unlinked-currency-ui": "node tests/unlinked-currency-ui.ts",
     "test:zero-review-ui": "node tests/customer-zero-review-ui.ts",

@@ -106,8 +106,8 @@ try {
     before,
   );
   const target = board.locator('.collection-card').filter({ hasText: '001' }).first();
-  await target.locator('.partial-collection-details > summary').click();
   for (const [index, amount] of [25, 30, 35].entries()) {
+    await target.locator('.partial-collection-details > summary').click();
     await target.locator('input[name="amount"]').fill(String(amount));
     await target.getByRole('button', { name: 'حفظ', exact: true }).click();
     await expect
@@ -119,7 +119,7 @@ try {
         ),
       )
       .toBe(index + 1);
-    await expect(target.getByRole('button', { name: 'حفظ', exact: true })).toBeEnabled();
+    await expect(target.locator('.partial-collection-form button')).toBeEnabled();
   }
   // Awaiting approval never changes the customer ledger or blocks the next partial collection.
   assert.deepEqual(
@@ -129,6 +129,7 @@ try {
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 2))
     .toBe(true);
+  await target.locator('.partial-collection-details > summary').click();
   await target.screenshot({ path: `${directory}/partial-entry-phone.png` });
   await target.locator('input[name="amount"]').fill('40');
   page.once('dialog', (dialog) => dialog.dismiss());
