@@ -9,7 +9,7 @@ import { runReleaseCheck } from './release/run-check.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'var/release-verification/latest.json');
-mkdirSync(dirname(output), { recursive: true });
+mkdirSync(join(dirname(output), 'checks'), { recursive: true });
 const report = {
   format: 1,
   planVersion: RELEASE_PLAN_VERSION,
@@ -25,10 +25,23 @@ try {
   report.source = sourceIdentity(root);
   for (const check of releaseChecks) {
     console.log(`\nRelease verification: ${check.id}`);
-    const result = { id: check.id, status: 'running', startedAt: new Date().toISOString() };
+    const result = {
+      id: check.id,
+      status: 'running',
+      startedAt: new Date().toISOString(),
+      log: `var/release-verification/checks/${check.id}.log`,
+    };
     report.checks.push(result);
     save();
-    await runReleaseCheck(check, root);
+    try {
+      await runReleaseCheck(check, root, join(root, result.log));
+    } catch (error) {
+      result.status = 'failed';
+      result.completedAt = new Date().toISOString();
+      result.error = error.message;
+      save();
+      throw error;
+    }
     result.status = 'passed';
     result.completedAt = new Date().toISOString();
     save();

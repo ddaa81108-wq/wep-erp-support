@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // @ts-expect-error Native ESM release tooling is tested directly by Node.
@@ -9,7 +9,36 @@ import { sourceIdentity, buildIdentity, assertReleaseEvidence } from '../scripts
 // @ts-expect-error Native ESM release plan is shared with the production runner.
 import { releaseChecks, RELEASE_PLAN_VERSION } from '../scripts/release/plan.mjs';
 // @ts-expect-error Native ESM runner exports its isolated child-environment builder.
-import { windowsPowerShellEnvironment } from '../scripts/release/run-check.mjs';
+import { windowsPowerShellEnvironment, runReleaseCheck } from '../scripts/release/run-check.mjs';
+
+test('release checks preserve stdout and stderr and expose failed check logs', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'abdo-release-log-'));
+  try {
+    const failedLog = join(root, 'failed.log');
+    await assert.rejects(
+      runReleaseCheck(
+        {
+          id: 'fixture-failure',
+          node: ['-e', 'console.log("fixture-output");console.error("fixture-error");process.exit(7);'],
+        },
+        root,
+        failedLog,
+      ),
+      /fixture-failure failed \(7\); log:/,
+    );
+    assert.match(readFileSync(failedLog, 'utf8'), /fixture-output/);
+    assert.match(readFileSync(failedLog, 'utf8'), /fixture-error/);
+    const passedLog = join(root, 'passed.log');
+    await runReleaseCheck(
+      { id: 'fixture-success', node: ['-e', 'console.log("fixture-success");'] },
+      root,
+      passedLog,
+    );
+    assert.match(readFileSync(passedLog, 'utf8'), /fixture-success/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test('Windows PowerShell checks get native modules without changing the parent environment', () => {
   const before = {

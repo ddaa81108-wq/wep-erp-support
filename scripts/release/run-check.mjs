@@ -1,5 +1,5 @@
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, openSync, writeSync, closeSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import process from 'node:process';
 import { setTimeout, clearTimeout } from 'node:timers';
@@ -19,7 +19,7 @@ export function windowsPowerShellEnvironment(environment) {
   return clean;
 }
 
-export function runReleaseCheck(check, root) {
+export function runReleaseCheck(check, root, logPath) {
   let executable = process.execPath,
     args;
   if (check.npm) {
@@ -32,10 +32,13 @@ export function runReleaseCheck(check, root) {
     executable = process.platform === 'win32' ? 'powershell.exe' : 'pwsh';
     args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', check.powershell];
   }
+  const log = logPath ? openSync(logPath, 'w') : null;
   return new Promise((resolve, reject) => {
+    let settled = false,
+      logFailure;
     const child = spawn(executable, args, {
       cwd: root,
-      stdio: 'inherit',
+      stdio: log === null ? 'inherit' : ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
       detached: process.platform !== 'win32',
       env:
@@ -43,7 +46,7 @@ export function runReleaseCheck(check, root) {
           ? windowsPowerShellEnvironment(process.env)
           : process.env,
     });
-    const timer = setTimeout(() => {
+    const terminate = () => {
       try {
         if (process.platform === 'win32')
           execFileSync('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], {
@@ -54,16 +57,43 @@ export function runReleaseCheck(check, root) {
       } catch {
         child.kill();
       }
-      reject(new Error(`${check.id} exceeded the 20 minute limit`));
+    };
+    const finish = (error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (log !== null) {
+        try {
+          closeSync(log);
+        } catch (caught) {
+          error ??= caught;
+        }
+      }
+      if (error) reject(new Error(`${error.message}${logPath ? `; log: ${logPath}` : ''}`));
+      else resolve();
+    };
+    const capture = (stream) => (chunk) => {
+      if (settled) return;
+      try {
+        writeSync(log, chunk);
+        stream.write(chunk);
+      } catch (error) {
+        logFailure = error;
+        terminate();
+      }
+    };
+    if (log !== null) {
+      child.stdout.on('data', capture(process.stdout));
+      child.stderr.on('data', capture(process.stderr));
+    }
+    const timer = setTimeout(() => {
+      terminate();
+      finish(new Error(`${check.id} exceeded the 20 minute limit`));
     }, 20 * 60_000);
-    child.once('error', (error) => {
-      clearTimeout(timer);
-      reject(error);
-    });
-    child.once('exit', (code, signal) => {
-      clearTimeout(timer);
-      if (code === 0) resolve();
-      else reject(new Error(`${check.id} failed (${signal ?? code})`));
-    });
+    child.once('error', finish);
+    // close follows exit and drains both output pipes before closing the log.
+    child.once('close', (code, signal) =>
+      finish(logFailure || (code === 0 ? null : new Error(`${check.id} failed (${signal ?? code})`))),
+    );
   });
 }
