@@ -24,6 +24,7 @@ $releases = @(Get-ChildItem -LiteralPath $root -Directory -Force |
   Sort-Object LastWriteTime -Descending)
 $protected += @($releases | Select-Object -First $Keep | ForEach-Object FullName)
 $archived = @(); $skipped = @()
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 foreach ($release in $releases) {
   $source = [IO.Path]::GetFullPath($release.FullName).TrimEnd('\')
@@ -52,7 +53,16 @@ foreach ($release in $releases) {
       $relative = $file.FullName.Substring($source.Length + 1).Replace('\','/')
       $manifest[$relative] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
     }
-    [IO.Compression.ZipFile]::CreateFromDirectory($source, $temporary, [IO.Compression.CompressionLevel]::Optimal, $false)
+    # Windows PowerShell 5.1/.NET Framework may write backslash ZIP names.
+    # Explicit portable entry names keep both verification and recovery identical
+    # on PowerShell 5.1 and 7. File bytes and source manifests are unchanged.
+    $writer = [IO.Compression.ZipFile]::Open($temporary, [IO.Compression.ZipArchiveMode]::Create)
+    try {
+      foreach ($file in $files) {
+        $relative = $file.FullName.Substring($source.Length + 1).Replace('\','/')
+        [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($writer, $file.FullName, $relative, [IO.Compression.CompressionLevel]::Optimal) | Out-Null
+      }
+    } finally { $writer.Dispose() }
     $zip = [IO.Compression.ZipFile]::OpenRead($temporary)
     try {
       $entries = @($zip.Entries | Where-Object { -not $_.FullName.EndsWith('/') })

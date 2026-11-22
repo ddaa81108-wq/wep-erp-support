@@ -3,21 +3,8 @@ import { existsSync, openSync, writeSync, closeSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import process from 'node:process';
 import { setTimeout, clearTimeout } from 'node:timers';
-
-export function windowsPowerShellEnvironment(environment) {
-  // Codex/PowerShell 7 may export its own module path. Windows PowerShell 5.1
-  // needs its native modules first (including Get-FileHash), only in this child.
-  const clean = Object.fromEntries(
-    Object.entries(environment).filter(([key]) => key.toLowerCase() !== 'psmodulepath'),
-  );
-  const windows = environment.SystemRoot || environment.WINDIR || 'C:\\Windows';
-  const programs = environment.ProgramFiles || 'C:\\Program Files';
-  clean.PSModulePath = [
-    join(windows, 'System32/WindowsPowerShell/v1.0/Modules'),
-    join(programs, 'WindowsPowerShell/Modules'),
-  ].join(';');
-  return clean;
-}
+import { windowsPowerShellExecutable, windowsPowerShellEnvironment } from './windows-shell.mjs';
+export { windowsPowerShellEnvironment } from './windows-shell.mjs';
 
 export function runReleaseCheck(check, root, logPath) {
   let executable = process.execPath,
@@ -29,7 +16,7 @@ export function runReleaseCheck(check, root, logPath) {
     args = [cli, 'run', check.npm];
   } else if (check.node) args = check.node;
   else {
-    executable = process.platform === 'win32' ? 'powershell.exe' : 'pwsh';
+    executable = process.platform === 'win32' ? windowsPowerShellExecutable(process.env) : 'pwsh';
     args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', check.powershell];
   }
   const log = logPath ? openSync(logPath, 'w') : null;
