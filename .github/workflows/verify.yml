@@ -8,7 +8,7 @@ permissions:
 jobs:
   verify:
     runs-on: windows-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,11 +18,8 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npx playwright install chromium
-      - run: npm run build
-      - run: npm run check
-      - run: powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-deployment-recovery.ps1
+      - run: npm run verify:release
       - run: npm run test:coverage
-      - run: npm run test:restore
       - run: npm run test:ui
       - run: npm run test:settings-requests-ui
       - run: npm run test:ledger-focus-ui
@@ -30,6 +27,12 @@ jobs:
       - run: npm run test:collection-unassign-ui
       - run: npm run test:account-deletion-ui
       - run: npm run test:zero-review-ui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-verification
+          path: var/release-verification/latest.json
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

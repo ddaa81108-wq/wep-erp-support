@@ -10,7 +10,7 @@ import {
 
 import { CollectionPayrollPanel } from '../../sections/collections/CollectionPayrollPanel.tsx';
 
-export function AdminCollectionsSection() {
+export function AdminCollectionsSection({ userId }: { userId: string }) {
   const { data, error, busy, setError, setBusy, load, run } = useCollectionsDashboard();
   const [closingBatchId, setClosingBatchId] = useState('');
   const [cashException, setCashException] = useState<{
@@ -165,7 +165,7 @@ export function AdminCollectionsSection() {
   if (payrollOpen) {
     return (
       <div className="collections-page admin-collections-page">
-        <CollectionPayrollPanel isAdmin onClose={() => setPayrollOpen(false)} />
+        <CollectionPayrollPanel userId={userId} isAdmin onClose={() => setPayrollOpen(false)} />
       </div>
     );
   }

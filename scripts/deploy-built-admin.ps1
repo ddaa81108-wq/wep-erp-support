@@ -44,7 +44,7 @@ function Wait-AppHealth([int]$TimeoutSeconds = 90) {
     Start-Sleep -Milliseconds 500
     try {
       $result = Invoke-RestMethod -Uri 'http://127.0.0.1:4310/api/health' -TimeoutSec 3
-      if ($result.ok) {
+      if ($result.ok -and $result.data.status -eq 'ready') {
         $shell = Invoke-WebRequest -Uri 'http://127.0.0.1:4310/erp' -TimeoutSec 5 -UseBasicParsing
         if ($shell.StatusCode -eq 200 -and $shell.Content -match '<div id="root"></div>') {
           return $result

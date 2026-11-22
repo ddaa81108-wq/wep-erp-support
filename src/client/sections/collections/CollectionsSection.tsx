@@ -7,6 +7,6 @@ import '../../styles/employee-collection-board.css';
 
 export function CollectionsSection({ user }: { user: User }) {
   return user.role === 'admin'
-    ? <AdminCollectionsSection />
+    ? <AdminCollectionsSection key={user.id} userId={user.id} />
     : <EmployeeCollectionsSection key={user.id} userId={user.id} />;
 }

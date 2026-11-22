@@ -2,6 +2,12 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  'تعذر قراءة سجل المحاولة السابقة. راجع الدعم قبل إرسال عملية جديدة.': 'Unable to read the previous attempt. Contact support before sending a new operation.',
+  'توجد محاولة لم يتأكد ردها. أعد التحقق من العملية السابقة قبل تسجيل عملية جديدة.': 'An attempt has not been acknowledged. Verify the previous operation before recording a new one.',
+  'تعذر حفظ مفتاح الطلب على هذا الجهاز. لم يتم إرسال عملية جديدة.': 'Unable to save the request key on this device. No new operation was sent.',
+  'استلام غير مرتبط يحتاج تأكيد نتيجة الإرسال': 'Unlinked receipt awaiting submission confirmation',
+  'حركة موظف تحتاج تأكيد نتيجة الإرسال': 'Employee entry awaiting submission confirmation',
+  'إعادة التحقق من الحركة السابقة': 'Verify the previous entry',
   'تعذر التحقق من حالة الحماية': 'Could not verify account protection',
   'إعادة تحميل حالة الحماية': 'Reload protection status',
   'حجم قاعدة البيانات تجاوز حد النسخة الطارئة من الصفحة. يلزم معالجة الحجم قبل الاعتماد على هذا المسار.': 'The database exceeds the page emergency-backup limit. Resolve the size before relying on this route.',

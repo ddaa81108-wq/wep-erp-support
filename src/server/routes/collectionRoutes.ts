@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { AppDatabase } from '../db/database.ts';
+import { durableWrite } from '../db/durableWrites.ts';
 import { cancelCollectionApproval } from '../domain/collectionApprovalCancellation.ts';
 import { collectionWorkspace, employeeCollectionWorkspace } from '../domain/collectionWorkspaceQueries.ts';
 import {
@@ -140,13 +141,14 @@ export async function routeCollections(context: CollectionRouteContext) {
   const submission = url.pathname.match(/^\/api\/collections\/assignments\/([^/]+)\/submissions$/);
   if (method === 'POST' && submission) {
     requirePermission(user, 'collections.write');
-    const data = submitCollection(
+    const input = await readJson(request);
+    const data = await durableWrite(database, () => submitCollection(
       database,
       user,
       decodePathSegment(submission[1]),
-      await readJson(request),
+      input,
       correlationId,
-    );
+    ));
     publish(events, data.eventSequences);
     sendJson(response, 201, { ok: true, data });
     return true;
@@ -154,13 +156,14 @@ export async function routeCollections(context: CollectionRouteContext) {
 
   const decision = url.pathname.match(/^\/api\/collections\/submissions\/([^/]+)\/decision$/);
   if (method === 'POST' && decision) {
-    const data = decideCollection(
+    const input = await readJson(request);
+    const data = await durableWrite(database, () => decideCollection(
       database,
       user,
       decodePathSegment(decision[1]),
-      await readJson(request),
+      input,
       correlationId,
-    );
+    ));
     publish(events, data.eventSequences);
     sendJson(response, 200, { ok: true, data });
     return true;

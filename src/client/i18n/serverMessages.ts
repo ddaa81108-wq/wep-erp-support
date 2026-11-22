@@ -2,6 +2,7 @@ import { language, uiText } from './language.ts';
 
 // Translate protocol errors by stable codes, never by modifying returned data.
 const messages: Readonly<Record<string, string>> = {
+  FINANCIAL_QUEUE_BUSY: 'The server is busy. This operation was not accepted; retry with the same request.',
   CASH_LEDGER_MISMATCH: 'The ledger balance could not be reconciled. Refresh and review the treasury.',
   INVALID_CASH_REVISION: 'Refresh the transaction before editing it.',
   CASH_CORRECTION_REASON_REQUIRED: 'Enter a correction reason of up to 500 characters.',

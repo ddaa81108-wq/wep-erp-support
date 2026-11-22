@@ -20,6 +20,7 @@ import { decodePathSegment } from '../http/web.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
 import { reviewCustomerZero } from '../domain/customerZeroReview.ts';
 import { deleteCustomerAccount } from '../domain/customerDeletion.ts';
+import { durableWrite } from '../db/durableWrites.ts';
 
 export type PermanentAccountRouteContext = {
   database: AppDatabase;
@@ -118,44 +119,47 @@ export async function routePermanentAccounts(
   }
   if (method === 'POST' && action === 'transactions' && !transactionId) {
     requirePermission(user, config.writePermission);
+    const input = await readJson(request);
     return sendOperation(
       response,
       events,
-      addCustomerTransaction(database, user, id, await readJson(request), correlationId, config.kind),
+      await durableWrite(database, () => addCustomerTransaction(database, user, id, input, correlationId, config.kind)),
       true,
     );
   }
   if (method === 'POST' && action === 'transactions' && transactionId && tail === 'corrections') {
     requirePermission(user, config.writePermission);
+    const input = await readJson(request);
     return sendOperation(
       response,
       events,
-      correctCustomerTransaction(
+      await durableWrite(database, () => correctCustomerTransaction(
         database,
         user,
         id,
         transactionId,
-        await readJson(request),
+        input,
         correlationId,
         config.kind,
-      ),
+      )),
       true,
     );
   }
   if (method === 'POST' && action === 'transactions' && transactionId && tail === 'cancel') {
     requirePermission(user, config.writePermission);
+    const input = await readJson(request);
     return sendOperation(
       response,
       events,
-      cancelCustomerTransaction(
+      await durableWrite(database, () => cancelCustomerTransaction(
         database,
         user,
         id,
         transactionId,
-        await readJson(request),
+        input,
         correlationId,
         config.kind,
-      ),
+      )),
       true,
     );
   }

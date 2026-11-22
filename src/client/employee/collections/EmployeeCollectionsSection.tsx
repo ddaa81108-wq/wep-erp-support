@@ -20,10 +20,12 @@ import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { CollectionPayrollPanel } from '../../sections/collections/CollectionPayrollPanel.tsx';
 import { CollectionCardAmounts } from '../../sections/collections/CollectionCardAmounts.tsx';
 import { PartialReceiptForm } from './PartialReceiptForm.tsx';
+import { useRecoverableWrite } from '../../components/useRecoverableWrite.ts';
 
 export function EmployeeCollectionsSection({ userId }: { userId: string }) {
   const { data, error, busy, setError, setBusy, load, run } = useCollectionsDashboard();
   const [creating, setCreating] = useState(false);
+  const unlinkedWrite = useRecoverableWrite<{ customerName: string; amountUnits: number }>(`abdo:unlinked-write:${userId}`);
   const [tab, setTab] = useState<EmployeeCollectionTab>('cards');
   const [query, setQuery] = useState(''),
     [search, setSearch] = useState('');
@@ -42,7 +44,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
     trackChanges: changeCreate,
     markSaved: savedCreate,
     confirmLeave: leaveCreate,
-  } = useUnsavedForm(busy === 'unlinked-create');
+  } = useUnsavedForm(busy === 'unlinked-create' || unlinkedWrite.busy);
   const createPanel = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!creating || !window.matchMedia('(max-width: 560px)').matches) return;
@@ -152,19 +154,28 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
       setError(uiText('اكتب قيمة صحيحة أكبر من صفر.'));
       return;
     }
+    await saveUnlinked({ customerName, amountUnits }, form);
+  }
+  async function saveUnlinked(payload: { customerName: string; amountUnits: number } | null, form?: HTMLFormElement) {
+    if (submitting.current) return;
+    submitting.current = true;
     setBusy('unlinked-create');
     setError('');
     try {
-      await api.createUnlinkedCollectionReceipt(customerName, amountUnits, crypto.randomUUID());
-      form.reset();
-      savedCreate();
-      setCreating(false);
-      setTab('history');
-      setQuery('');
-      await load();
+      const confirmed = await unlinkedWrite.run(payload,
+        (values, requestId) => api.createUnlinkedCollectionReceipt(values.customerName, values.amountUnits, requestId),
+        () => {
+          form?.reset();
+          savedCreate();
+          setCreating(false);
+          setTab('history');
+          setQuery('');
+        });
+      if (confirmed) await load();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : uiText('تعذر تسجيل الاستلام غير المربوط.'));
     } finally {
+      submitting.current = false;
       setBusy('');
     }
   }
@@ -179,7 +190,7 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
   if (payrollOpen) {
     return (
       <div className="collections-page employee-collections-page">
-        <CollectionPayrollPanel isAdmin={false} onClose={() => setPayrollOpen(false)} />
+        <CollectionPayrollPanel userId={userId} isAdmin={false} onClose={() => setPayrollOpen(false)} />
       </div>
     );
   }
@@ -203,6 +214,12 @@ export function EmployeeCollectionsSection({ userId }: { userId: string }) {
           }}
         />
         {error && <div className="alert error">{error}</div>}
+        {unlinkedWrite.pending && <section className="collection-panel pending-unlinked-recovery">
+          <p>{uiText('استلام غير مرتبط يحتاج تأكيد نتيجة الإرسال')} — {unlinkedWrite.pending.payload.customerName} — {collectionMoney.format(unlinkedWrite.pending.payload.amountUnits)} {uiText('د.ل')}</p>
+          <button disabled={Boolean(busy) || unlinkedWrite.busy} onClick={() => void saveUnlinked(null)}>
+            {uiText('إعادة التحقق من الاستلام السابق')}
+          </button>
+        </section>}
         {pendingRequests.length > 0 && (
           <section className="collection-panel pending-collection-recovery">
             <h2>{uiText('تحصيلات تحتاج تأكيد نتيجة الإرسال')}</h2>

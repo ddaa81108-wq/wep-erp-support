@@ -1,0 +1,69 @@
+import { spawn, execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import process from 'node:process';
+import { setTimeout, clearTimeout } from 'node:timers';
+
+export function windowsPowerShellEnvironment(environment) {
+  // Codex/PowerShell 7 may export its own module path. Windows PowerShell 5.1
+  // needs its native modules first (including Get-FileHash), only in this child.
+  const clean = Object.fromEntries(
+    Object.entries(environment).filter(([key]) => key.toLowerCase() !== 'psmodulepath'),
+  );
+  const windows = environment.SystemRoot || environment.WINDIR || 'C:\\Windows';
+  const programs = environment.ProgramFiles || 'C:\\Program Files';
+  clean.PSModulePath = [
+    join(windows, 'System32/WindowsPowerShell/v1.0/Modules'),
+    join(programs, 'WindowsPowerShell/Modules'),
+  ].join(';');
+  return clean;
+}
+
+export function runReleaseCheck(check, root) {
+  let executable = process.execPath,
+    args;
+  if (check.npm) {
+    const cli =
+      process.env.npm_execpath || join(dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js');
+    if (!existsSync(cli)) throw new Error('Start verification with npm run verify:release.');
+    args = [cli, 'run', check.npm];
+  } else if (check.node) args = check.node;
+  else {
+    executable = process.platform === 'win32' ? 'powershell.exe' : 'pwsh';
+    args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', check.powershell];
+  }
+  return new Promise((resolve, reject) => {
+    const child = spawn(executable, args, {
+      cwd: root,
+      stdio: 'inherit',
+      windowsHide: true,
+      detached: process.platform !== 'win32',
+      env:
+        check.powershell && process.platform === 'win32'
+          ? windowsPowerShellEnvironment(process.env)
+          : process.env,
+    });
+    const timer = setTimeout(() => {
+      try {
+        if (process.platform === 'win32')
+          execFileSync('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], {
+            windowsHide: true,
+            stdio: 'ignore',
+          });
+        else process.kill(-child.pid, 'SIGKILL');
+      } catch {
+        child.kill();
+      }
+      reject(new Error(`${check.id} exceeded the 20 minute limit`));
+    }, 20 * 60_000);
+    child.once('error', (error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
+    child.once('exit', (code, signal) => {
+      clearTimeout(timer);
+      if (code === 0) resolve();
+      else reject(new Error(`${check.id} failed (${signal ?? code})`));
+    });
+  });
+}

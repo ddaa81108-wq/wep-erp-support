@@ -50,11 +50,13 @@ function Get-TestDeploymentSchemaVersion {
 }
 function Invoke-RestMethod {
   param($Uri, $TimeoutSec)
-  if ($script:scenario -in @('health-failure', 'schema-advanced') -and (Get-Content -LiteralPath (Join-Path $script:install 'dist/server/main.mjs') -Raw) -eq 'new-server') {
+  $newServer = (Get-Content -LiteralPath (Join-Path $script:install 'dist/server/main.mjs') -Raw) -eq 'new-server'
+  if ($script:scenario -in @('health-failure', 'schema-advanced') -and $newServer) {
     # The test copy uses a zero timeout; production still waits for recovery.
     throw 'Simulated health failure'
   }
-  return @{ ok = $true; data = @{ apiVersion = '1'; schemaVersion = '47'; uiVersion = 'test' } }
+  $status = if ($script:scenario -eq 'not-ready' -and $newServer) { 'starting' } else { 'ready' }
+  return @{ ok = $true; data = @{ status = $status; apiVersion = '1'; schemaVersion = '47'; uiVersion = 'test' } }
 }
 function Invoke-WebRequest { param($Uri, $TimeoutSec, [switch]$UseBasicParsing) return @{ StatusCode = 200; Content = '<div id="root"></div>' } }
 function Move-Item {
@@ -81,7 +83,7 @@ try {
   Assert-Test ((Get-DeploymentSchemaVersion -ServiceRoot $schemaFixture) -eq 53) 'Wrong read-only schema result'
   Assert-Test ((Get-FileHash -LiteralPath $schemaDatabase -Algorithm SHA256).Hash -eq $schemaHash) 'Schema query modified database'
   Write-Host 'PASS real read-only SQLite schema query with spaced paths'
-  foreach ($script:scenario in @('success', 'no-tunnel', 'stop-failure', 'swap-failure', 'start-failure', 'health-failure', 'verification-failure', 'unknown-dependent', 'stopped-proxy', 'schema-advanced', 'schema-read-failure')) {
+  foreach ($script:scenario in @('success', 'no-tunnel', 'stop-failure', 'swap-failure', 'start-failure', 'health-failure', 'not-ready', 'verification-failure', 'unknown-dependent', 'stopped-proxy', 'schema-advanced', 'schema-read-failure')) {
     $root = Join-Path $testRoot $script:scenario
     $src = Join-Path $root 'source'
     $script:install = Join-Path $root 'installed'
