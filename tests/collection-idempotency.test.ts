@@ -66,7 +66,7 @@ test('rejecting one installment keeps other pending installments visible and rev
 test('schema 50 upgrades pending receipts to independent installments without deleting data', () => {
   const root=mkdtempSync(join(tmpdir(),'collection-installment-upgrade-'));
   const path=join(root,'test.sqlite');
-  const {db,collector,assignments}=collectionFixture(path);
+  const {db,collector,assignments}=collectionFixture(path,60);
   let closed=false;
   try {
     const body={mode:'partial',amountUnits:15,requestId:'pre-upgrade-pending-key'};

@@ -2,6 +2,15 @@ import { reportEnglish } from '../sections/reports/reportEnglish.ts';
 /** Application UI catalog. Customer names, notes and stored data are never translated. */
 export const english: Readonly<Record<string, string>> = {
   ...reportEnglish,
+  '{0} ألغى {1}{2} بقيمة {3} د.ل.': '{0} cancelled {1}{2} for {3} LYD.',
+  'المقصورة المالية': 'Financial cockpit',
+  'تمت مراجعة التصفير. الكارت متاح أسفل قائمة الكروت.': 'Zero balance reviewed. The card remains available at the bottom of the card list.',
+  'إلغاء هذه المعاملة بقيمة {0} د.ل؟ سيُصحح رصيد المرتب وتظل الحركة مسجلة كملغاة.': 'Cancel this entry for {0} LYD? The payroll balance will be corrected and the entry retained as cancelled.',
+  'ملغاة — لا تؤثر على الرصيد': 'Cancelled — excluded from the balance',
+  'إلغاء المعاملة': 'Cancel entry',
+  'فلترة الكروت': 'Filter cards',
+  'الكروت النشطة': 'Active cards',
+  'تأكيد الاطلاع على التصفير': 'Confirm zero-balance review',
   'تعذر قراءة سجل المحاولة السابقة. راجع الدعم قبل إرسال عملية جديدة.': 'Unable to read the previous attempt. Contact support before sending a new operation.',
   'توجد محاولة لم يتأكد ردها. أعد التحقق من العملية السابقة قبل تسجيل عملية جديدة.': 'An attempt has not been acknowledged. Verify the previous operation before recording a new one.',
   'تعذر حفظ مفتاح الطلب على هذا الجهاز. لم يتم إرسال عملية جديدة.': 'Unable to save the request key on this device. No new operation was sent.',

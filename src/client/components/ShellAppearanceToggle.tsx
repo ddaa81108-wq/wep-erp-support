@@ -48,8 +48,8 @@ export function ShellAppearanceToggle() {
   }, []);
   const whiteGold = appearance === '03';
   const nextAppearance: Appearance = appearance === 'original' ? '03' : whiteGold ? 'cockpit' : 'original';
-  const labels = { original: 'الشكل الأصلي', '03': 'الأبيض والذهبي', cockpit: 'المقصورة المالية' };
-  const next = uiText(labels[nextAppearance]);
+  const labels = { original: uiText('الشكل الأصلي'), '03': uiText('الأبيض والذهبي'), cockpit: uiText('المقصورة المالية') };
+  const next = labels[nextAppearance];
   return (
     <button
       type="button"
@@ -61,7 +61,7 @@ export function ShellAppearanceToggle() {
       onClick={() => setAppearance(nextAppearance)}
     >
       <Gem size={18} />
-      <span>{uiText(labels[appearance])}</span>
+      <span>{labels[appearance]}</span>
     </button>
   );
 }

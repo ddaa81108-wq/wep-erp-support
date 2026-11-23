@@ -73,7 +73,7 @@ test('assigned debt stays fixed after partial/full payment, rejection and later 
 test('schema 53 upgrade preserves financial rows and restores only verifiable old assignment amounts', () => {
   const directory = mkdtempSync(join(tmpdir(), 'collection-amount-'));
   const path = join(directory, 'legacy.sqlite');
-  const { db, admin, collector, ids, assignments } = collectionFixture(path);
+  const { db, admin, collector, ids, assignments } = collectionFixture(path, 60);
   try {
     db.prepare("UPDATE debt_transactions SET created_at='2026-01-01',updated_at='2026-01-01'").run();
     db.prepare("UPDATE customer_cycles SET created_at='2026-01-01'").run();
@@ -200,7 +200,7 @@ test('first submission freezes zero and negative current balances without alteri
 test('schema 54 upgrade preserves historical submitted amounts and exposes live unsubmitted balances', () => {
   const directory = mkdtempSync(join(tmpdir(), 'collection-first-balance-'));
   const path = join(directory, 'schema54.sqlite');
-  const { db, admin, collector, ids, assignments } = collectionFixture(path);
+  const { db, admin, collector, ids, assignments } = collectionFixture(path, 60);
   try {
     addCustomerTransaction(db, admin, ids[0], { type: 'debt', inputValue: 50, expectedVersion: 1, requestId: 'historical-submitted-debt' }, 'test');
     submitCollection(db, collector, assignments[0], { mode: 'partial', amountUnits: 10, requestId: 'historical-submitted' }, 'test');

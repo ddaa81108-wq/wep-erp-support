@@ -2,9 +2,10 @@ import { fixtureAdmin } from './financialFixture.ts';
 import { openDatabase } from '../../src/server/db/database.ts';
 import { createCustomer } from '../../src/server/domain/customers.ts';
 import { assignCustomers } from '../../src/server/domain/collections.ts';
+import { openSchemaFixture } from './schemaFixture.ts';
 
-export function collectionFixture(path = ':memory:') {
-  const db = openDatabase(path);
+export function collectionFixture(path = ':memory:', schemaVersion?: number) {
+  const db = schemaVersion === undefined ? openDatabase(path) : openSchemaFixture(path, schemaVersion);
   const admin = fixtureAdmin(db);
   const now = new Date().toISOString();
   const employee = (id: string) => {

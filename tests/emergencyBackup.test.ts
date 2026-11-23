@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { mkdtempSync, rmSync, writeFileSync, existsSync, copyFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { migrations } from '../src/server/db/migrations.ts';
 import { SCHEMA_VERSION } from '../src/server/config.ts';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { openDatabase } from '../src/server/db/database.ts';
 import { fixtureAdmin } from './helpers/financialFixture.ts';
+import { openSchemaFixture } from './helpers/schemaFixture.ts';
 import { createEmergencyBackup, validateBackupFile, stageRestore } from '../src/server/domain/emergencyBackup.ts';
 
 test('emergency backup preserves all tables and rejects corrupted restore packages before queueing', async () => {
@@ -26,18 +26,15 @@ test('emergency backup preserves all tables and rejects corrupted restore packag
     try { assert.deepEqual(restored.prepare('SELECT id,username FROM users ORDER BY id').all(), snapshot); }
     finally { restored.close(); }
     const legacyPath = join(root, 'schema47.sqlite');
-    copyFileSync(path, legacyPath);
-    const legacy = new DatabaseSync(legacyPath);
-    legacy.exec('ALTER TABLE debt_assignments DROP COLUMN first_submission_balance_units; ALTER TABLE debt_assignments DROP COLUMN assigned_balance_units; DROP TABLE notification_speech_settings; ALTER TABLE collection_unlinked_receipts DROP COLUMN currency;');
-    legacy.exec(`DROP INDEX idx_pending_collection_assignment;
-      DROP INDEX uq_pending_full_collection_submission;
-      CREATE UNIQUE INDEX uq_pending_collection_submission ON collection_submissions(assignment_id) WHERE status='pending';`);
-    legacy.exec('DROP TABLE treasury_cash_corrections; DROP TABLE mfa_challenges; DROP TABLE user_mfa; DROP TABLE daily_financial_closings; DROP TRIGGER trg_notification_browser_push; DROP TABLE browser_push_outbox; DROP TABLE browser_push_subscriptions; DROP TRIGGER IF EXISTS trg_notification_mobile_push; DROP TABLE IF EXISTS mobile_push_outbox; DROP TABLE IF EXISTS mobile_push_devices; DELETE FROM schema_migrations WHERE version>=48;');
-    legacy.exec(migrations.find(migration => migration.version === 47)!.sql);
+    // Build the historical schema itself, rather than leaving newer columns
+    // behind while deleting their migration records from a current database.
+    const legacy = openSchemaFixture(legacyPath, 47);
+    fixtureAdmin(legacy);
     legacy.close();
     validateBackupFile(legacyPath, owner.organizationId);
     const migrated = new DatabaseSync(legacyPath, { readOnly: true });
     assert.equal(migrated.prepare('SELECT MAX(version) v FROM schema_migrations').get()!.v, Number(SCHEMA_VERSION));
+    assert.deepEqual(migrated.prepare('SELECT id,username FROM users ORDER BY id').all(), snapshot);
     migrated.close();
     await assert.rejects(createEmergencyBackup(db, { ...owner, isOwner: false }));
     if (process.platform === 'win32') {
