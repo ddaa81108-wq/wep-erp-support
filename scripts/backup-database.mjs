@@ -100,6 +100,15 @@ try {
   const warnings = databaseSizeBytes >= Math.floor(pageDownloadLimitBytes * 0.8)
     ? ['Backup database size is approaching or above the page download limit.'] : [];
   const removed = [];
+  let removedSidecars = [];
+  try {
+    // A legacy rescue installation may contain this script alone. Housekeeping
+    // must never prevent creation of a verified recovery backup.
+    const { pruneBackupSidecars } = await import('./backup-sidecars.mjs');
+    const sidecars = pruneBackupSidecars(outputRoot, { remove: true });
+    removedSidecars = sidecars.removed;
+    warnings.push(...sidecars.warnings);
+  } catch (error) { warnings.push(`Could not inspect backup sidecars: ${error.message}`); }
   try {
     const retained = readdirSync(outputRoot)
       .filter((name) => /^abdo-erp-\d{4}-\d{2}-\d{2}T.*\.(sqlite|abdobackup)$/.test(name))
@@ -132,7 +141,7 @@ try {
 
   console.log(
     JSON.stringify(
-      { status: warnings.length ? 'warning' : 'ok', outputPath, retentionCount, removed, warnings, manifest },
+      { status: warnings.length ? 'warning' : 'ok', outputPath, retentionCount, removed, removedSidecars, warnings, manifest },
       null,
       2,
     ),

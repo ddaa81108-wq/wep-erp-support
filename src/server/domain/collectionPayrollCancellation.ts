@@ -25,6 +25,7 @@ export function cancelCollectionPayrollEntry(db: AppDatabase, actor: Authenticat
 
     // A previous month's correction must also repair any already-created carry chain.
     let month = db.prepare('SELECT * FROM collection_payroll_months WHERE id=?').get(String(row.month_id)) as Record<string, unknown>;
+    monthRemaining(db, month);
     const following = db.prepare(`SELECT * FROM collection_payroll_months WHERE organization_id=? AND employee_user_id=?
       AND period_key>? ORDER BY period_key`).all(actor.organizationId, String(row.employee_user_id), String(month.period_key)) as Record<string, unknown>[];
     for (const next of following) {
@@ -32,6 +33,7 @@ export function cancelCollectionPayrollEntry(db: AppDatabase, actor: Authenticat
       const carry = monthRemaining(db, month);
       db.prepare('UPDATE collection_payroll_months SET opening_carry_units=? WHERE id=?').run(carry, String(next.id));
       month = { ...next, opening_carry_units: carry };
+      monthRemaining(db, month);
     }
     const details = {
       employeeId: String(row.employee_user_id), employeeName: String(row.employee_name), subjectName: String(row.employee_name),

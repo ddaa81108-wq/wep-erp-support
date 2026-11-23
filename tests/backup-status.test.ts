@@ -51,6 +51,16 @@ test('daily backup inspection recognizes encrypted backups and fails closed on i
     assert.equal(data['no-manifest'].LatestHasManifest, false);
     for (const name of ['no-manifest', 'invalid-json', 'wrong-file', 'wrong-size', 'expired', 'future', 'new-incomplete'])
       assert.equal(data[name].Fresh, false, name);
+    const audit = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-File',
+      resolve('scripts/audit-server-safety.ps1'), '-ServiceXml', join(root, 'missing-service.xml'),
+      '-DatabasePath', join(root, 'missing-database.sqlite'), '-BackupDirectory', join(root, 'encrypted'),
+      '-ExternalBackupDirectory', join(root, 'no-manifest')], { encoding: 'utf8', timeout: 60_000 });
+    assert.equal(audit.status, 0, audit.stderr);
+    const inventory = JSON.parse(audit.stdout);
+    assert.equal(inventory.LocalBackups.Count, 2);
+    assert.equal(inventory.LocalBackups.Fresh, true);
+    assert.equal(inventory.LocalBackups.LatestManifestValid, true);
+    assert.equal(inventory.ExternalBackups.Fresh, false);
   } finally {
     assert.ok(resolve(root).startsWith(resolve(tmpdir()) + sep));
     rmSync(root, { recursive: true, force: true });

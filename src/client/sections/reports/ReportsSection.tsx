@@ -7,6 +7,8 @@ import { money } from './reportViewModel.ts';
 import { useReportOverview } from './useReportOverview.ts';
 import type { User } from '../../api.ts';
 import { ReportClosingPanel } from './ReportClosingPanel.tsx';
+import '../../styles/reports.css';
+import '../../styles/reports-gold.css';
 
 const Legacy = lazy(() => import('./LegacyReportsSection.tsx').then(module => ({ default: module.ReportsSection })));
 export function ReportsSection({ user }: { user: User }) {

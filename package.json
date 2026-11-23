@@ -28,7 +28,7 @@
     "test:report-overview-ui": "node tests/report-overview-ui.ts",
     "test:fitted-amount-ui": "node tests/fitted-amount-ui.ts",
     "test:restore": "node scripts/restore-drill.mjs",
-    "lint": "eslint src tests scripts/release scripts/verify-release.mjs scripts/assert-release.mjs scripts/reconcile-financials.ts scripts/rollback-shade.ts scripts/load-test.mts scripts/backup-database.mjs scripts/verify-database.mjs scripts/verify-https.mjs scripts/restore-drill.mjs scripts/verify-web-bundle.mjs scripts/measure-network.mjs public/erp-push-sw.js scripts/generate-push-config.mjs",
+    "lint": "eslint src tests scripts/release scripts/verify-release.mjs scripts/assert-release.mjs scripts/reconcile-financials.ts scripts/rollback-shade.ts scripts/load-test.mts scripts/backup-database.mjs scripts/backup-sidecars.mjs scripts/cleanup-backup-sidecars.mjs scripts/verify-database.mjs scripts/verify-https.mjs scripts/restore-drill.mjs scripts/verify-web-bundle.mjs scripts/measure-network.mjs public/erp-push-sw.js scripts/generate-push-config.mjs",
     "format": "prettier --write src tests scripts package.json tsconfig.json vite.config.ts",
     "check": "npm run typecheck && npm run lint && npm test",
     "typecheck": "tsc --noEmit",

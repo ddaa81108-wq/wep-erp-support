@@ -46,12 +46,20 @@ try {
   await row(withdrawal.id).getByRole('button', { name: 'إلغاء المعاملة', exact: true }).evaluate(button => { for (let i = 0; i < 20; i++) (button as HTMLButtonElement).click(); });
   assert.equal(attempts, 1, 'Repeated clicks stay locked while cancellation is in flight');
   release();
-  await expect.poll(async () => await row(withdrawal.id).getAttribute('data-cancelled') === 'true' || await page.locator('.payroll-workspace .alert.error').isVisible()).toBe(true);
+  await expect.poll(async () => await row(withdrawal.id).count() === 0 || await page.locator('.payroll-workspace .alert.error').isVisible()).toBe(true);
   await page.unroute('**' + path);
-  if (await row(withdrawal.id).getAttribute('data-cancelled') !== 'true') await row(withdrawal.id).getByRole('button', { name: 'إلغاء المعاملة', exact: true }).click();
-  await expect(row(withdrawal.id)).toHaveAttribute('data-cancelled', 'true');
+  if (await row(withdrawal.id).count()) await row(withdrawal.id).getByRole('button', { name: 'إلغاء المعاملة', exact: true }).click();
+  await expect(row(withdrawal.id)).toHaveCount(0);
+  await expect(row(commission.id)).toBeVisible();
   await row(commission.id).getByRole('button', { name: 'إلغاء المعاملة', exact: true }).click();
-  await expect(row(commission.id)).toHaveAttribute('data-cancelled', 'true');
+  await expect(row(commission.id)).toHaveCount(0);
+  await expect(page.getByText('لا توجد حركات في هذه الفترة.', { exact: true })).toBeVisible();
+  await page.reload();
+  await page.locator('.sidebar nav').getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
+  await page.getByRole('button', { name: 'المرتبات', exact: true }).click();
+  await page.locator('.payroll-employee-picker select').selectOption(collector.id);
+  await expect(page.locator('.payroll-ledger article')).toHaveCount(0);
+  await expect(page.getByText('لا توجد حركات في هذه الفترة.', { exact: true })).toBeVisible();
   for (const theme of ['light', 'dark']) {
     await page.evaluate(value => { document.documentElement.dataset.theme = value; }, theme);
     await page.screenshot({ path: `artifacts/payroll-cancellation/after-${theme}.png` });
@@ -72,7 +80,8 @@ try {
   await staffPage.goto(base + '/erp');
   await staffPage.locator('.sidebar nav').getByRole('button', { name: 'قسم استلامات الديون', exact: true }).click();
   await staffPage.getByRole('button', { name: 'المرتبات', exact: true }).click();
-  await expect(staffPage.locator('.payroll-ledger article')).toHaveCount(2);
+  await expect(staffPage.locator('.payroll-ledger article')).toHaveCount(0);
+  await expect(staffPage.getByText('لا توجد حركات في هذه الفترة.', { exact: true })).toBeVisible();
   await expect(staffPage.locator('.cancel-payroll-entry,.confirm-payroll')).toHaveCount(0);
   const staffCsrf = (await (await staff.request.get(base + '/api/auth/csrf')).json()).data.csrfToken;
   const denied = await staff.request.post(base + path, { headers: { origin: base, 'X-CSRF-Token': staffCsrf, 'X-Client-Api-Version': '1' }, data: {} });
@@ -80,7 +89,7 @@ try {
   assert.equal((await denied.json()).error.code, 'PERMISSION_DENIED');
   assert.equal((db.prepare("SELECT COUNT(*) n FROM audit_log WHERE action='collection.payroll.entry.cancel'").get() as { n: number }).n, 2);
   assert.deepEqual(errors, []);
-  console.log('PASS: admin cancellation before/after employee confirmation, 20 locked clicks, lost reply + safe retry, correct totals, retained rows, employee UI and API denied. Isolated database only.');
+  console.log('PASS: admin cancellation before/after confirmation removes rows from admin and employee pages after reload, empty state, 20 locked clicks, lost reply + safe retry, correct totals, retained audit history, employee API denied. Isolated database only.');
 } finally {
   await browser.close(); server.closeRealtimeConnections(); server.closeAllConnections();
   await new Promise<void>(resolve => server.close(() => resolve())); db.close();

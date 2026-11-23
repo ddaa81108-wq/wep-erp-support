@@ -49,7 +49,7 @@ async function route(
   const method = request.method ?? 'GET';
   const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`);
 
-  if (method === 'GET' && !url.pathname.startsWith('/api/')) {
+  if ((method === 'GET' || method === 'HEAD') && !url.pathname.startsWith('/api/')) {
     if (await serveWebAsset(url.pathname, response)) return;
     if (!extname(url.pathname) && (await serveWebAsset('/', response))) return;
   }
@@ -91,7 +91,7 @@ async function route(
     return;
   }
 
-  if (method === 'GET' && url.pathname === '/api/health') {
+  if ((method === 'GET' || method === 'HEAD') && url.pathname === '/api/health') {
     const row = database.prepare('SELECT 1 AS ready').get() as { ready: number };
     return sendJson(response, 200, {
       ok: true,

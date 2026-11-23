@@ -4,7 +4,8 @@ import type { AppDatabase } from '../db/database.ts';
 import { inImmediateTransaction, nowIso } from '../db/database.ts';
 import { badRequest, conflict, forbidden, notFound } from '../http/errors.ts';
 import type { AuthenticatedUser } from '../security/sessions.ts';
-import { validateRequestId } from './customerTransactionSupport.ts';
+import { safeBalance, validateRequestId } from './customerTransactionSupport.ts';
+import { payrollRemaining, payrollTotals } from './payrollMoney.ts';
 
 const DEFAULT_BASE_SALARY_UNITS = 3500;
 
@@ -37,18 +38,8 @@ function employeeRow(db: AppDatabase, organizationId: string, employeeId: string
   return row;
 }
 
-function monthTotals(db: AppDatabase, monthId: string) {
-  const row = db.prepare(`SELECT
-      COALESCE(SUM(CASE WHEN entry_kind='withdrawal' THEN amount_units ELSE 0 END),0) withdrawalsUnits,
-      COALESCE(SUM(CASE WHEN entry_kind='commission' THEN amount_units ELSE 0 END),0) commissionsUnits
-    FROM collection_payroll_entries WHERE month_id=? AND cancelled_at IS NULL`).get(monthId) as Record<string, unknown>;
-  return { withdrawalsUnits: Number(row.withdrawalsUnits), commissionsUnits: Number(row.commissionsUnits) };
-}
-
 export function monthRemaining(db: AppDatabase, month: Record<string, unknown>) {
-  const totals = monthTotals(db, String(month.id));
-  return Number(month.base_salary_units) + Number(month.opening_carry_units)
-    + totals.commissionsUnits - totals.withdrawalsUnits;
+  return payrollRemaining(month, payrollTotals(db, String(month.id)));
 }
 
 function ensureMonth(db: AppDatabase, organizationId: string, employeeId: string, period: string) {
@@ -63,6 +54,7 @@ function ensureMonth(db: AppDatabase, organizationId: string, employeeId: string
     WHERE organization_id=? AND employee_user_id=? AND period_key=?`)
     .get(organizationId, employeeId, previousPeriod(period)) as Record<string, unknown> | undefined;
   const openingCarry = previous ? monthRemaining(db, previous) : 0;
+  safeBalance(BigInt(setting ? setting.base_salary_units : DEFAULT_BASE_SALARY_UNITS) + BigInt(openingCarry));
   db.prepare(`INSERT OR IGNORE INTO collection_payroll_months(
     id,organization_id,employee_user_id,period_key,base_salary_units,opening_carry_units,created_at
   ) VALUES(?,?,?,?,?,?,?)`).run(
@@ -89,7 +81,7 @@ function entryRows(db: AppDatabase, monthId: string, includeCancelled: boolean) 
 
 function payrollSnapshot(db: AppDatabase, employee: Record<string, unknown>, period: string, showCarry: boolean, includeCancelled: boolean) {
   const month = ensureMonth(db, String(employee.organization_id ?? employee.organizationId), String(employee.id), period);
-  const totals = monthTotals(db, String(month.id));
+  const totals = payrollTotals(db, String(month.id));
   return {
     employeeId: String(employee.id),
     employeeName: String(employee.displayName ?? employee.display_name),
@@ -100,8 +92,7 @@ function payrollSnapshot(db: AppDatabase, employee: Record<string, unknown>, per
     showOpeningCarry: showCarry,
     withdrawalsUnits: totals.withdrawalsUnits,
     commissionsUnits: totals.commissionsUnits,
-    remainingUnits: Number(month.base_salary_units) + Number(month.opening_carry_units)
-      + totals.commissionsUnits - totals.withdrawalsUnits,
+    remainingUnits: payrollRemaining(month, totals),
     entries: entryRows(db, String(month.id), includeCancelled),
   };
 }
@@ -192,6 +183,7 @@ export function createCollectionPayrollEntry(
       id, actor.organizationId, String(month.id), employeeId, kind, amountUnits,
       reason, requestId, actor.id, createdAt,
     );
+    monthRemaining(db, month); // Reject unsafe totals before audit, notifications or commit.
     const details = {
       employeeId,
       employeeName: String(employee.displayName),
@@ -227,6 +219,7 @@ export function updateCollectionPayrollSalary(
     const month = ensureMonth(db, actor.organizationId, employeeId, period);
     db.prepare('UPDATE collection_payroll_months SET base_salary_units=? WHERE id=?')
       .run(baseSalaryUnits, String(month.id));
+    monthRemaining(db, { ...month, base_salary_units: baseSalaryUnits });
     const details = {
       employeeId, employeeName: String(employee.displayName), subjectName: String(employee.displayName),
       subjectSection: 'collections', amountUnits: baseSalaryUnits,

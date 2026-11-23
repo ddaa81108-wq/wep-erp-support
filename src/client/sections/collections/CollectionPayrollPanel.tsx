@@ -78,7 +78,7 @@ export function CollectionPayrollPanel({ userId, isAdmin, onClose }: { userId: s
   }
   async function cancelEntry(entry: CollectionPayrollEntry) {
     if (!isAdmin || entry.cancelledAt || actionLocked.current) return;
-    if (!window.confirm(uiText('إلغاء هذه المعاملة بقيمة {0} د.ل؟ سيُصحح رصيد المرتب وتظل الحركة مسجلة كملغاة.', [collectionMoney.format(entry.amountUnits)]))) return;
+    if (!window.confirm(uiText('حذف هذه المعاملة بقيمة {0} د.ل؟ سيُصحح رصيد المرتب وتختفي من الصفحة، مع حفظ أثر الإلغاء في سجل التدقيق.', [collectionMoney.format(entry.amountUnits)]))) return;
     actionLocked.current = true; setBusy(entry.id); setError('');
     try { await api.cancelCollectionPayrollEntry(entry.id); await load(); }
     catch (caught) { setError(collectionError(caught)); } finally { actionLocked.current = false; setBusy(''); }

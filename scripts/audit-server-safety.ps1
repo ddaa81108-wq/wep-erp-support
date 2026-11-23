@@ -6,6 +6,7 @@ param(
 )
 # Read-only inventory. Never print service arguments, environment values or keys.
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'backup-status.ps1')
 $secureCookie = 'unknown'
 $databaseMatches = 'unknown'
 if (Test-Path -LiteralPath $ServiceXml -PathType Leaf) {
@@ -20,12 +21,11 @@ if (Test-Path -LiteralPath $ServiceXml -PathType Leaf) {
 function Get-BackupInventory([string]$Path) {
   if (-not $Path) { return [pscustomobject]@{ State='not-specified' } }
   try {
-    $files = @(Get-ChildItem -LiteralPath $Path -File -Filter '*.sqlite' | Sort-Object LastWriteTimeUtc -Descending)
-    $latest = $files | Select-Object -First 1
+    $status = Get-BackupStatus $Path 26
     [pscustomobject]@{
-      State='readable'; Count=$files.Count
-      LatestUtc=$(if ($latest) { $latest.LastWriteTimeUtc.ToString('o') } else { $null })
-      LatestHasManifest=$(if ($latest) { Test-Path -LiteralPath ($latest.FullName + '.json') } else { $false })
+      State=$status.State; Count=$status.Count
+      LatestUtc=$status.LatestUtc; LatestHasManifest=$status.LatestHasManifest
+      LatestManifestValid=$status.LatestManifestValid; Fresh=$status.Fresh
       VolumeRoot=[IO.Path]::GetPathRoot([IO.Path]::GetFullPath($Path))
     }
   } catch { [pscustomobject]@{ State='unavailable' } }
