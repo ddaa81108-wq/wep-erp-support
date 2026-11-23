@@ -58,10 +58,32 @@ try {
   await page.getByRole('button', { name: 'دخول', exact: true }).click();
   await expect(page.locator('.treasury-entry-form')).toBeVisible();
   await page.locator('.treasury-entry-form').getByRole('button', { name: 'إلغاء', exact: true }).click();
+  await ledger.getByRole('button', { name: 'تعديل المعاملة 135', exact: true }).click();
+  const correction = page.locator('.treasury-inline-edit');
+  const save = correction.getByRole('button', { name: 'حفظ التعديل', exact: true });
+  await expect(save).toBeDisabled();
+  await correction.getByLabel('القيمة الصحيحة', { exact: true }).fill('201');
+  await expect(save).toBeEnabled();
+  const savePalette = () => save.evaluate(button => {
+    const style = getComputedStyle(button);
+    return { background: style.backgroundColor, image: style.backgroundImage, color: style.color, border: style.borderColor };
+  });
+  for (const theme of ['light', 'dark']) {
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 950 });
+      await page.evaluate(value => { document.documentElement.dataset.theme = value; delete document.documentElement.dataset.royalShell; }, theme);
+      const original = await savePalette();
+      await page.evaluate(() => { document.documentElement.dataset.royalShell = '03'; });
+      assert.deepEqual(await savePalette(), original, `treasury/${theme}/${width}: original green save action`);
+      await page.screenshot({ path: `artifacts/white-gold-treasury/save-${theme}-${width}.png` });
+    }
+  }
+  page.once('dialog', dialog => void dialog.accept());
+  await correction.getByRole('button', { name: 'إلغاء التعديل', exact: true }).click();
   assert.deepEqual(db.prepare('SELECT * FROM treasury_cash_entries ORDER BY sequence').all(), before);
   assert.deepEqual(errors, []);
   assert.deepEqual(writes, []);
-  console.log('PASS: 8 treasury layouts, bottom entry, sticky header, older history, unchanged summaries and no writes.');
+  console.log('PASS: 8 treasury layouts and 4 original green save-button states; sticky header, older history, unchanged summaries and no writes.');
 } finally {
   await browser.close(); server.closeRealtimeConnections(); server.closeAllConnections();
   await new Promise<void>(resolve => server.close(() => resolve())); db.close();

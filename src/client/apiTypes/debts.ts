@@ -79,7 +79,7 @@ export type Ledger = {
   nextCursor: string | null;
 };
 
-export type CustomerFilter = 'smart' | 'today' | 'due' | 'settled' | 'pinned' | 'pending-review';
+export type CustomerFilter = 'smart' | 'today' | 'due' | 'settled' | 'pinned' | 'pending-review' | 'all';
 export type AccountSuggestion = Pick<Customer, 'id' | 'name' | 'phone' | 'balanceUnits' | 'currency'>;
 export type CustomerListOptions = {
   known?: readonly string[];

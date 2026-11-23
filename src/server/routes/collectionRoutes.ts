@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { AppDatabase } from '../db/database.ts';
 import { durableWrite } from '../db/durableWrites.ts';
 import { cancelCollectionApproval } from '../domain/collectionApprovalCancellation.ts';
+import { cancelCollectionPayrollEntry } from '../domain/collectionPayrollCancellation.ts';
 import { collectionWorkspace, employeeCollectionWorkspace } from '../domain/collectionWorkspaceQueries.ts';
 import {
   assignCustomers,
@@ -71,7 +72,7 @@ export async function routeCollections(context: CollectionRouteContext) {
   }
   if (method === 'GET' && url.pathname === '/api/collections/payroll') {
     requirePermission(user, 'collections.read');
-    sendJson(response, 200, { ok: true, data: listCollectionPayroll(database, user) });
+    sendJson(response, 200, { ok: true, data: listCollectionPayroll(database, user, url.searchParams.get('includeCancelled') === '1') });
     return true;
   }
   if (method === 'POST' && url.pathname === '/api/collections/payroll/entries') {
@@ -85,6 +86,13 @@ export async function routeCollections(context: CollectionRouteContext) {
     const data = updateCollectionPayrollSalary(
       database, user, decodePathSegment(payrollSalary[1]), await readJson(request), correlationId,
     );
+    publish(events, data.eventSequences);
+    sendJson(response, 200, { ok: true, data });
+    return true;
+  }
+  const payrollCancellation = url.pathname.match(/^\/api\/collections\/payroll\/entries\/([^/]+)\/cancel$/);
+  if (method === 'POST' && payrollCancellation) {
+    const data = await durableWrite(database, () => cancelCollectionPayrollEntry(database, user, decodePathSegment(payrollCancellation[1]), correlationId));
     publish(events, data.eventSequences);
     sendJson(response, 200, { ok: true, data });
     return true;

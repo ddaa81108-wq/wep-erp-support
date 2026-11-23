@@ -63,7 +63,7 @@ export function DashboardSidebar({
   return <>
     <aside data-palette={activeSection === 'collections' || activeSection === 'masraweya' || activeSection === 'treasury' || activeSection === 'reports' || activeSection === 'settings' ? 'gold' : activeSection === 'libyan-deposits' ? 'gold' : activeSection === 'egyptian-deposits' ? 'gold' : activeSection === 'companies' ? 'gold' : activeSection === 'customers' || activeSection === 'purchases' ? 'gold' : palette} data-appearance={activeSection === 'collections' || activeSection === 'masraweya' || activeSection === 'treasury' || activeSection === 'reports' || activeSection === 'settings' ? 'customer-gold-two' : activeSection === 'libyan-deposits' ? 'customer-gold-two' : activeSection === 'customers' ? 'customer-gold-two' : activeSection === 'purchases' ? 'customer-gold-two' : activeSection === 'companies' ? 'customer-gold-two' : activeSection === 'egyptian-deposits' ? 'customer-gold-two' : undefined} className={`sidebar ${menuOpen ? 'open' : ''} ${hidden ? 'hidden' : ''}`}>
       <div className="sidebar-identity">
-        <span className="brand-mark" aria-hidden="true">
+        <span className="brand-mark" title={`${systemName} — ${user.displayName}`} aria-hidden="true">
           VIB
         </span>
         <div className="identity-app"><Building2 aria-hidden="true" size={19} /><strong title={systemName}>{systemName}</strong><small>{uiText("محلي")}</small></div>
@@ -78,7 +78,7 @@ export function DashboardSidebar({
         <ShellAppearanceToggle />
         <LanguageToggle />
         <ThemeToggle theme={theme} onToggle={onThemeToggle} />
-        <button className="logout-button" onClick={onLogout}><LogOut size={17} /><span>{uiText("تسجيل الخروج")}</span></button>
+        <button className="logout-button" title={uiText('تسجيل الخروج')} onClick={onLogout}><LogOut size={17} /><span>{uiText("تسجيل الخروج")}</span></button>
       </div>
     </aside>
     {hidden && <button className="sidebar-reveal" onClick={onReveal} aria-label={uiText("إظهار الشريط الجانبي")} title={uiText("إظهار الشريط الجانبي")}><PanelRightOpen size={18} /><span>{uiText("إظهار القائمة")}</span></button>}

@@ -63,6 +63,9 @@ function payrollSentence(item: NotificationItem, actor: string) {
   const reason = typeof details.reason === 'string' ? details.reason.trim() : '';
   const target = employee ? uiText(" للموظف {0}", [employee]) : '';
   const label = kind === 'commission' ? uiText("عمولة أو مكافأة") : uiText("سحب");
+  if (item.action === 'collection.payroll.entry.cancel') {
+    return uiText('{0} ألغى {1}{2} بقيمة {3} د.ل.', [actor, label, target, amounts.format(amount)]);
+  }
   if (item.action === 'collection.payroll.entry.confirm') {
     return uiText("{0} أكد استلام {1} بقيمة {2} د.ل{3}.", [actor, label, amounts.format(amount), reason ? uiText(" بسبب {0}", [reason]) : '']);
   }

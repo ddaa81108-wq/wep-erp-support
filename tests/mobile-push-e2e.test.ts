@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { createApp, listen } from '../src/server/app.ts';
-import { API_VERSION, loadConfig } from '../src/server/config.ts';
+import { API_VERSION, SCHEMA_VERSION, loadConfig } from '../src/server/config.ts';
 import { openDatabase } from '../src/server/db/database.ts';
 import { rollbackMobilePush } from '../src/server/db/migrationsMobilePush.ts';
 import {
@@ -38,7 +38,7 @@ test('local file migration sends only through the mock and rolls back without to
     return originalFetch(input, init);
   };
   try {
-    assert.equal(db.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, 60);
+    assert.equal(db.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, Number(SCHEMA_VERSION));
     const now = new Date().toISOString();
     db.prepare(
       `INSERT INTO users(id,username,display_name,password_hash,role,organization_id,home_branch_id,created_at,updated_at)
@@ -132,7 +132,8 @@ test('local file migration sends only through the mock and rolls back without to
     assert.deepEqual(notificationRow(db, noticeId), stored);
 
     rollbackMobilePush(db);
-    assert.equal(db.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, 58);
+    assert.equal(db.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, Number(SCHEMA_VERSION));
+    assert.equal(db.prepare('SELECT COUNT(*) n FROM schema_migrations WHERE version IN (59,60)').get()?.n, 0);
     assert.equal(
       db.prepare("SELECT COUNT(*) n FROM sqlite_master WHERE name LIKE 'mobile_push%'").get()?.n,
       0,
@@ -174,7 +175,7 @@ test('reopening after the undo applies the mobile push migrations again and does
   first.close();
   const again = openDatabase(path);
   try {
-    assert.equal(again.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, 60);
+    assert.equal(again.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, Number(SCHEMA_VERSION));
     assert.equal(
       again
         .prepare('PRAGMA table_info(mobile_push_devices)')

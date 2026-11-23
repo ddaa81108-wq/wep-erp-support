@@ -37,10 +37,14 @@ try {
   const toggle = page.getByRole('button', { name: 'تبديل تنسيق الأشرطة', exact: true });
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   async function appearance(label: string) {
-    if (((await toggle.getAttribute('aria-pressed')) === 'true') === (label !== 'الشكل الأصلي')) return;
+    const target = label === 'الشكل الأصلي' ? 'original' : '03';
+    if ((await toggle.getAttribute('data-appearance')) === target) return;
     const mobile = (page.viewportSize()?.width ?? 1440) <= 900;
     if (mobile) await page.getByRole('button', { name: 'فتح القائمة الرئيسية', exact: true }).click();
-    await toggle.click();
+    for (let attempt = 0; attempt < 3 && (await toggle.getAttribute('data-appearance')) !== target; attempt++) await toggle.click();
+    await expect(toggle).toHaveAttribute('data-appearance', target);
+    if (await page.locator('.debts-toolbar').count()) await expect(page.locator('.customer-card').first()).toBeVisible();
+    await page.evaluate(async () => { await Promise.all(document.getAnimations().filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {}))); });
     if (mobile) await page.locator('.sidebar-mobile-close').click();
   }
   async function cardState() {
@@ -158,6 +162,18 @@ try {
       await page.evaluate((value) => {
         document.documentElement.dataset.theme = value;
       }, mode);
+      if (name === 'collections' || name === 'purchases') {
+        const action = page.locator('.workspace .batch-close-button,.workspace .purchase-head-actions>.finalize');
+        await expect(action).toHaveCount(1);
+        const palette = () => action.evaluate(button => {
+          const style = getComputedStyle(button);
+          return { background: style.backgroundColor, image: style.backgroundImage, color: style.color, border: style.borderColor };
+        });
+        await appearance('الشكل الأصلي');
+        const original = await palette();
+        await appearance('الأبيض والذهبي');
+        assert.deepEqual(await palette(), original, `${name}/${mode}: preserve state/action colors`);
+      }
       await appearance('الأبيض والذهبي');
       const shell = await page
         .locator('.dashboard-utility-bar')

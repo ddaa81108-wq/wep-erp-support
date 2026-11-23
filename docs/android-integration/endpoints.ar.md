@@ -2556,6 +2556,10 @@ Requires all pending reviewed and cash received. Deletes batch working rows; fin
 
 ## GET /api/collections/payroll
 
+تحديث 2026-11-23: الطلب الافتراضي يعيد المعاملات السارية فقط، مع إجماليات تستبعد المعاملات الملغاة. لعرض السجل بما فيه الإلغاءات، أرسل `includeCancelled=1`؛ حينها تتضمن الحركة `cancelledAt` و`cancelledByName`، ولا تُجمع الحركة التي لها `cancelledAt` في الحسابات. المصدر المعتمد للإجماليات هو الخادم.
+
+نقطة إضافية للإدارة فقط: `POST /api/collections/payroll/entries/{id}/cancel`، بجسم `{}` مع جلسة الدخول وCSRF المعتادين. النجاح HTTP 200: `{ "ok": true, "data": { "id": "...", "cancelledAt": "...", "eventSequences": [] } }`. إعادة نفس الإلغاء ترجع `replayed: true` دون تكرار الأثر. الموظف يتلقى HTTP 403 `PERMISSION_DENIED`، والمعرّف خارج المؤسسة أو غير الموجود HTTP 404 `NOT_FOUND`. تأكيد الموظف لمعاملة ملغاة يرجع HTTP 409 `PAYROLL_ENTRY_CANCELLED`. يظل السجل الأصلي محفوظًا، ويتصحح رصيد المرتب والترحيل المتصل في معاملة قاعدة بيانات واحدة.
+
 رواتب وسحوبات وعمولات. الصلاحية: `collections.read`.
 
 

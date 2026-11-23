@@ -15,6 +15,7 @@ import { reconcileFinancials } from '../src/server/domain/financialReconciliatio
 import { createEmergencyBackup, validateBackupFile } from '../src/server/domain/emergencyBackup.ts';
 import { fixtureAdmin } from './helpers/financialFixture.ts';
 import type { AuthenticatedUser } from '../src/server/security/sessions.ts';
+import { openSchemaFixture } from './helpers/schemaFixture.ts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const legacyPlan = migrations.filter((migration) => migration.version <= 59);
@@ -32,24 +33,24 @@ function runRollback(databasePath: string) {
   });
 }
 
-test('schema 60 backup and reconciliation stay inside this application', async () => {
-  assert.equal(SCHEMA_VERSION, '60');
+test('current schema backup and reconciliation stay inside this application', async () => {
+  assert.equal(SCHEMA_VERSION, String(migrations.at(-1)!.version));
   const db = openDatabase(':memory:');
   const owner = { ...fixtureAdmin(db), isOwner: true } as AuthenticatedUser;
   const report = reconcileFinancials(db);
-  assert.equal(report.schemaVersion, '60');
+  assert.equal(report.schemaVersion, SCHEMA_VERSION);
   assert.equal(report.status, 'matched');
   const directory = mkdtempSync(join(tmpdir(), 'shade-backup-'));
   try {
     const snapshot = await createEmergencyBackup(db, owner);
-    assert.equal(snapshot.schemaVersion, '60');
+    assert.equal(snapshot.schemaVersion, SCHEMA_VERSION);
     const path = join(directory, 'backup.sqlite');
     const { writeFileSync } = await import('node:fs');
     writeFileSync(path, Buffer.from(snapshot.database, 'base64'));
     validateBackupFile(path, owner.organizationId);
     const opened = openDatabase(path);
     try {
-      assert.equal(opened.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, 60);
+      assert.equal(opened.prepare('SELECT COALESCE(MAX(version),0) v FROM schema_migrations').get()?.v, Number(SCHEMA_VERSION));
     } finally {
       opened.close();
     }
@@ -64,7 +65,7 @@ test('the rollback command lets the previous migration plan open the same rows',
   const path = join(directory, 'abdo-erp.sqlite');
   const now = '2026-11-14T18:00:00.000Z';
   const token = 'c'.repeat(40);
-  const db = openDatabase(path);
+  const db = openSchemaFixture(path, 60);
   const probe = sqliteVersion(db);
   assert.equal(sqliteSupportsDropColumn(probe), true, probe);
   const user: AuthenticatedUser = {
@@ -174,7 +175,8 @@ test('the rollback command refuses a database newer than version 60', () => {
   const directory = mkdtempSync(join(tmpdir(), 'shade-refuse-'));
   const path = join(directory, 'abdo-erp.sqlite');
   const db = openDatabase(path);
-  db.prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES(61, ?, ?)').run(
+  db.prepare('INSERT INTO schema_migrations(version, name, applied_at) VALUES(?, ?, ?)').run(
+    Number(SCHEMA_VERSION) + 1,
     'future',
     new Date().toISOString(),
   );

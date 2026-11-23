@@ -35,7 +35,26 @@ try {
         await page.evaluate(theme => { document.documentElement.dataset.theme = theme; delete document.documentElement.dataset.royalShell; }, theme);
         await page.evaluate(async () => { await Promise.all(document.getAnimations().filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {}))); });
         const baseline = await total.evaluate(element => ({ text: element.textContent, background: getComputedStyle(element).backgroundImage, color: getComputedStyle(element).color }));
+        const controls = panel.locator('.ledger-choice,.row-action,.ledger-record-pill');
+        const palette = () => controls.evaluateAll(elements => elements.map(element => {
+          const style = getComputedStyle(element);
+          return { classes: element.className, background: style.backgroundColor, image: style.backgroundImage,
+            color: style.color, border: style.borderColor, opacity: style.opacity };
+        }));
+        const originalPalette = await palette();
+        if (section === 'customers' && theme === 'light' && width === 1440)
+          await page.screenshot({ path: 'artifacts/white-gold-ledgers/original-buttons.png' });
         await page.evaluate(() => { document.documentElement.dataset.royalShell = '03'; });
+        await page.evaluate(async () => { await Promise.all(document.getAnimations().filter(animation => animation.effect?.getComputedTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {}))); });
+        const themedPalette = await palette();
+        if (JSON.stringify(themedPalette) !== JSON.stringify(originalPalette))
+          await page.screenshot({ path: 'artifacts/white-gold-ledgers/buttons-before-fix.png' });
+        assert.deepEqual(themedPalette, originalPalette, `${section}/${theme}/${width}: preserve original financial control colors`);
+        if (section === 'customers' && theme === 'light' && width === 1440) {
+          await page.setViewportSize({ width: 1600, height: 1000 });
+          await page.screenshot({ path: 'artifacts/white-gold-ledgers/buttons-after-fix.png', clip: { x: 0, y: 0, width: 1600, height: 310 } });
+          await page.setViewportSize({ width, height: 1000 });
+        }
         const actual = await total.evaluate(element => ({ text: element.textContent, background: getComputedStyle(element).backgroundImage, color: getComputedStyle(element).color }));
         assert.deepEqual(actual, baseline, `${section}: financial total remains unchanged`);
         await expect(panel.getByRole('button', { name: 'إغلاق السجل', exact: true })).toBeVisible();
@@ -47,7 +66,7 @@ try {
   }
   assert.deepEqual(db.prepare('SELECT id,current_balance_units,version FROM customers ORDER BY id').all(), before);
   assert.deepEqual(errors, []); assert.deepEqual(writes, []);
-  console.log('PASS: all four ledgers, 16 phone/desktop/theme states; total colors, amounts, inputs and zero financial writes.');
+  console.log('PASS: all four ledgers, 16 phone/desktop/theme states; original button/pill palettes, total colors, amounts, inputs and zero financial writes.');
 } finally {
   await browser.close(); server.closeRealtimeConnections(); server.closeAllConnections();
   await new Promise<void>(resolve => server.close(() => resolve())); db.close();

@@ -3,10 +3,11 @@ import { useEffect, useLayoutEffect, useState } from 'react';
 import { uiText } from '../i18n/language.ts';
 
 const storageKey = 'abdo-shell-appearance';
-type Appearance = 'original' | '03';
+type Appearance = 'original' | '03' | 'cockpit';
 function readAppearance(): Appearance {
   try {
-    return localStorage.getItem(storageKey) === 'original' ? 'original' : '03';
+    const saved = localStorage.getItem(storageKey);
+    return saved === 'original' || saved === 'cockpit' ? saved : '03';
   } catch {
     return '03';
   }
@@ -16,9 +17,17 @@ function readAppearance(): Appearance {
 export function ShellAppearanceToggle() {
   const [appearance, setAppearance] = useState<Appearance>(readAppearance);
   useLayoutEffect(() => {
-    if (appearance === '03') document.documentElement.dataset.royalShell = '03';
-    else delete document.documentElement.dataset.royalShell;
+    let active = true;
+    const apply = () => {
+      if (!active) return;
+      if (appearance !== 'original') document.documentElement.dataset.royalShell = appearance;
+      else delete document.documentElement.dataset.royalShell;
+    };
+    // Optional appearance assets load only when selected, before applying the theme.
+    if (appearance === 'cockpit') void import('../styles/cockpit-shell.css').then(apply).catch(() => { if (active) setAppearance('03'); });
+    else apply();
     return () => {
+      active = false;
       delete document.documentElement.dataset.royalShell;
     };
   }, [appearance]);
@@ -38,18 +47,21 @@ export function ShellAppearanceToggle() {
     return () => window.removeEventListener('storage', sync);
   }, []);
   const whiteGold = appearance === '03';
-  const next = uiText(whiteGold ? 'الرجوع إلى الشكل الأصلي' : 'تفعيل الأبيض والذهبي');
+  const nextAppearance: Appearance = appearance === 'original' ? '03' : whiteGold ? 'cockpit' : 'original';
+  const labels = { original: 'الشكل الأصلي', '03': 'الأبيض والذهبي', cockpit: 'المقصورة المالية' };
+  const next = uiText(labels[nextAppearance]);
   return (
     <button
       type="button"
       className="theme-toggle shell-appearance-toggle"
       aria-label={uiText('تبديل تنسيق الأشرطة')}
-      aria-pressed={whiteGold}
+      aria-pressed={appearance !== 'original'}
+      data-appearance={appearance}
       title={next}
-      onClick={() => setAppearance(whiteGold ? 'original' : '03')}
+      onClick={() => setAppearance(nextAppearance)}
     >
       <Gem size={18} />
-      <span>{uiText(whiteGold ? 'الأبيض والذهبي' : 'الشكل الأصلي')}</span>
+      <span>{uiText(labels[appearance])}</span>
     </button>
   );
 }

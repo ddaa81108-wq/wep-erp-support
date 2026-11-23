@@ -16,7 +16,10 @@ export const collectionsApi = {
     const params = new URLSearchParams(Object.entries(options).filter(([, value]) => value !== undefined && value !== '').map(([key, value]) => [key, String(value)]));
     return request<CollectionWorkspace>('/api/collections/workspace?' + params.toString(), { signal });
   },
-  collectionPayroll: () => request<CollectionPayrollDashboard>('/api/collections/payroll'),
+  collectionPayroll: () => request<CollectionPayrollDashboard>('/api/collections/payroll?includeCancelled=1'),
+  cancelCollectionPayrollEntry: (entryId: string) => request<{ id: string; cancelledAt: string }>(
+    `/api/collections/payroll/entries/${encodeURIComponent(entryId)}/cancel`, { method: 'POST', body: '{}' },
+  ),
   createCollectionPayrollEntry: (
     employeeUserId: string,
     kind: 'withdrawal' | 'commission',

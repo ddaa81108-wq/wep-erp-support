@@ -339,7 +339,9 @@ export function useDebtAccounts({ activeSection, debtSection, canRead, onNotice 
       await refreshAfterMutation().catch(() => undefined);
       return;
     }
-    onNotice({ kind: 'success', text: uiText('تمت مراجعة التصفير ونقل الكارت إلى مجموعة المسدد.') });
+    onNotice({ kind: 'success', text: document.documentElement.dataset.royalShell === 'cockpit'
+      ? uiText('تمت مراجعة التصفير. الكارت متاح أسفل قائمة الكروت.')
+      : uiText('تمت مراجعة التصفير ونقل الكارت إلى مجموعة المسدد.') });
     try {
       await refreshAfterMutation();
     } catch {

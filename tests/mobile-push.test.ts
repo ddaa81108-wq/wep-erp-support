@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { createApp, listen } from '../src/server/app.ts';
 import { API_VERSION, loadConfig } from '../src/server/config.ts';
 import { openDatabase } from '../src/server/db/database.ts';
+import { openSchemaFixture } from './helpers/schemaFixture.ts';
 import {
   mobilePushRollbackSql,
   mobilePushShadeRollbackSql,
@@ -58,8 +59,8 @@ test('stopping a dispatcher aborts its active send deadline promptly', async () 
   await assert.rejects(running, (error: unknown) => error instanceof FcmRequestError && error.errorCode === 'SEND_ABORTED');
 });
 
-function fixture() {
-  const db = openDatabase(':memory:');
+function fixture(schemaVersion?: number) {
+  const db = schemaVersion === undefined ? openDatabase(':memory:') : openSchemaFixture(':memory:', schemaVersion);
   const actor: AuthenticatedUser = {
     id: 'push-admin',
     username: 'push-admin',
@@ -549,7 +550,7 @@ test('an unknown device keeps the legacy notification and a shade device gets da
 });
 
 test('version 60 rolls back by dropping only the capability column', () => {
-  const { db, actor, token } = fixture();
+  const { db, actor, token } = fixture(60);
   registerMobileDevice(db, actor, { token, platform: 'android', pushCapabilities: [shadeCapability] });
   assert.equal(
     db.prepare('SELECT push_capabilities FROM mobile_push_devices WHERE token=?').get(token)

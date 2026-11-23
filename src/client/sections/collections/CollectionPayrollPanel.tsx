@@ -3,11 +3,12 @@ import { useUnsavedForm } from '../../dashboard/useUnsavedForm.ts';
 import { flushBeforeNavigation } from '../../dashboard/navigationGuards.ts';
 import { useRealtimeRefresh } from '../../realtime/useRealtimeRefresh.ts';
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { ArrowRight, Check, Coins, Plus, WalletCards } from 'lucide-react';
+import { ArrowRight, Coins, Plus, WalletCards } from 'lucide-react';
 import { api } from '../../api.ts';
-import type { CollectionPayrollDashboard, CollectionPayrollEmployee } from '../../apiTypes.ts';
+import type { CollectionPayrollDashboard, CollectionPayrollEmployee, CollectionPayrollEntry } from '../../apiTypes.ts';
 import { collectionMoney, collectionError } from './useCollectionsDashboard.ts';
 import { useRecoverableWrite } from '../../components/useRecoverableWrite.ts';
+import { PayrollEntryRow } from './PayrollEntryRow.tsx';
 
 type PayrollWrite = { employeeId: string; kind: 'withdrawal' | 'commission'; amountUnits: number; reason: string };
 
@@ -75,6 +76,13 @@ export function CollectionPayrollPanel({ userId, isAdmin, onClose }: { userId: s
     try { await api.confirmCollectionPayrollEntry(entryId); await load(); }
     catch (caught) { setError(collectionError(caught)); } finally { actionLocked.current = false; setBusy(''); }
   }
+  async function cancelEntry(entry: CollectionPayrollEntry) {
+    if (!isAdmin || entry.cancelledAt || actionLocked.current) return;
+    if (!window.confirm(uiText('إلغاء هذه المعاملة بقيمة {0} د.ل؟ سيُصحح رصيد المرتب وتظل الحركة مسجلة كملغاة.', [collectionMoney.format(entry.amountUnits)]))) return;
+    actionLocked.current = true; setBusy(entry.id); setError('');
+    try { await api.cancelCollectionPayrollEntry(entry.id); await load(); }
+    catch (caught) { setError(collectionError(caught)); } finally { actionLocked.current = false; setBusy(''); }
+  }
   if (!data) return <section className="collection-panel payroll-panel"><div className="spinner" />{uiText("جارٍ تحميل المرتبات…")}</section>;
   return <div className="payroll-workspace">
     <header className="payroll-heading"><div><h2>{uiText("مرتبات موظفي الاستلام")}</h2><p>{uiText("الفترة الحالية: ")}{data.period}</p></div><button className="secondary payroll-back" onClick={() => { void flushBeforeNavigation().then(allowed => { if (allowed) onClose(); }); }}><ArrowRight size={15} /> {uiText(" العودة للاستلامات")}</button></header>
@@ -93,7 +101,7 @@ export function CollectionPayrollPanel({ userId, isAdmin, onClose }: { userId: s
         <article className={selected.remainingUnits < 0 ? 'negative' : 'positive'}><span>{uiText("الباقي من المرتب")}</span><strong>{collectionMoney.format(selected.remainingUnits)} {uiText(" د.ل")}</strong></article>
       </section>
       {isAdmin && <section className="collection-panel payroll-admin-actions"><h3>{uiText("إضافة حركة للموظف")}</h3><div className="payroll-kind-tabs"><button className={entryKind === 'withdrawal' ? 'active' : ''} onClick={() => setEntryKind('withdrawal')}><WalletCards size={15} /> {uiText(" إضافة سحب")}</button><button className={entryKind === 'commission' ? 'active' : ''} onClick={() => setEntryKind('commission')}><Coins size={15} /> {uiText(" إضافة عمولة أو مكافأة")}</button></div><form key={`entry:${selected.employeeId}`} ref={bindEntryForm} onInput={changeEntry} onChange={changeEntry} className="payroll-entry-form" onSubmit={addEntry}><label>{uiText("القيمة")}<input name="amountUnits" type="number" min="1" step="1" inputMode="numeric" required /></label><label>{uiText("السبب")}<input name="reason" maxLength={300} required placeholder={entryKind === 'withdrawal' ? uiText("سبب السحب") : uiText("سبب العمولة أو المكافأة")} /></label><button className="primary" disabled={busy !== ''}><Plus size={15} /> {uiText(" إضافة")}</button></form><form key={`salary:${selected.employeeId}`} ref={bindSalary} onInput={changeSalary} onChange={changeSalary} className="payroll-salary-form" onSubmit={saveSalary}><label>{uiText("المرتب الثابت")}<input name="baseSalaryUnits" type="number" min="0" step="1" defaultValue={selected.baseSalaryUnits} /></label><button className="secondary" disabled={busy !== ''}>{uiText("حفظ المرتب")}</button></form></section>}
-      <section className="collection-panel payroll-ledger-panel"><h3>{uiText("سجل المرتب — ")}{selected.employeeName}</h3>{selected.entries.length === 0 ? <p className="muted">{uiText("لا توجد حركات في هذه الفترة.")}</p> : <div className="payroll-ledger">{selected.entries.map((entry) => <article key={entry.id} className={entry.kind === 'withdrawal' ? 'payroll-withdrawal' : 'payroll-commission'}><div><strong>{entry.kind === 'withdrawal' ? uiText("سحب") : uiText("عمولة / مكافأة")}</strong><span>{entry.reason}</span></div><b>{collectionMoney.format(entry.amountUnits)} {uiText(" د.ل")}</b><small>{entry.createdByName} • {new Date(entry.createdAt).toLocaleString('ar-EG')}</small>{entry.confirmedAt ? <em><Check size={13} /> {uiText(" تم التأكيد")}</em> : isAdmin ? <em className="pending-confirmation">{uiText("بانتظار تأكيد الموظف")}</em> : <button className="confirm-payroll" disabled={busy === entry.id} onClick={() => void confirm(entry.id)}><Check size={14} /> {uiText(" تأكيد الاستلام")}</button>}</article>)}</div>}</section>
+      <section className="collection-panel payroll-ledger-panel"><h3>{uiText("سجل المرتب — ")}{selected.employeeName}</h3>{selected.entries.length === 0 ? <p className="muted">{uiText("لا توجد حركات في هذه الفترة.")}</p> : <div className="payroll-ledger">{selected.entries.map(entry => <PayrollEntryRow key={entry.id} entry={entry} isAdmin={isAdmin} busy={busy !== ""} onConfirm={id => void confirm(id)} onCancel={entry => void cancelEntry(entry)} />)}</div>}</section>
     </> : <section className="collection-panel"><p className="muted">{uiText("لا يوجد موظف استلام مفعّل حاليًا.")}</p></section>}
   </div>;
 }

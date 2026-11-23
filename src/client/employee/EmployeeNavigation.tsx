@@ -31,6 +31,7 @@ export function EmployeeNavigation({ user, active, open }: Props) {
         return (
           <button
             key={item.section}
+            aria-label={item.label}
             className={`${active === item.section ? 'active' : ''} ${allowed ? '' : 'locked'}`}
             onPointerEnter={() => allowed && preloadSection(item.section)}
             onFocus={() => allowed && preloadSection(item.section)}

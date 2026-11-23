@@ -105,6 +105,8 @@ export type CollectionPayrollEntry = {
   createdByName: string;
   confirmedAt: string | null;
   confirmedByName: string | null;
+  cancelledAt?: string | null;
+  cancelledByName?: string | null;
 };
 
 export type CollectionPayrollEmployee = {

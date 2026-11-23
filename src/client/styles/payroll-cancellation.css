@@ -1,0 +1,7 @@
+.payroll-ledger article[data-cancelled='true'] { border-inline-start-color:var(--muted)!important; }
+.payroll-ledger article[data-cancelled='true']>b { text-decoration:line-through; color:var(--muted); }
+.payroll-ledger article .payroll-cancelled { color:var(--muted); }
+.payroll-entry-status { justify-items:start; }
+.cancel-payroll-entry { display:inline-flex; align-items:center; gap:5px; padding:7px 10px; border:1px solid #d89a90; border-radius:6px; background:#922f27; color:#fff; font:inherit; font-size:10px; cursor:pointer; }
+.cancel-payroll-entry:disabled { opacity:.55; cursor:wait; }
+.cancel-payroll-entry:focus-visible { outline:2px solid currentColor; outline-offset:3px; }

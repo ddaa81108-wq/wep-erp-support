@@ -56,6 +56,7 @@ export function visibleCustomerCards(
     if (!matchesSearch) return false;
     if (filter === 'pending-review') return item.balanceUnits === 0 && Boolean(item.zeroReview?.pending);
     if (normalizedQuery) return true;
+    if (filter === 'all') return true;
     if (filter === 'smart') return !item.hiddenFromDefault;
     if (filter === 'today') return true;
     if (filter === 'due') return item.balanceUnits > 0;

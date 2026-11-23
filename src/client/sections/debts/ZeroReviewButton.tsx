@@ -14,7 +14,7 @@ export function ZeroReviewButton({ customer, onReview }: {
     <Check size={14} aria-hidden="true" />
   </span> : null;
   return <button type="button" className="zero-review-status pending" disabled={busy}
-    aria-label={uiText("مراجعة تصفير {0}", [customer.name])} title={uiText("تأكيد الاطلاع على التصفير ونقل الكارت إلى المسدد")}
+    aria-label={uiText("مراجعة تصفير {0}", [customer.name])} title={uiText("تأكيد الاطلاع على التصفير")}
     onClick={async () => { setBusy(true); try { await onReview(customer); } finally { setBusy(false); } }}>
     <Check size={14} aria-hidden="true" />
   </button>;

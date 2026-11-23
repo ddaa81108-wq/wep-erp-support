@@ -1,52 +1,53 @@
 /* Neutral section surfaces only; original calculations, geometry and status semantics remain. */
-:root[data-theme][data-royal-shell='03'] .workspace :is(.masraweya-header,.treasury-head,.treasury-panel-head,.financial-overview-head,.settings-topbar,.purchase-action-dock,.purchase-workbar,.collection-toolbar-actions,.collection-overview-header) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.masraweya-header,.treasury-head,.treasury-panel-head,.financial-overview-head,.settings-topbar,.purchase-action-dock,.purchase-workbar,.collection-toolbar-actions,.collection-overview-header) {
   background:var(--wg-paper)!important; color:var(--wg-ink)!important;
   border-color:var(--wg-line)!important; box-shadow:var(--wg-shadow)!important;
 }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.masraweya-header,.financial-overview-head,.settings-topbar,.purchase-action-dock,.collection-toolbar-actions) :is(h1,h2,p,small,label,button,input,select) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.masraweya-header,.financial-overview-head,.settings-topbar,.purchase-action-dock,.collection-toolbar-actions) :is(h1,h2,p,small,label,button:not(.batch-close-button):not(.finalize),input,select) {
   color:var(--wg-ink)!important; background-color:var(--wg-paper)!important; border-color:var(--wg-line)!important;
 }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.purchase-register,.purchase-row,.purchase-day-separator,.purchase-grid-head,.purchase-draft,.purchase-metrics article,.masraweya-work-table,.masraweya-work-table td,.masraweya-summary article,.financial-overview,.report-position-card,.report-reading-error,.report-details,.settings-tool-card,.settings-security-strip) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.purchase-register,.purchase-row,.purchase-day-separator,.purchase-grid-head,.purchase-draft,.purchase-metrics article,.masraweya-work-table,.masraweya-work-table td,.masraweya-summary article,.financial-overview,.report-position-card,.report-reading-error,.report-details,.settings-tool-card,.settings-security-strip) {
   background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important;
 }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.purchase-grid-head,.purchase-day-separator,.masraweya-work-table th) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.purchase-grid-head,.purchase-day-separator,.masraweya-work-table th) {
   background:var(--wg-soft)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important;
 }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.purchase-row,.purchase-grid-head,.purchase-day-separator,.purchase-metrics,.masraweya-work-table,.masraweya-summary,.settings-tool-card,.financial-overview-head) :is(span,b,strong,small,th) { color:var(--wg-ink)!important; }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.purchases-page,.masraweya-page,.settings-section,.financial-overview) :is(input,select,textarea) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.purchase-row,.purchase-grid-head,.purchase-day-separator,.purchase-metrics,.masraweya-work-table,.masraweya-summary,.settings-tool-card,.financial-overview-head) :is(span,b,strong,small,th) { color:var(--wg-ink)!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.purchases-page,.masraweya-page,.settings-section,.financial-overview) :is(input,select,textarea) {
   background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important;
 }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.purchase-action-dock .merchant-tabs button.active,.board-tabs button[aria-selected='true'],.employee-board-tabs button[aria-selected='true']) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.purchase-action-dock .merchant-tabs button.active,.board-tabs button[aria-selected='true'],.employee-board-tabs button[aria-selected='true']) {
   background:var(--wg-selected)!important; color:var(--wg-ink)!important;
 }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.collection-board-summary>article,.board-assignment,.employee-board-summary>article,.employee-collection-board .collection-card) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.collection-board-summary>article,.board-assignment,.employee-board-summary>article,.employee-collection-board .collection-card) {
   background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important;
 }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.board-assignment,.employee-collection-board .collection-card,.collection-board-summary,.employee-board-summary) :is(h2,h3,strong,bdi,.collection-name,.collection-balance) { color:var(--wg-ink)!important; }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.board-filters,.board-tabs,.employee-board-navigation) :is(input,select,button) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.board-assignment,.employee-collection-board .collection-card,.collection-board-summary,.employee-board-summary) :is(h2,h3,strong,bdi,.collection-name,.collection-balance) { color:var(--wg-ink)!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.board-filters,.board-tabs,.employee-board-navigation) :is(input,select,button:not(.batch-close-button)) {
   background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important;
 }
 /* Preserve the summary tile's outside-card color; change only ledger paper and chrome. */
-:root[data-theme][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits) :is(header,.ledger-table-wrap,.ledger-record,.ledger-draft-row) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits) :is(header,.ledger-table-wrap,.ledger-record,.ledger-draft-row) {
   background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important;
 }
-:root[data-theme][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits) :is(.ledger-grid-head,.ledger-grid-head>span>b) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits) :is(.ledger-grid-head,.ledger-grid-head>span>b) {
   background:var(--wg-soft)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important;
 }
-:root[data-theme][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits) :is(header,.ledger-record,.ledger-draft-row) :is(input,select,textarea,button) {
+/* Financial choices and row actions retain their section's original palette. */
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits) :is(header,.ledger-record,.ledger-draft-row) :is(input,select,textarea,button:not(.ledger-choice):not(.row-action)) {
   background:var(--wg-paper); color:var(--wg-ink); border-color:var(--wg-line);
 }
-:root[data-theme][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits) :is(.ledger-customer-title h2,.ledger-record>span,.ledger-record>div,.operation-actor) { color:var(--wg-ink)!important; }
-:root[data-theme][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits) { background:var(--wg-paper)!important; color:var(--wg-ink)!important; box-shadow:var(--wg-shadow)!important; }
-:root[data-theme][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits)>header :is(.ledger-customer-title,.ledger-edit-details,.icon-button),
-:root[data-theme][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits) .operation-actor { background:var(--wg-soft)!important; color:var(--wg-ink)!important; box-shadow:none!important; }
-:root[data-theme][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits) :is(input,select,textarea) { background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; color-scheme:light; }
-:root[data-theme='dark'][data-royal-shell='03'] .ledger-panel:not(.section-egyptian-deposits) :is(input,select,textarea) { color-scheme:dark; }
-:root[data-theme][data-royal-shell='03'] .workspace :is(.collections-page,.collection-board,.purchases-page,.masraweya-page,.settings-section) { background:var(--wg-bg)!important; }
-:root[data-theme][data-royal-shell='03'] .workspace[class] :is(.purchase-grid-head>span,.purchase-grid-head>span>b,.purchase-day-separator>span,.purchase-register-total,.purchase-register-total>span) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits) :is(.ledger-customer-title h2,.ledger-record>span,.ledger-record>div,.operation-actor) { color:var(--wg-ink)!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits) { background:var(--wg-paper)!important; color:var(--wg-ink)!important; box-shadow:var(--wg-shadow)!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits)>header :is(.ledger-customer-title,.ledger-edit-details,.icon-button),
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits) .operation-actor { background:var(--wg-soft)!important; color:var(--wg-ink)!important; box-shadow:none!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits) :is(input,select,textarea) { background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; color-scheme:light; }
+:root[data-theme='dark']:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .ledger-panel:not(.section-egyptian-deposits) :is(input,select,textarea) { color-scheme:dark; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.collections-page,.collection-board,.purchases-page,.masraweya-page,.settings-section) { background:var(--wg-bg)!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace[class] :is(.purchase-grid-head>span,.purchase-grid-head>span>b,.purchase-day-separator>span,.purchase-register-total,.purchase-register-total>span) {
   background:var(--wg-soft)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important;
 }
-:root[data-theme][data-royal-shell='03'] .workspace[class] .purchase-row-draft { background:var(--wg-paper)!important; color:var(--wg-ink)!important; }
-:root[data-theme][data-royal-shell='03'] .workspace[class] .purchase-row :is(.purchase-type-badge,.purchase-operation-badge) { color:#fff!important; }
-:root[data-theme][data-royal-shell='03'] .workspace[class] .purchase-day-separator :is(time,em,button) { background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important; }
-:root[data-theme][data-royal-shell='03'] .workspace[class] .masraweya-panel :is(.panel-title h2,.summary-card>header) { background:var(--wg-soft)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace[class] .purchase-row-draft { background:var(--wg-paper)!important; color:var(--wg-ink)!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace[class] .purchase-row :is(.purchase-type-badge,.purchase-operation-badge) { color:#fff!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace[class] .purchase-day-separator :is(time,em,button) { background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace[class] .masraweya-panel :is(.panel-title h2,.summary-card>header) { background:var(--wg-soft)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important; box-shadow:none!important; }

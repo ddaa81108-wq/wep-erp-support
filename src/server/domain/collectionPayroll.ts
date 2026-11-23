@@ -22,7 +22,7 @@ const previousPeriod = (period: string) => {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 };
 
-function requireAdmin(actor: AuthenticatedUser) {
+export function requireAdmin(actor: AuthenticatedUser) {
   if (actor.role !== 'admin') throw forbidden('collections.payroll.manage');
 }
 
@@ -41,11 +41,11 @@ function monthTotals(db: AppDatabase, monthId: string) {
   const row = db.prepare(`SELECT
       COALESCE(SUM(CASE WHEN entry_kind='withdrawal' THEN amount_units ELSE 0 END),0) withdrawalsUnits,
       COALESCE(SUM(CASE WHEN entry_kind='commission' THEN amount_units ELSE 0 END),0) commissionsUnits
-    FROM collection_payroll_entries WHERE month_id=?`).get(monthId) as Record<string, unknown>;
+    FROM collection_payroll_entries WHERE month_id=? AND cancelled_at IS NULL`).get(monthId) as Record<string, unknown>;
   return { withdrawalsUnits: Number(row.withdrawalsUnits), commissionsUnits: Number(row.commissionsUnits) };
 }
 
-function monthRemaining(db: AppDatabase, month: Record<string, unknown>) {
+export function monthRemaining(db: AppDatabase, month: Record<string, unknown>) {
   const totals = monthTotals(db, String(month.id));
   return Number(month.base_salary_units) + Number(month.opening_carry_units)
     + totals.commissionsUnits - totals.withdrawalsUnits;
@@ -75,17 +75,19 @@ function ensureMonth(db: AppDatabase, organizationId: string, employeeId: string
     .get(organizationId, employeeId, period) as Record<string, unknown>;
 }
 
-function entryRows(db: AppDatabase, monthId: string) {
+function entryRows(db: AppDatabase, monthId: string, includeCancelled: boolean) {
   return db.prepare(`SELECT e.id,e.entry_kind AS kind,e.amount_units AS amountUnits,e.reason,
-      e.created_at AS createdAt,e.confirmed_at AS confirmedAt,
+      e.created_at AS createdAt,e.confirmed_at AS confirmedAt,e.cancelled_at AS cancelledAt,
+      canceller.display_name AS cancelledByName,
       creator.display_name AS createdByName,confirmer.display_name AS confirmedByName
     FROM collection_payroll_entries e
     JOIN users creator ON creator.id=e.created_by_user_id
     LEFT JOIN users confirmer ON confirmer.id=e.confirmed_by_user_id
-    WHERE e.month_id=? ORDER BY e.created_at DESC,e.id DESC`).all(monthId);
+    LEFT JOIN users canceller ON canceller.id=e.cancelled_by_user_id
+    WHERE e.month_id=? ${includeCancelled ? '' : 'AND e.cancelled_at IS NULL'} ORDER BY e.created_at DESC,e.id DESC`).all(monthId);
 }
 
-function payrollSnapshot(db: AppDatabase, employee: Record<string, unknown>, period: string, showCarry: boolean) {
+function payrollSnapshot(db: AppDatabase, employee: Record<string, unknown>, period: string, showCarry: boolean, includeCancelled: boolean) {
   const month = ensureMonth(db, String(employee.organization_id ?? employee.organizationId), String(employee.id), period);
   const totals = monthTotals(db, String(month.id));
   return {
@@ -100,11 +102,11 @@ function payrollSnapshot(db: AppDatabase, employee: Record<string, unknown>, per
     commissionsUnits: totals.commissionsUnits,
     remainingUnits: Number(month.base_salary_units) + Number(month.opening_carry_units)
       + totals.commissionsUnits - totals.withdrawalsUnits,
-    entries: entryRows(db, String(month.id)),
+    entries: entryRows(db, String(month.id), includeCancelled),
   };
 }
 
-function audit(
+export function audit(
   db: AppDatabase, actor: AuthenticatedUser, action: string, entityId: string,
   correlationId: string, details: Record<string, unknown>,
 ) {
@@ -114,7 +116,7 @@ function audit(
     .run(actor.id, actor.organizationId, action, entityId, correlationId, JSON.stringify(details), nowIso());
 }
 
-function notifyEmployee(
+export function notifyEmployee(
   db: AppDatabase, actor: AuthenticatedUser, employeeId: string, action: string,
   entityId: string, details: Record<string, unknown>,
 ) {
@@ -124,7 +126,7 @@ function notifyEmployee(
     .run(actor.organizationId, employeeId, actor.id, action, entityId, JSON.stringify(details), nowIso());
 }
 
-function emit(db: AppDatabase, actor: AuthenticatedUser, aggregateId: string, action: string) {
+export function emit(db: AppDatabase, actor: AuthenticatedUser, aggregateId: string, action: string) {
   const result = db.prepare(`INSERT INTO event_log(topic,aggregate_id,actor_user_id,organization_id,payload_json,created_at)
     VALUES('collection.changed',?,?,?,?,?)`).run(
     aggregateId, actor.id, actor.organizationId, JSON.stringify({ action }), nowIso(),
@@ -132,7 +134,7 @@ function emit(db: AppDatabase, actor: AuthenticatedUser, aggregateId: string, ac
   return Number(result.lastInsertRowid);
 }
 
-export function listCollectionPayroll(db: AppDatabase, actor: AuthenticatedUser) {
+export function listCollectionPayroll(db: AppDatabase, actor: AuthenticatedUser, includeCancelled = false) {
   const { period, day } = payrollDate();
   const employees = actor.role === 'admin'
     ? db.prepare(`SELECT u.id,u.organization_id,u.display_name AS displayName,u.username
@@ -143,7 +145,7 @@ export function listCollectionPayroll(db: AppDatabase, actor: AuthenticatedUser)
     : [employeeRow(db, actor.organizationId, actor.id)];
   return {
     period,
-    employees: employees.map((employee) => payrollSnapshot(db, employee, period, day === 1)),
+    employees: employees.map((employee) => payrollSnapshot(db, employee, period, day === 1, includeCancelled)),
   };
 }
 
@@ -178,7 +180,7 @@ export function createCollectionPayrollEntry(
     warnDuplicate(input, () => {
       const { start, end } = todayRange();
       return Boolean(db.prepare(`SELECT 1 FROM collection_payroll_entries
-        WHERE organization_id=? AND employee_user_id=? AND entry_kind=? AND amount_units=?
+        WHERE organization_id=? AND employee_user_id=? AND entry_kind=? AND amount_units=? AND cancelled_at IS NULL
           AND created_at>=? AND created_at<? LIMIT 1`)
         .get(actor.organizationId, employeeId, kind, amountUnits, start, end));
     });
@@ -245,6 +247,7 @@ export function confirmCollectionPayrollEntry(
       WHERE e.id=? AND e.organization_id=?`).get(entryId, actor.organizationId) as Record<string, unknown> | undefined;
     if (!row) throw notFound('payroll_entry');
     if (String(row.employee_user_id) !== actor.id) throw forbidden('collections.payroll.confirm');
+    if (row.cancelled_at) throw conflict('PAYROLL_ENTRY_CANCELLED', 'هذه الحركة ملغاة ولا يمكن تأكيد استلامها.');
     if (row.confirmed_at) return { id: entryId, confirmedAt: String(row.confirmed_at), replayed: true };
     const confirmedAt = nowIso();
     const changed = db.prepare(`UPDATE collection_payroll_entries

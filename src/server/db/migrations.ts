@@ -23,6 +23,7 @@ import { collectionRejectedBalanceMigrations } from './migrationsCollectionRejec
 import { sectionZeroReviewMigrations } from './migrationsSectionZeroReview.ts';
 import { mobilePushMigrations } from './migrationsMobilePush.ts';
 import { treasuryCorrectionMigrations } from './migrationsTreasuryCorrections.ts';
+import { payrollCancellationMigrations } from './migrationsPayrollCancellation.ts';
 
 export type { Migration } from './migrationTypes.ts';
 
@@ -50,4 +51,5 @@ export const migrations: Migration[] = [
   ...sectionZeroReviewMigrations,
   ...treasuryCorrectionMigrations,
   ...mobilePushMigrations,
+  ...payrollCancellationMigrations,
 ];
