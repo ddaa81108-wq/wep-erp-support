@@ -80,6 +80,10 @@ try {
           const positions = await Promise.all(selectors.map(selector => page.locator(selector).boundingBox()));
           positions.forEach((box, index) => { assert.ok(box); if (index) assert.ok(positions[index - 1]!.x > box.x, 'Requested second-row RTL order'); });
         }
+        const controls = await page.locator('.cockpit-account-filters button,.add-customer-card,.routing-card').evaluateAll(nodes => nodes.map(node => ({ width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height })));
+        assert.ok(controls.every(control => Math.abs(control.width - controls[0].width) < 1 && Math.abs(control.height - controls[0].height) < 1), `${section}/${theme}/${width}: matching control sizes`);
+        const searchBox = await page.locator('.dashboard-search').boundingBox(), totalCardBox = await page.locator('.debt-total-card').boundingBox();
+        assert.ok(searchBox && totalCardBox && Math.abs(searchBox.height - totalCardBox.height) < 1, 'Search and net total use matching frame heights');
         await expect(page.locator('.add-customer-card')).toBeVisible();
         if (section === 'egyptian') {
           const rate = page.getByRole('spinbutton', { name: 'سعر الجنيه المصري لكل دينار ليبي', exact: true });

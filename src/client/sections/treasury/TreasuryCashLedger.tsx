@@ -118,7 +118,7 @@ export function TreasuryCashLedger({
                 <time className="treasury-date-phone" dateTime={entry.createdAt}>{new Date(entry.createdAt).toLocaleString(displayLocale)}</time>
                 <time className="treasury-date-desktop" dateTime={entry.createdAt}>{desktopDate.format(new Date(entry.createdAt))}</time>
               </span>
-              <span data-label={uiText("الحركة")}>{entry.direction === 'in' ? uiText("دخول") : uiText("خروج")}</span>
+              <span data-label={uiText("الحركة")}><span className="treasury-movement-badge">{entry.direction === 'in' ? uiText("دخول") : uiText("خروج")}</span></span>
               <span data-label={uiText("القيمة")} dir="ltr">
                 {treasuryNumberFormat.format(entry.amountUnits)}
               </span>

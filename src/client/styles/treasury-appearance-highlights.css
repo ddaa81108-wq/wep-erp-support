@@ -1,0 +1,33 @@
+/* Semantic cash highlights for the two new appearances only. */
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury {
+  --cash-in-ink:#126140; --cash-in-paper:#e1f4e9;
+  --cash-out-ink:#9e292f; --cash-out-paper:#fbe6e7;
+}
+:root[data-theme='dark']:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury {
+  --cash-in-ink:#a5f0c8; --cash-in-paper:#123e2d;
+  --cash-out-ink:#ffc2c5; --cash-out-paper:#50252d;
+}
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury .treasury-movement-badge {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:44px; padding:3px 7px; border-radius:6px; border:1px solid currentColor;
+  font-size:12px; font-weight:900; line-height:1.6;
+}
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury .treasury-ledger-row.in .treasury-movement-badge {
+  color:var(--cash-in-ink)!important; background:var(--cash-in-paper)!important;
+}
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury .treasury-ledger-row.out .treasury-movement-badge {
+  color:var(--cash-out-ink)!important; background:var(--cash-out-paper)!important;
+}
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury .treasury-card.active-cash {
+  background:linear-gradient(125deg,#243f61,#13283f)!important; color:#fff!important;
+  border:2px solid #c7a152!important; box-shadow:inset 0 0 0 1px #ffffff18!important;
+}
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury .treasury-card.active-cash.cash-positive {
+  background:linear-gradient(125deg,#126743,#08432e)!important;
+}
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury .treasury-card.active-cash.cash-negative {
+  background:linear-gradient(125deg,#9e343d,#62202d)!important;
+}
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury .treasury-card.active-cash :is(span,b,small) {
+  color:#fff!important; text-shadow:none!important;
+}

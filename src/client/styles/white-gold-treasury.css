@@ -1,3 +1,4 @@
+@import './treasury-appearance-highlights.css';
 /* The new layout is scoped to the replacement appearance; original layout is untouched. */
 :root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace.active-section-treasury .treasury-page {
   position:relative; display:grid; grid-template-columns:minmax(0,1fr) 140px;

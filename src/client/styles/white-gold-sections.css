@@ -19,10 +19,10 @@
 :root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.purchase-action-dock .merchant-tabs button.active,.board-tabs button[aria-selected='true'],.employee-board-tabs button[aria-selected='true']) {
   background:var(--wg-selected)!important; color:var(--wg-ink)!important;
 }
-:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.collection-board-summary>article,.board-assignment,.employee-board-summary>article,.employee-collection-board .collection-card) {
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.collection-board-summary>article,.employee-board-summary>article) {
   background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important;
 }
-:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.board-assignment,.employee-collection-board .collection-card,.collection-board-summary,.employee-board-summary) :is(h2,h3,strong,bdi,.collection-name,.collection-balance) { color:var(--wg-ink)!important; }
+:root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.collection-board-summary,.employee-board-summary) :is(h2,h3,strong,bdi,.collection-name,.collection-balance) { color:var(--wg-ink)!important; }
 :root[data-theme]:is([data-royal-shell='03'],[data-royal-shell='cockpit']) .workspace :is(.board-filters,.board-tabs,.employee-board-navigation) :is(input,select,button:not(.batch-close-button)) {
   background:var(--wg-paper)!important; color:var(--wg-ink)!important; border-color:var(--wg-line)!important;
 }
