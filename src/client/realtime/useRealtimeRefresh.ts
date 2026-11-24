@@ -12,7 +12,6 @@ type Options = {
   cursorKey: string;
   onChange: (changes: readonly LiveChange[], fullResync: boolean) => void | Promise<void>;
   enabled?: boolean;
-  fallbackIntervalMs?: number;
   initialSnapshotProvided?: boolean;
 };
 export function useRealtimeRefresh({

@@ -30,12 +30,18 @@ export function TreasurySection({ user }: { user: User }) {
   const [correctionLocked,setCorrectionLocked]=useState(false);
 
   const latestLoad = useRef(0);
-  const load = useCallback(async (quiet = false, correctedIds:readonly string[]=[], refreshHistory=false) => {
+  const ledgerCashVersion = useRef<number | null>(null);
+  const load = useCallback(async (quiet = false, correctedIds:readonly string[]=[], refreshHistory=false, refreshCash=true) => {
     const request = ++latestLoad.current;
     if (!quiet) setBusy(true);
     try {
-      const [summary, ledger] = await Promise.all([api.treasury(), api.treasuryCashLedger()]);
+      const [summary, cashPage] = await Promise.all([api.treasury(), refreshCash ? api.treasuryCashLedger() : Promise.resolve(null)]);
       if (request !== latestLoad.current) return;
+      // Account changes affect totals, not the independent cash ledger. A
+      // version change still repairs a missed cash event before accepting it.
+      const ledger = cashPage ?? (summary.cashVersion !== ledgerCashVersion.current ? await api.treasuryCashLedger() : null);
+      if (request !== latestLoad.current) return;
+      if (!ledger) { setDashboard(summary); return; }
       const preserveHistory = quiet && loadedEntries.current.length > 0;
       if (preserveHistory) {
         // Bridge any gap after reconnecting before merging the retained history.
@@ -66,6 +72,7 @@ export function TreasurySection({ user }: { user: User }) {
       }
       loadedEntries.current = ledger.items;
       oldestCursor.current = ledger.nextBefore;
+      ledgerCashVersion.current = summary.cashVersion;
       setDashboard(summary);
       setEntries(ledger.items);
       setNextBefore(ledger.nextBefore);
@@ -98,7 +105,7 @@ export function TreasurySection({ user }: { user: User }) {
       if (submitting.current) throw new Error('Refresh deferred until cash submission finishes');
       const ids=changes.filter(change=>change.topic==='treasury.changed' && typeof change.payload.entryId==='string')
         .map(change=>String(change.payload.entryId));
-      return load(true,ids,fullResync);
+      return load(true,ids,fullResync,fullResync || changes.some(change=>change.topic==='treasury.changed'));
     },
   });
 

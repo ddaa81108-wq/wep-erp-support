@@ -48,6 +48,7 @@
     "test:collection-board-ui": "node tests/collection-board-ui.ts",
     "test:collection-appearance-ui": "node tests/collection-appearance-colors-ui.ts",
     "test:treasury-appearance-ui": "node tests/treasury-appearance-highlights-ui.ts",
+    "test:treasury-refresh-ui": "node tests/treasury-refresh-efficiency-ui.ts",
     "test:employee-collection-board-ui": "node tests/employee-collection-board-ui.ts",
     "test:collection-approval-cancellation-ui": "node tests/collection-approval-cancellation-ui.ts",
     "test:collection-idempotency-ui": "node tests/collection-idempotency-ui.ts",

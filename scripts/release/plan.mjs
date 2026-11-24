@@ -1,5 +1,5 @@
 // All checks run against synthetic databases; no production URL or credentials.
-export const RELEASE_PLAN_VERSION = 2;
+export const RELEASE_PLAN_VERSION = 3;
 export const releaseChecks = [
   { id: 'build', npm: 'build' },
   { id: 'lint', npm: 'lint' },
@@ -8,6 +8,7 @@ export const releaseChecks = [
   { id: 'unlinked-payroll-recovery', npm: 'test:recoverable-writes-ui' },
   { id: 'ledger-sync', npm: 'test:ledger-window-sync-ui' },
   { id: 'notification-sync', npm: 'test:notification-sync-ui' },
+  { id: 'treasury-live-refresh', npm: 'test:treasury-refresh-ui' },
   { id: 'three-appearances', npm: 'test:account-cockpit-ui' },
   { id: 'section-ledger-appearance', npm: 'test:cockpit-system-ui' },
   { id: 'original-appearance-regression', npm: 'test:white-gold-ui' },

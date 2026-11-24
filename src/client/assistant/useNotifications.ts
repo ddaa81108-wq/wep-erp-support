@@ -161,7 +161,6 @@ export function useNotifications(enabled: boolean, speakForAccount?: (text: stri
     topics: NOTIFICATION_REALTIME_TOPICS,
     cursorKey: 'abdo-erp-notifications-cursor',
     enabled,
-    fallbackIntervalMs: 4_000,
     onChange: load,
   });
 
