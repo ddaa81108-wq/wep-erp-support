@@ -1,0 +1,81 @@
+/* Ceramic trial: customer cards in the third appearance only.
+   Balance ownership, review handlers, assignments and other appearances stay unchanged. */
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers {
+  --ceramic-paper: linear-gradient(135deg,#fff 20%,#fafaf7 55%,#eeece4);
+  --ceramic-edge: #c9a75a;
+  --ceramic-shadow: 0 7px 16px #403b281a,inset 0 2px 2px #fff,inset 0 -3px 7px #d3c69e66,inset 0 0 0 4px #e8d5a2,inset 0 0 0 6px #fff;
+}
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers {
+  --ceramic-paper: linear-gradient(135deg,#fafbf8 20%,#f1f2ec 60%,#e4e3da);
+  --ceramic-shadow: 0 7px 18px #0005,inset 0 2px 2px #fff,inset 0 -3px 7px #b6a16a55,inset 0 0 0 4px #cfb77c,inset 0 0 0 6px #f9f9f4;
+}
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-grid {
+  grid-template-columns: repeat(auto-fill,minmax(min(180px,100%),1fr));
+}
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner] {
+  --ceramic-ink: #a72535;
+  background: var(--ceramic-paper)!important;
+  border: 1px solid var(--ceramic-edge)!important;
+  border-radius: 22px!important;
+  box-shadow: var(--ceramic-shadow)!important;
+  min-height: 126px!important;
+}
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner='customer'] { --ceramic-ink: #126247; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner='zero'] { --ceramic-ink: #272d2b; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card::before,
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card::after { display: none!important; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .pin-customer { display: none!important; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-card-main {
+  min-height: 126px!important;
+  padding: 12px 11px 10px!important;
+  gap: 2px;
+  background: transparent!important;
+  color: var(--ceramic-ink)!important;
+  text-shadow: none!important;
+}
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card:has(.customer-card-status-row) .customer-card-main { padding-top: 0!important; min-height: 88px!important; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-card-main :is(span,strong,b,small) {
+  color: var(--ceramic-ink)!important;
+  text-shadow: none!important;
+}
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-name-line { font-size: 15px; font-weight: 800; line-height: 1.4; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-card-label { font-size: 10px; font-weight: 800; line-height: 1.4; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-card-main>b { font-size: 23px; font-weight: 900; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-last-movement { font-weight: 600; line-height: 1.4; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-status-row {
+  position: static;
+  margin: 8px 10px 0;
+  height: 38px;
+  justify-content: flex-end;
+}
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-status-row:not(:has(.zero-review-status)) { height: 26px; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-status-row .customer-assignee-badge {
+  margin-inline-end: auto;
+  color: #56421d;
+  border-color: #cbb379;
+  background: #f7efd9;
+  box-shadow: none;
+}
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-status-row .zero-review-status {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
+  margin: 0;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid #b89549;
+  box-shadow: inset 0 1px 1px #fff9,0 2px 5px #57431e22;
+}
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .zero-review-status.pending { background: #fff4df; color: #a32636; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .zero-review-status.reviewed { background: #e6f4eb; color: #126247; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .zero-review-status svg { width: 25px; height: 25px; stroke-width: 3; animation: none; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card :is(.customer-card-main,.zero-review-status,.customer-assignee-badge):focus-visible { outline: 3px solid #826017; outline-offset: -7px; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card.selected-routing { outline: 3px solid #826017; outline-offset: 2px; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .debts-toolbar { border-color: #bc9d5d!important; }
+@media (max-width: 900px) {
+  html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-status-row { height: 44px; }
+  html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-status-row .zero-review-status { flex-basis: 44px; width: 44px; height: 44px; min-height: 44px; }
+  html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card:has(.customer-card-status-row) .customer-card-main { min-height: 88px!important; }
+}

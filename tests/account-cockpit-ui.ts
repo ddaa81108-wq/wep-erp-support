@@ -45,7 +45,18 @@ try {
     await appearance('03');
     assert.deepEqual(await cards(), baseline);
     await appearance('cockpit');
-    const activeBaseline = baseline;
+    const activeBaseline = await cards();
+    if (section === 'customers') {
+      // Ceramic is an intentional customer-only visual change. Retain exact
+      // identity, wording, numeric strings and font checks across appearances.
+      const content = (items: typeof baseline) => items.map(item => ({
+        id: item.id, text: item.text, amount: item.amount.map(({ text, font }) => ({ text, font })),
+      }));
+      assert.deepEqual(content(activeBaseline), content(baseline));
+      for (const [owner, color] of [['system', 'rgb(167, 37, 53)'], ['customer', 'rgb(18, 98, 71)'], ['zero', 'rgb(39, 45, 43)']]) {
+        await expect(page.locator(`.customer-card[data-balance-owner='${owner}']`).first().locator('.customer-balance-amount')).toHaveCSS('color', color);
+      }
+    } else assert.deepEqual(activeBaseline, baseline, 'Other sections retain their original cards');
     await expect(page.locator('.customer-card')).toHaveCount(activeBaseline.length);
     await expect(page.locator('.debt-ticker')).toBeHidden();
     await expect(page.locator('.cockpit-account-filters [role="tab"]')).toHaveCount(2);
