@@ -2,12 +2,11 @@
    Balance ownership, review handlers, assignments and other appearances stay unchanged. */
 html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers {
   --ceramic-paper: linear-gradient(135deg,#fff 20%,#fafaf7 55%,#eeece4);
-  --ceramic-edge: #c9a75a;
-  --ceramic-shadow: 0 7px 16px #403b281a,inset 0 2px 2px #fff,inset 0 -3px 7px #d3c69e66,inset 0 0 0 4px #e8d5a2,inset 0 0 0 6px #fff;
+  --ceramic-edge: #142943;
+  --ceramic-shadow: 0 7px 16px #14294320,inset 0 2px 2px #cbd4df,inset 0 -3px 7px #0e1e35aa,inset 0 0 0 4px #1b304b,inset 0 0 0 6px #fff;
 }
 html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers {
   --ceramic-paper: linear-gradient(135deg,#fafbf8 20%,#f1f2ec 60%,#e4e3da);
-  --ceramic-shadow: 0 7px 18px #0005,inset 0 2px 2px #fff,inset 0 -3px 7px #b6a16a55,inset 0 0 0 4px #cfb77c,inset 0 0 0 6px #f9f9f4;
 }
 html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-grid {
   grid-template-columns: repeat(auto-fill,minmax(min(180px,100%),1fr));

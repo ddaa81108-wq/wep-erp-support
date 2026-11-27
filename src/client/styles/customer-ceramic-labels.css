@@ -1,0 +1,13 @@
+/* Day and night: color the existing label without changing wording or assignments. */
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner] { --ceramic-state: #b1263b; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner='customer'] { --ceramic-state: #13724f; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner='zero'] { --ceramic-state: #353b40; }
+html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-card-main .customer-card-label {
+  justify-self: center;
+  max-width: 100%;
+  padding: 1px 10px;
+  border-radius: 7px;
+  background: var(--ceramic-state);
+  color: #fff!important;
+  line-height: 18px;
+}

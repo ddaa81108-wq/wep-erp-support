@@ -34,6 +34,8 @@ try {
   const count = await page.locator('.customer-card').count();
   const totals = await page.locator('.debt-total-card').textContent();
   const pin = page.locator('.pin-customer').first();
+  const originalLabels = await page.locator('.customer-card-label').allTextContents();
+  const assignmentPositions = new Map<number, { x: number; y: number; width: number; height: number }>();
   async function assertNoOverlap(context: string) {
     // Theme/viewport changes must finish painting before measuring CSS geometry.
     await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
@@ -58,18 +60,19 @@ try {
       await expect(page.locator('.customer-card')).toHaveCount(count);
       assert.equal(await page.locator('.debt-total-card').textContent(), totals);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 2), false, `Page fits ${theme}/${width}`);
-      for (const [owner, color, label, stateColor] of [['system', 'rgb(167, 37, 53)', 'دين', 'rgb(177, 38, 59)'], ['customer', 'rgb(18, 98, 71)', 'أمانة', 'rgb(19, 114, 79)'], ['zero', 'rgb(39, 45, 43)', 'صفر', 'rgb(53, 59, 64)']]) {
+      await expect(page.locator('.customer-balance-state')).toHaveCount(0);
+      assert.deepEqual(await page.locator('.customer-card-label').allTextContents(), originalLabels, 'Original balance/age wording retained without an extra label');
+      for (const [owner, color, stateColor] of [['system', 'rgb(167, 37, 53)', 'rgb(177, 38, 59)'], ['customer', 'rgb(18, 98, 71)', 'rgb(19, 114, 79)'], ['zero', 'rgb(39, 45, 43)', 'rgb(53, 59, 64)']]) {
         const card = page.locator(`.customer-card[data-balance-owner='${owner}']`).first();
         await expect(card.locator('.customer-balance-amount')).toHaveCSS('color', color);
+        await expect(card).toHaveCSS('border-top-color', 'rgb(20, 41, 67)');
+        assert.ok((await card.evaluate(el => getComputedStyle(el).boxShadow)).includes('rgb(27, 48, 75)'), 'Same navy frame in day and night');
         assert.ok((await card.evaluate(el => getComputedStyle(el).backgroundImage)).includes('linear-gradient'));
-        const state = card.locator('.customer-balance-state');
-        if (theme === 'dark') {
-          await expect(state).toBeVisible();
-          await expect(state).toHaveText(label);
-          await expect(state).toHaveCSS('color', 'rgb(255, 255, 255)');
-          await expect(state).toHaveCSS('background-color', stateColor);
-          assert.equal(await card.evaluate(el => getComputedStyle(el, '::after').backgroundColor), stateColor);
-        } else await expect(state).toBeHidden();
+        const state = card.locator('.customer-card-label');
+        await expect(state).toBeVisible();
+        await expect(state).toHaveCSS('color', 'rgb(255, 255, 255)');
+        await expect(state).toHaveCSS('background-color', stateColor);
+        assert.equal(await card.evaluate(el => getComputedStyle(el, '::after').display), 'none', 'No colored line above the ceramic card');
       }
       const review = page.locator('.zero-review-status.pending').first();
       const rect = await review.boundingBox();
@@ -80,10 +83,10 @@ try {
       const nameBox = await assigned.locator('.customer-name-line').boundingBox();
       const cardBox = await assigned.boundingBox();
       assert.ok(badgeBox && nameBox && cardBox && badgeBox.y + badgeBox.height <= nameBox.y && cardBox.height <= 150, `Assignment fits compact card: ${theme}/${width} ${JSON.stringify({badgeBox,nameBox,cardBox})}`);
-      if (theme === 'dark') {
-        const stateBox = await assigned.locator('.customer-balance-state').boundingBox();
-        assert.ok(stateBox && badgeBox && badgeBox.x + badgeBox.width <= stateBox.x, `Assignment and state do not overlap: ${width}`);
-      }
+      assert.ok(badgeBox && cardBox);
+      const placement = { x: badgeBox.x - cardBox.x, y: badgeBox.y - cardBox.y, width: badgeBox.width, height: badgeBox.height };
+      if (theme === 'light') assignmentPositions.set(width, placement);
+      else assert.deepEqual(placement, assignmentPositions.get(width), `Employee badge retains its daytime placement: ${width}`);
       await assertNoOverlap(`${theme}/${width}`);
       await page.screenshot({ path: `${output}/${theme}-${width}.png`, fullPage: true });
     }
@@ -113,7 +116,7 @@ try {
     await expect(appearance).toHaveAttribute('data-appearance', expected);
     if (expected !== 'cockpit') {
       await expect(pin).toBeVisible();
-      await expect(page.locator('.customer-balance-state').first()).toBeHidden();
+      await expect(page.locator('.customer-balance-state')).toHaveCount(0);
       assert.equal(await page.locator('.customer-card').first().evaluate(el => getComputedStyle(el).getPropertyValue('--ceramic-paper')), '');
     }
   }
