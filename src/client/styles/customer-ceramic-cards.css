@@ -34,6 +34,7 @@ html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .
   text-shadow: none!important;
 }
 html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card:has(.customer-card-status-row) .customer-card-main { padding-top: 0!important; min-height: 88px!important; }
+html:root[data-theme][data-royal-shell='cockpit'] body .workspace.section-customers[class] .customer-card .routing-select ~ .customer-card-main { padding-top: 40px!important; }
 html:root[data-theme][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-card-main :is(span,strong,b,small) {
   color: var(--ceramic-ink)!important;
   text-shadow: none!important;

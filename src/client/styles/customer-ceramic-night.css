@@ -1,0 +1,41 @@
+/* Approved night-only cues; no change to the daytime or other appearances. */
+.customer-balance-state { display: none; }
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner] { --ceramic-state: #b1263b; }
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner='customer'] { --ceramic-state: #13724f; }
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner='zero'] { --ceramic-state: #353b40; }
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers .customer-card[data-balance-owner]::after {
+  content: '';
+  display: block!important;
+  position: absolute;
+  inset: 7px 20px auto;
+  height: 4px;
+  z-index: 1;
+  border: 0;
+  border-radius: 5px;
+  background: var(--ceramic-state);
+  box-shadow: none;
+  mask: none;
+  pointer-events: none;
+}
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-card-main .customer-balance-state {
+  display: block;
+  position: absolute;
+  top: 15px;
+  right: 14px;
+  min-width: 54px;
+  padding: 1px 10px;
+  border-radius: 7px;
+  background: var(--ceramic-state);
+  color: #fff!important;
+  font-size: 10px;
+  line-height: 20px;
+  font-weight: 800;
+}
+/* Read-only and routing cards lack the separate status row. */
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers .customer-card .customer-card-main { padding-top: 40px!important; }
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers .customer-card:has(.customer-card-status-row) .customer-card-main { padding-top: 8px!important; }
+html:root[data-theme='dark'][data-royal-shell='cockpit'] .workspace.section-customers .customer-card-status-row .customer-assignee-badge {
+  max-width: calc(100% - 68px);
+  margin-inline-start: 68px;
+  margin-inline-end: 0;
+}

@@ -46,6 +46,7 @@ import './styles/white-gold-shell.css';
 import './styles/white-gold-sections.css';
 import './styles/white-gold-treasury.css';
 import './styles/customer-ceramic-cards.css';
+import './styles/customer-ceramic-night.css';
 
 let root: Root | undefined;
 startNumberInputGuard();
